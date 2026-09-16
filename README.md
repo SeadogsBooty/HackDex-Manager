@@ -38,7 +38,7 @@ You are responsible for supplying and managing your own game files.
 
 Clone the repository and enter the project directory:
 
-    git clone <repository-url>
+    git clone https://github.com/SeadogsBooty/HackDex-Manager.git
     cd hackdex-manager
 
 Create your local environment configuration:

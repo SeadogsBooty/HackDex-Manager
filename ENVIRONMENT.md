@@ -25,7 +25,7 @@ You only need to configure values that differ from the defaults.
 | `GB_HACK_PATH` | `./roms/gb-hacks` | No | Host directory for Game Boy ROM hacks. |
 | `GBC_HACK_PATH` | `./roms/gbc-hacks` | No | Host directory for Game Boy Color ROM hacks. |
 | `NDS_HACK_PATH` | `./roms/nds-hacks` | No | Host directory for Nintendo DS ROM hacks. |
-| `HACKDEX_IMAGE` | `hackdex-manager:local` | No | Docker image name/tag. The public release will use the published HackDex Manager image by default. |
+| `HACKDEX_IMAGE` | `hackdex-manager:local` | No | Docker image name/tag. Published images are available as `ghcr.io/seadogsbooty/hackdex-manager:<version>`. |
 
 ---
 

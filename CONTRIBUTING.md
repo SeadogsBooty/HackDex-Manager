@@ -20,7 +20,7 @@ Please:
 
 Clone the repository:
 
-    git clone <repository-url>
+    git clone https://github.com/SeadogsBooty/HackDex-Manager.git
     cd hackdex-manager
 
 Create a local environment file:
