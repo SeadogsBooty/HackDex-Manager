@@ -6,6 +6,12 @@ The project follows semantic versioning for public releases.
 
 ## [Unreleased]
 
+No unreleased changes yet.
+
+---
+
+## [0.9.0] - 2026-09-16
+
 ### Added
 
 - Public Docker deployment configuration
@@ -14,11 +20,13 @@ The project follows semantic versioning for public releases.
 - Built-in HackDex public provider configuration
 - Environment-variable documentation
 - Release privacy and secret audit tooling
+- SQLite-safe backup and validated restore utilities
 
 ### Changed
 
 - Docker Compose configuration generalized for portable deployments
 - HackDex provider configuration no longer requires normal users to supply provider credentials
+- Docker Compose now uses project-scoped container naming for multi-stack compatibility
 
 ### Security
 
@@ -26,6 +34,7 @@ The project follows semantic versioning for public releases.
 - Database and runtime files excluded from publication
 - Backup files excluded from Git and Docker build contexts
 - Public project and Docker image privacy scanning added
+- Public release audit sanitized so deployment-specific identifiers are not embedded in repository tooling
 
 ---
 
