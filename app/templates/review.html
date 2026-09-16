@@ -1,0 +1,3863 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+    Needs Review - HackDex Manager
+</title>
+
+<link
+    rel="stylesheet"
+    href="/static/hackdex-ui.css?v={{ app_version }}"
+>
+
+<script
+    src="/static/hackdex-ui.js?v={{ app_version }}"
+></script>
+
+</head>
+
+
+<body class="review-page hd-base-rom-page">
+
+<main class="hd-base-main">
+
+
+<header class="hd-base-header">
+
+    <div>
+
+        <div class="hd-dashboard-eyebrow">
+            MATCHING WORKFLOW
+        </div>
+
+        <h1>
+            Needs Review
+        </h1>
+
+        <p>
+            Resolve uncertain identities, unmatched ROMs,
+            and version differences without rescanning
+            your entire library.
+        </p>
+
+    </div>
+
+    <div
+        class="hd-base-result-count hd-review-queue"
+        id="queue-pill"
+    >
+        Loading queue…
+    </div>
+
+</header>
+
+
+<section class="hd-base-stats hd-review-summary-unified">
+
+    <button
+        type="button"
+        class="hd-base-stat active"
+        data-tab="ambiguous"
+    >
+        <strong id="ambiguous-count">
+            —
+        </strong>
+
+        <span>
+            Ambiguous
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        class="hd-base-stat"
+        data-tab="unmatched"
+    >
+        <strong id="unmatched-count">
+            —
+        </strong>
+
+        <span>
+            Unmatched
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        class="hd-base-stat"
+        data-tab="version"
+    >
+        <strong id="version-count">
+            —
+        </strong>
+
+        <span>
+            Version Review
+        </span>
+    </button>
+
+
+    <button
+        type="button"
+        class="hd-base-stat"
+        data-tab="resolved"
+    >
+        <strong id="resolved-count">
+            —
+        </strong>
+
+        <span>
+            Resolved
+        </span>
+    </button>
+
+</section>
+
+
+<section class="hd-base-filter-row hd-review-filter-row">
+
+    <div class="hd-base-tabs hd-review-tabs">
+
+        <button
+            type="button"
+            class="active"
+            data-tab="ambiguous"
+        >
+            Ambiguous
+        </button>
+
+        <button
+            type="button"
+            data-tab="unmatched"
+        >
+            Unmatched
+        </button>
+
+        <button
+            type="button"
+            data-tab="version"
+        >
+            Version Review
+        </button>
+
+        <button
+            type="button"
+            data-tab="resolved"
+        >
+            Resolved
+        </button>
+
+    </div>
+
+
+    <div class="hd-review-filter-controls">
+
+        <input
+            id="search"
+            type="search"
+            placeholder="Search ROMs or HackDex..."
+        >
+
+        <select id="platform">
+
+            <option value="">
+                All Systems
+            </option>
+
+        </select>
+
+        <select id="sort">
+
+            <option value="confidence">
+                Confidence ↓
+            </option>
+
+            <option value="title">
+                Title A–Z
+            </option>
+
+            <option value="title-desc">
+                Title Z–A
+            </option>
+
+            <option value="recent">
+                Most Recent
+            </option>
+
+        </select>
+
+    </div>
+
+</section>
+
+
+<div
+    id="message"
+    class="hdw-message"
+    hidden
+></div>
+
+
+<section class="hd-base-browser">
+
+    <header class="hd-base-browser-header">
+
+        <div>
+
+            <div class="hdw-kicker">
+                REVIEW WORKSTATION
+            </div>
+
+            <h2 id="section-title">
+                Ambiguous Matches
+            </h2>
+
+            <p id="section-description">
+                Review candidates that are plausible but
+                not safe to confirm automatically.
+            </p>
+
+        </div>
+
+        <span class="hd-base-result-count" id="shown-count">
+            —
+        </span>
+
+    </header>
+
+
+    <div
+        id="workstation-items"
+        class="hd-review-unified-list"
+    >
+
+        <div class="hdw-loading">
+            Loading review queue…
+        </div>
+
+    </div>
+
+</section>
+
+
+</main>
+
+
+<div
+    id="hack-picker"
+    class="hdw-modal"
+    hidden
+>
+
+    <div class="hdw-modal-panel">
+
+        <header class="hdw-modal-header">
+
+            <div>
+
+                <div class="hdw-kicker">
+                    CHOOSE DIFFERENT HACK
+                </div>
+
+                <h2 id="picker-rom-title">
+                    Choose HackDex Match
+                </h2>
+
+            </div>
+
+            <button
+                type="button"
+                class="hdw-modal-close"
+                data-action="close-picker"
+                aria-label="Close"
+            >
+                ×
+            </button>
+
+        </header>
+
+
+        <div class="hdw-picker-section">
+
+            <div class="hdw-picker-heading">
+
+                <div>
+
+                    <h3>
+                        Ranked Candidates
+                    </h3>
+
+                    <p>
+                        Ranked by the same identity engine
+                        used by automatic matching.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div
+                id="picker-ranked"
+                class="hdw-picker-results"
+            ></div>
+
+        </div>
+
+
+        <div class="hdw-picker-section">
+
+            <div class="hdw-picker-heading">
+
+                <div>
+
+                    <h3>
+                        Search Full HackDex Catalog
+                    </h3>
+
+                    <p>
+                        Use this when none of the ranked
+                        candidates are correct.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <input
+                id="picker-search"
+                class="hdw-picker-search"
+                type="search"
+                placeholder="Search title, platform, base ROM, version..."
+            >
+
+            <div
+                id="picker-search-results"
+                class="hdw-picker-results"
+            >
+
+                <div class="hdw-muted">
+                    Type to search the full HackDex catalog.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let reviewData = {
+    summary: {},
+    ambiguous: [],
+    unmatched: [],
+    version_review: [],
+    resolved: [],
+};
+
+let activeTab = "ambiguous";
+
+let candidateCache =
+    new Map();
+
+let allHacks =
+    null;
+
+let pickerRomId =
+    null;
+
+let pickerLocal =
+    null;
+
+
+function esc(value) {
+
+    return String(
+        value ?? ""
+    )
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+function formatBytes(value) {
+
+    const bytes =
+        Number(
+            value || 0
+        );
+
+    if (!bytes) {
+        return "—";
+    }
+
+    const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB",
+    ];
+
+    let number =
+        bytes;
+
+    let index =
+        0;
+
+    while (
+        number >= 1024
+        && index < units.length - 1
+    ) {
+        number /= 1024;
+        index += 1;
+    }
+
+    return (
+        `${number.toFixed(
+            index ? 1 : 0
+        )} ${units[index]}`
+    );
+}
+
+
+function artwork(
+    url,
+    title,
+) {
+
+    if (!url) {
+
+        return `
+            <div class="hdw-art-placeholder">
+
+                <span>
+                    HackDex
+                </span>
+
+                ${esc(title)}
+
+            </div>
+        `;
+    }
+
+
+    return `
+        <div class="hdw-art-wrap">
+
+            <img
+                class="hdw-art"
+                src="${esc(url)}"
+                alt="${esc(title)}"
+                loading="lazy"
+                onerror="
+                    this.style.display='none';
+                    this.nextElementSibling
+                        .style.display='flex';
+                "
+            >
+
+            <div
+                class="hdw-art-placeholder"
+                style="display:none"
+            >
+                <span>
+                    HackDex
+                </span>
+
+                ${esc(title)}
+            </div>
+
+        </div>
+    `;
+}
+
+
+async function fetchJson(
+    url,
+    options = {},
+) {
+
+    const response =
+        await fetch(
+            url,
+            options,
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `HTTP ${response.status}`
+        );
+    }
+
+    const data =
+        await response.json();
+
+    if (
+        data
+        && data.success === false
+    ) {
+        throw new Error(
+            data.message
+            || "Request failed."
+        );
+    }
+
+    return data;
+}
+
+
+function showMessage(
+    message,
+    kind = "success",
+) {
+
+    const host =
+        document.getElementById(
+            "message"
+        );
+
+    host.textContent =
+        message;
+
+    host.className =
+        `hdw-message ${kind}`;
+
+    host.hidden =
+        false;
+
+
+    window.clearTimeout(
+        showMessage.timer
+    );
+
+    showMessage.timer =
+        window.setTimeout(
+            () => {
+                host.hidden = true;
+            },
+            5000,
+        );
+}
+
+
+function localTitle(item) {
+
+    return (
+        item?.local?.local_title
+        || item?.local_title
+        || item?.filename
+        || "Unknown ROM"
+    );
+}
+
+
+function itemPlatform(item) {
+
+    return (
+        item?.local?.platform
+        || item?.platform
+        || ""
+    );
+}
+
+
+function getItems() {
+
+    if (
+        activeTab === "ambiguous"
+    ) {
+        return (
+            reviewData.ambiguous
+            || []
+        );
+    }
+
+    if (
+        activeTab === "unmatched"
+    ) {
+        return (
+            reviewData.unmatched
+            || []
+        );
+    }
+
+    if (
+        activeTab === "version"
+    ) {
+        return (
+            reviewData.version_review
+            || []
+        );
+    }
+
+    if (
+        activeTab === "resolved"
+    ) {
+        return (
+            reviewData.resolved
+            || []
+        );
+    }
+
+    return [];
+}
+
+
+function itemSearchText(item) {
+
+    const candidate =
+        item.candidate
+        || {};
+
+    const local =
+        item.local
+        || {};
+
+
+    return [
+        localTitle(item),
+        local.filename,
+        local.path,
+        local.library,
+        local.variant,
+        local.installed_version,
+
+        item.suggested_title,
+        item.hack_title,
+        item.remote_version,
+
+        candidate.title,
+        candidate.slug,
+        candidate.author,
+        candidate.base_rom,
+        candidate.latest_version,
+
+        item.decision,
+        item.resolution_type,
+    ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+}
+
+
+function filteredItems() {
+
+    const query =
+        document
+            .getElementById(
+                "search"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    const platform =
+        document
+            .getElementById(
+                "platform"
+            )
+            .value;
+
+
+    const sort =
+        document
+            .getElementById(
+                "sort"
+            )
+            .value;
+
+
+    const items =
+        getItems()
+            .filter(
+                item => {
+
+                    if (
+                        platform
+                        && itemPlatform(item)
+                            !== platform
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        query
+                        && !itemSearchText(
+                            item
+                        ).includes(
+                            query
+                        )
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            );
+
+
+    items.sort(
+        (
+            first,
+            second,
+        ) => {
+
+            if (
+                sort === "title"
+            ) {
+                return (
+                    localTitle(first)
+                        .localeCompare(
+                            localTitle(
+                                second
+                            )
+                        )
+                );
+            }
+
+
+            if (
+                sort === "title-desc"
+            ) {
+                return (
+                    localTitle(second)
+                        .localeCompare(
+                            localTitle(
+                                first
+                            )
+                        )
+                );
+            }
+
+
+            if (
+                sort === "recent"
+            ) {
+                return String(
+                    second.resolved_at
+                    || ""
+                ).localeCompare(
+                    String(
+                        first.resolved_at
+                        || ""
+                    )
+                );
+            }
+
+
+            const firstScore =
+                Number(
+                    first.match_score
+                    ?? first
+                        .match_reasons
+                        ?.score
+                    ?? 0
+                );
+
+
+            const secondScore =
+                Number(
+                    second.match_score
+                    ?? second
+                        .match_reasons
+                        ?.score
+                    ?? 0
+                );
+
+
+            return (
+                secondScore
+                - firstScore
+                || localTitle(
+                    first
+                ).localeCompare(
+                    localTitle(
+                        second
+                    )
+                )
+            );
+        }
+    );
+
+
+    return items;
+}
+
+
+function updateSummary() {
+
+    const summary =
+        reviewData.summary
+        || {};
+
+
+    document
+        .getElementById(
+            "ambiguous-count"
+        )
+        .textContent =
+            summary.ambiguous
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "unmatched-count"
+        )
+        .textContent =
+            summary.unmatched
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "version-count"
+        )
+        .textContent =
+            summary.version_review
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "resolved-count"
+        )
+        .textContent =
+            summary.resolved
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "queue-pill"
+        )
+        .textContent =
+            `${
+                summary.total
+                ?? 0
+            } reviews · ${
+                summary.unmatched
+                ?? 0
+            } unmatched`;
+}
+
+
+function populatePlatforms() {
+
+    const select =
+        document.getElementById(
+            "platform"
+        );
+
+    const current =
+        select.value;
+
+    const values =
+        new Set();
+
+
+    [
+        ...(
+            reviewData.ambiguous
+            || []
+        ),
+
+        ...(
+            reviewData.unmatched
+            || []
+        ),
+
+        ...(
+            reviewData.version_review
+            || []
+        ),
+
+        ...(
+            reviewData.resolved
+            || []
+        ),
+    ]
+        .forEach(
+            item => {
+
+                const platform =
+                    itemPlatform(
+                        item
+                    );
+
+                if (platform) {
+                    values.add(
+                        platform
+                    );
+                }
+            }
+        );
+
+
+    select.innerHTML =
+        `
+        <option value="">
+            All Systems
+        </option>
+        `
+        + [
+            ...values
+        ]
+            .sort()
+            .map(
+                platform => `
+                    <option
+                        value="${esc(platform)}"
+                    >
+                        ${esc(platform)}
+                    </option>
+                `
+            )
+            .join("");
+
+
+    if (
+        [
+            ...values
+        ].includes(
+            current
+        )
+    ) {
+        select.value =
+            current;
+    }
+}
+
+
+function signalMarkup(
+    signal,
+) {
+
+    return `
+        <span
+            class="
+                hdw-signal
+                ${esc(
+                    signal.type
+                    || "review"
+                )}
+            "
+        >
+            ${esc(
+                signal.label
+                || ""
+            )}
+        </span>
+    `;
+}
+
+
+function reasonsMarkup(
+    reasons,
+) {
+
+    const signals =
+        reasons?.signals
+        || [];
+
+
+    if (!signals.length) {
+
+        return `
+            <div class="hdw-reasons-empty">
+                No additional match signals
+                were recorded.
+            </div>
+        `;
+    }
+
+
+    return `
+        <div class="hdw-reasons">
+
+            ${
+                signals
+                    .map(
+                        signalMarkup
+                    )
+                    .join("")
+            }
+
+        </div>
+    `;
+}
+
+
+function localPanel(local) {
+
+    return `
+        <section
+            class="
+                hdw-side
+                hdw-local
+            "
+        >
+
+            <div class="hdw-side-label">
+                LOCAL ROM
+            </div>
+
+            <h3>
+                ${esc(
+                    local.local_title
+                    || local.filename
+                )}
+            </h3>
+
+
+            <div class="hdw-meta-grid">
+
+                <span>
+                    <b>Platform</b>
+                    ${esc(
+                        local.platform
+                        || "—"
+                    )}
+                </span>
+
+                <span>
+                    <b>Version</b>
+                    ${esc(
+                        local.installed_version
+                        || "Unknown"
+                    )}
+                </span>
+
+                <span>
+                    <b>Variant</b>
+                    ${esc(
+                        local.variant
+                        || "—"
+                    )}
+                </span>
+
+                <span>
+                    <b>Library</b>
+                    ${esc(
+                        local.library
+                        || "—"
+                    )}
+                </span>
+
+            </div>
+
+
+            <div class="hdw-filename">
+                ${esc(
+                    local.filename
+                    || ""
+                )}
+            </div>
+
+
+            <details class="hdw-tech">
+
+                <summary>
+                    Technical details
+                </summary>
+
+                <dl>
+
+                    <dt>
+                        Path
+                    </dt>
+
+                    <dd>
+                        ${esc(
+                            local.path
+                            || "—"
+                        )}
+                    </dd>
+
+
+                    <dt>
+                        Size
+                    </dt>
+
+                    <dd>
+                        ${esc(
+                            formatBytes(
+                                local.size
+                            )
+                        )}
+                    </dd>
+
+
+                    <dt>
+                        SHA-1
+                    </dt>
+
+                    <dd>
+                        ${esc(
+                            local.sha1
+                            || "—"
+                        )}
+                    </dd>
+
+
+                    <dt>
+                        SHA-256
+                    </dt>
+
+                    <dd>
+                        ${esc(
+                            local.sha256
+                            || "—"
+                        )}
+                    </dd>
+
+                </dl>
+
+            </details>
+
+        </section>
+    `;
+}
+
+
+function candidatePanel(
+    candidate,
+    score,
+    reasons,
+) {
+
+    const confidence =
+        reasons?.confidence
+        || "review";
+
+
+    return `
+        <section
+            class="
+                hdw-side
+                hdw-candidate
+            "
+        >
+
+            <div class="hdw-side-label">
+                BEST HACKDEX CANDIDATE
+            </div>
+
+
+            <div class="hdw-candidate-main">
+
+                ${artwork(
+                    candidate.cover_url,
+                    candidate.title
+                )}
+
+
+                <div class="hdw-candidate-copy">
+
+                    <h3>
+                        ${esc(
+                            candidate.title
+                            || "Unknown HackDex entry"
+                        )}
+                    </h3>
+
+
+                    ${
+                        candidate.author
+                        ? `
+                            <p class="hdw-author">
+                                by ${esc(
+                                    candidate.author
+                                )}
+                            </p>
+                        `
+                        : ""
+                    }
+
+
+                    <div class="hdw-meta-grid">
+
+                        <span>
+                            <b>Platform</b>
+
+                            ${esc(
+                                candidate.platform
+                                || "—"
+                            )}
+                        </span>
+
+                        <span>
+                            <b>Latest</b>
+
+                            ${esc(
+                                candidate.latest_version
+                                || "Unknown"
+                            )}
+                        </span>
+
+                        <span>
+                            <b>Base ROM</b>
+
+                            ${esc(
+                                candidate.base_rom
+                                || "—"
+                            )}
+                        </span>
+
+                        <span>
+                            <b>Status</b>
+
+                            ${esc(
+                                candidate.completion_status
+                                || "—"
+                            )}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        hdw-score
+                        ${esc(confidence)}
+                    "
+                >
+
+                    <strong>
+                        ${Number(
+                            score
+                            || 0
+                        ).toFixed(2)}%
+                    </strong>
+
+                    <span>
+                        identity confidence
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            ${
+                candidate.summary
+                ? `
+                    <p class="hdw-summary">
+                        ${esc(
+                            candidate.summary
+                        )}
+                    </p>
+                `
+                : ""
+            }
+
+        </section>
+    `;
+}
+
+
+function renderAmbiguous(item) {
+
+    const local =
+        item.local
+        || {};
+
+    const candidate =
+        item.candidate
+        || {};
+
+    const reasons =
+        item.match_reasons
+        || {};
+
+    const signals =
+        reasons.signals
+        || [];
+
+    const romId =
+        item.rom_id;
+
+    const localName =
+        local.local_title
+        || local.filename
+        || "Unknown ROM";
+
+    const candidateName =
+        candidate.title
+        || "Unknown HackDex entry";
+
+    const confidence =
+        Number(
+            item.match_score
+            || 0
+        ).toFixed(2);
+
+
+    return `
+        <article
+            class="
+                hd-base-card
+                hd-review-grid-card
+            "
+            data-rom-id="${romId}"
+        >
+
+
+            <!-- ====================================
+                 HEADER
+                 ==================================== -->
+
+            <div class="hd-base-card-chips">
+
+                <span class="hd-base-platform">
+                    AMBIGUOUS
+                </span>
+
+                ${
+                    local.platform
+                    ? `
+                        <span class="hd-base-region">
+                            ${esc(local.platform)}
+                        </span>
+                    `
+                    : ""
+                }
+
+                <span
+                    class="
+                        hd-base-state
+                        hd-review-confidence-chip
+                    "
+                >
+                    ${confidence}%
+                </span>
+
+            </div>
+
+
+            <!-- ====================================
+                 LOCAL ROM
+                 ==================================== -->
+
+            <section class="hd-review-grid-identity">
+
+                <div class="hd-review-grid-local-art">
+
+                    <span>
+                        LOCAL
+                    </span>
+
+                    <strong>
+                        ${esc(
+                            local.platform
+                            || "ROM"
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-grid-copy">
+
+                    <div class="hd-review-grid-label">
+                        YOUR ROM
+                    </div>
+
+                    <h3>
+                        ${esc(localName)}
+                    </h3>
+
+
+                    <div class="hd-review-grid-meta">
+
+                        <span>
+                            Version
+                            <b>
+                                ${esc(
+                                    local.installed_version
+                                    || "Unknown"
+                                )}
+                            </b>
+                        </span>
+
+                        ${
+                            local.variant
+                            ? `
+                                <span>
+                                    Variant
+                                    <b>
+                                        ${esc(
+                                            local.variant
+                                        )}
+                                    </b>
+                                </span>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            local.library
+                            ? `
+                                <span>
+                                    Library
+                                    <b>
+                                        ${esc(
+                                            local.library
+                                        )}
+                                    </b>
+                                </span>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+
+                    <div class="hd-review-grid-filename">
+                        ${esc(
+                            local.filename
+                            || ""
+                        )}
+                    </div>
+
+
+                    <details class="hd-review-grid-details">
+
+                            <summary>
+                                Technical details
+                            </summary>
+
+                            <div class="hd-review-tech-grid">
+
+                                <div class="wide">
+
+                                    <span>
+                                        PATH
+                                    </span>
+
+                                    <code>
+                                        ${esc(
+                                            local.path
+                                            || "—"
+                                        )}
+                                    </code>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        SIZE
+                                    </span>
+
+                                    <code>
+                                        ${esc(
+                                            formatBytes(
+                                                local.size
+                                            )
+                                        )}
+                                    </code>
+
+                                </div>
+
+
+                                <div>
+
+                                    <span>
+                                        SHA-1
+                                    </span>
+
+                                    <code>
+                                        ${esc(
+                                            local.sha1
+                                            || "—"
+                                        )}
+                                    </code>
+
+                                </div>
+
+                            </div>
+
+                        </details>
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================
+                 CONNECTOR
+                 ==================================== -->
+
+            <div class="hd-review-grid-connector">
+
+                <span></span>
+
+                <strong>
+                    ↓
+                </strong>
+
+                <span></span>
+
+            </div>
+
+
+            <!-- ====================================
+                 HACKDEX CANDIDATE
+                 ==================================== -->
+
+            <section
+                class="
+                    hd-review-grid-identity
+                    candidate
+                "
+            >
+
+                <div
+                    class="
+                        hd-base-art
+                        hd-review-grid-cover
+                    "
+                >
+
+                    ${
+                        candidate.cover_url
+                        ? `
+                            <img
+                                src="${esc(
+                                    candidate.cover_url
+                                )}"
+                                alt="${esc(
+                                    candidateName
+                                )} cover"
+                                loading="lazy"
+
+                                onerror="
+                                    this.style.display='none';
+                                    this.nextElementSibling
+                                        .style.display='flex';
+                                "
+                            >
+                        `
+                        : ""
+                    }
+
+
+                    <div
+                        class="hd-base-art-fallback"
+                        style="${
+                            candidate.cover_url
+                            ? "display:none"
+                            : "display:flex"
+                        }"
+                    >
+                        <span>
+                            HACKDEX
+                        </span>
+
+                        <strong>
+                            ${esc(
+                                candidate.platform
+                                || "ROM"
+                            )}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="hd-review-grid-copy">
+
+                    <div class="hd-review-grid-label">
+                        PROPOSED HACKDEX MATCH
+                    </div>
+
+                    <h3>
+                        ${esc(candidateName)}
+                    </h3>
+
+
+                    ${
+                        candidate.author
+                        ? `
+                            <div class="hd-review-grid-author">
+                                by ${esc(
+                                    candidate.author
+                                )}
+                            </div>
+                        `
+                        : ""
+                    }
+
+
+                    <div class="hd-review-grid-meta">
+
+                        <span>
+                            Latest
+                            <b>
+                                ${esc(
+                                    candidate.latest_version
+                                    || "Unknown"
+                                )}
+                            </b>
+                        </span>
+
+                        <span>
+                            Status
+                            <b>
+                                ${esc(
+                                    candidate.completion_status
+                                    || "—"
+                                )}
+                            </b>
+                        </span>
+
+                        <span>
+                            Base ROM
+                            <b>
+                                ${esc(
+                                    candidate.base_rom
+                                    || "—"
+                                )}
+                            </b>
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================
+                 WHY REVIEW
+                 ==================================== -->
+
+            <section class="hd-review-grid-reasons">
+
+                <strong>
+                    Why this needs review
+                </strong>
+
+
+                <div>
+
+                    ${
+                        signals.length
+                        ? signals
+                            .map(
+                                signal => `
+                                    <span
+                                        class="
+                                            hd-review-grid-reason
+                                            ${esc(
+                                                signal.type
+                                                || "review"
+                                            )}
+                                        "
+                                    >
+                                        ${esc(
+                                            signal.label
+                                            || ""
+                                        )}
+                                    </span>
+                                `
+                            )
+                            .join("")
+                        : `
+                            <span
+                                class="
+                                    hd-review-grid-reason
+                                    review
+                                "
+                            >
+                                HackDex Manager could not
+                                safely confirm this identity.
+                            </span>
+                        `
+                    }
+
+                </div>
+
+            </section>
+
+
+            <!-- ====================================
+                 DECISION
+                 ==================================== -->
+
+            <footer class="hd-review-grid-footer">
+
+                <div class="hd-review-grid-confirm">
+
+                    <span>
+                        CONFIRM
+                    </span>
+
+                    <strong>
+                        ${esc(localName)}
+                    </strong>
+
+                    <b>
+                        →
+                    </b>
+
+                    <strong>
+                        ${esc(candidateName)}
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-grid-actions">
+
+                    <button
+                        type="button"
+                        class="
+                            hdw-btn
+                            primary
+                            hd-review-grid-confirm-button
+                        "
+                        data-action="confirm"
+                        data-rom-id="${romId}"
+                    >
+                        Confirm This Match
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="hdw-btn"
+                        data-action="choose"
+                        data-rom-id="${romId}"
+                    >
+                        Choose Different
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="hdw-btn danger"
+                        data-action="reject"
+                        data-rom-id="${romId}"
+                    >
+                        Reject
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="hdw-btn quiet"
+                        data-action="ignore"
+                        data-rom-id="${romId}"
+                    >
+                        Ignore
+                    </button>
+
+                </div>
+
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function renderUnmatched(item) {
+
+    const local =
+        item.local
+        || item
+        || {};
+
+    const romId =
+        item.rom_id
+        || local.id;
+
+    const localName =
+        local.local_title
+        || item.local_title
+        || local.filename
+        || "Unknown ROM";
+
+
+    return `
+        <article
+            class="
+                hd-base-card
+                hd-review-grid-card
+                hd-review-unmatched-card-v2
+            "
+            data-rom-id="${romId}"
+        >
+
+            <div class="hd-base-card-chips">
+
+                <span class="hd-base-platform">
+                    UNMATCHED
+                </span>
+
+                ${
+                    local.platform
+                    ? `
+                        <span class="hd-base-region">
+                            ${esc(
+                                local.platform
+                            )}
+                        </span>
+                    `
+                    : ""
+                }
+
+                <span
+                    class="
+                        hd-base-state
+                        hd-review-unmatched-state
+                    "
+                >
+                    NO MATCH
+                </span>
+
+            </div>
+
+
+            <section
+                class="
+                    hd-review-grid-identity
+                    hd-review-unmatched-local
+                "
+            >
+
+                <div class="hd-review-grid-local-art">
+
+                    <span>
+                        LOCAL
+                    </span>
+
+                    <strong>
+                        ${esc(
+                            local.platform
+                            || "ROM"
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-grid-copy">
+
+                    <div class="hd-review-grid-label">
+                        YOUR ROM
+                    </div>
+
+                    <h3>
+                        ${esc(localName)}
+                    </h3>
+
+
+                    <div class="hd-review-grid-meta">
+
+                        <span>
+                            Version
+                            <b>
+                                ${esc(
+                                    local.installed_version
+                                    || "Unknown"
+                                )}
+                            </b>
+                        </span>
+
+                        ${
+                            local.variant
+                            ? `
+                                <span>
+                                    Variant
+                                    <b>
+                                        ${esc(
+                                            local.variant
+                                        )}
+                                    </b>
+                                </span>
+                            `
+                            : ""
+                        }
+
+                        ${
+                            local.library
+                            ? `
+                                <span>
+                                    Library
+                                    <b>
+                                        ${esc(
+                                            local.library
+                                        )}
+                                    </b>
+                                </span>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+
+                    <div class="hd-review-grid-filename">
+                        ${esc(
+                            local.filename
+                            || ""
+                        )}
+                    </div>
+
+
+                    <details class="hd-review-grid-details">
+
+                        <summary>
+                            Technical details
+                        </summary>
+
+                        <div class="hd-review-tech-grid">
+
+                            <div class="wide">
+
+                                <span>
+                                    PATH
+                                </span>
+
+                                <code>
+                                    ${esc(
+                                        local.path
+                                        || "—"
+                                    )}
+                                </code>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    SIZE
+                                </span>
+
+                                <code>
+                                    ${esc(
+                                        formatBytes(
+                                            local.size
+                                        )
+                                    )}
+                                </code>
+
+                            </div>
+
+
+                            <div>
+
+                                <span>
+                                    SHA-1
+                                </span>
+
+                                <code>
+                                    ${esc(
+                                        local.sha1
+                                        || "—"
+                                    )}
+                                </code>
+
+                            </div>
+
+                        </div>
+
+                    </details>
+
+                </div>
+
+            </section>
+
+
+            <section class="hd-review-unmatched-empty">
+
+                <div class="hd-review-unmatched-icon">
+                    ?
+                </div>
+
+                <div>
+
+                    <strong>
+                        No confident HackDex match
+                    </strong>
+
+                    <p>
+                        The identity engine did not find a
+                        candidate strong enough for manual
+                        review. You can search HackDex
+                        directly or intentionally ignore
+                        this ROM.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <footer
+                class="
+                    hd-review-grid-footer
+                    hd-review-simple-footer
+                "
+            >
+
+                <div class="hd-review-grid-confirm">
+
+                    <span>
+                        NEXT STEP
+                    </span>
+
+                    <strong>
+                        Find the correct HackDex entry
+                        or mark this ROM ignored.
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-grid-actions">
+
+                    <button
+                        type="button"
+                        class="
+                            hdw-btn
+                            primary
+                        "
+                        data-action="choose"
+                        data-rom-id="${romId}"
+                    >
+                        Choose HackDex Match
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="
+                            hdw-btn
+                            quiet
+                        "
+                        data-action="ignore"
+                        data-rom-id="${romId}"
+                    >
+                        Ignore ROM
+                    </button>
+
+                </div>
+
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function renderVersion(item) {
+
+    const local =
+        item.local
+        || {};
+
+    const candidate =
+        item.candidate
+        || {};
+
+    const reason =
+        item.version_reason
+        || {};
+
+    const romId =
+        item.rom_id;
+
+    const localName =
+        local.local_title
+        || item.local_title
+        || local.filename
+        || "Unknown ROM";
+
+    const candidateName =
+        candidate.title
+        || item.hack_title
+        || "Unknown HackDex entry";
+
+
+    return `
+        <article
+            class="
+                hd-base-card
+                hd-review-grid-card
+                hd-review-version-card-v2
+            "
+            data-rom-id="${romId}"
+        >
+
+            <div class="hd-base-card-chips">
+
+                <span class="hd-base-platform">
+                    VERSION REVIEW
+                </span>
+
+                ${
+                    local.platform
+                    ? `
+                        <span class="hd-base-region">
+                            ${esc(
+                                local.platform
+                            )}
+                        </span>
+                    `
+                    : ""
+                }
+
+                <span
+                    class="
+                        hd-base-state
+                        hd-review-version-state
+                    "
+                >
+                    ${esc(
+                        item.status
+                        || "REVIEW"
+                    )}
+                </span>
+
+            </div>
+
+
+            <section class="hd-review-version-game">
+
+                <div
+                    class="
+                        hd-base-art
+                        hd-review-version-cover
+                    "
+                >
+
+                    ${
+                        candidate.cover_url
+                        ? `
+                            <img
+                                src="${esc(
+                                    candidate.cover_url
+                                )}"
+                                alt="${esc(
+                                    candidateName
+                                )} cover"
+                                loading="lazy"
+
+                                onerror="
+                                    this.style.display='none';
+                                    this.nextElementSibling
+                                        .style.display='flex';
+                                "
+                            >
+                        `
+                        : ""
+                    }
+
+
+                    <div
+                        class="hd-base-art-fallback"
+                        style="${
+                            candidate.cover_url
+                            ? "display:none"
+                            : "display:flex"
+                        }"
+                    >
+                        <span>
+                            HACKDEX
+                        </span>
+
+                        <strong>
+                            ${esc(
+                                candidate.platform
+                                || local.platform
+                                || "ROM"
+                            )}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <div class="hd-review-grid-label">
+                        CONFIRMED IDENTITY
+                    </div>
+
+                    <h3>
+                        ${esc(candidateName)}
+                    </h3>
+
+                    <div class="hd-review-version-local-name">
+                        Local:
+                        ${esc(localName)}
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <section class="hd-review-version-compare-v2">
+
+                <div class="hd-review-version-value">
+
+                    <span>
+                        INSTALLED
+                    </span>
+
+                    <strong>
+                        ${esc(
+                            item.installed_version
+                            || "Unknown"
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-version-arrow-v2">
+                    ⇄
+                </div>
+
+
+                <div class="hd-review-version-value">
+
+                    <span>
+                        HACKDEX
+                    </span>
+
+                    <strong>
+                        ${esc(
+                            item.remote_version
+                            || "Unknown"
+                        )}
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+            <section class="hd-review-version-explanation">
+
+                <strong>
+                    Why this needs review
+                </strong>
+
+                <p>
+                    ${esc(
+                        reason.label
+                        || (
+                            "HackDex Manager cannot safely "
+                            + "determine which version should "
+                            + "be considered current."
+                        )
+                    )}
+                </p>
+
+            </section>
+
+
+            <footer class="hd-review-version-actions-v2">
+
+                <button
+                    type="button"
+                    class="hdw-btn"
+                    data-action="version"
+                    data-decision="CURRENT"
+                    data-rom-id="${romId}"
+                >
+                    Local is Current
+                </button>
+
+
+                <button
+                    type="button"
+                    class="
+                        hdw-btn
+                        primary
+                    "
+                    data-action="version"
+                    data-decision="REMOTE_NEWER"
+                    data-rom-id="${romId}"
+                >
+                    Remote is Newer
+                </button>
+
+
+                <button
+                    type="button"
+                    class="hdw-btn"
+                    data-action="version"
+                    data-decision="LOCAL_NEWER"
+                    data-rom-id="${romId}"
+                >
+                    Local is Newer
+                </button>
+
+
+                <button
+                    type="button"
+                    class="
+                        hdw-btn
+                        quiet
+                    "
+                    data-action="version"
+                    data-decision="IGNORE"
+                    data-rom-id="${romId}"
+                >
+                    Ignore Difference
+                </button>
+
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function renderResolved(item) {
+
+    const local =
+        item.local
+        || {};
+
+    const candidate =
+        item.candidate
+        || null;
+
+    const romId =
+        item.rom_id;
+
+    const localName =
+        local.local_title
+        || local.filename
+        || "Unknown ROM";
+
+    const candidateName =
+        candidate?.title
+        || null;
+
+    const when =
+        item.resolved_at
+        ? new Date(
+            item.resolved_at
+        ).toLocaleString()
+        : "Unknown time";
+
+    const isIgnored =
+        item.decision === "IGNORED";
+
+    const isVersion =
+        item.resolution_type === "VERSION";
+
+
+    return `
+        <article
+            class="
+                hd-base-card
+                hd-review-grid-card
+                hd-review-resolved-card-v2
+            "
+            data-rom-id="${romId}"
+        >
+
+            <div class="hd-base-card-chips">
+
+                <span class="hd-base-platform">
+                    RESOLVED
+                </span>
+
+                ${
+                    local.platform
+                    ? `
+                        <span class="hd-base-region">
+                            ${esc(
+                                local.platform
+                            )}
+                        </span>
+                    `
+                    : ""
+                }
+
+                <span
+                    class="
+                        hd-base-state
+                        hd-review-resolved-state
+                    "
+                >
+                    ${esc(
+                        item.decision
+                        || "RESOLVED"
+                    )}
+                </span>
+
+            </div>
+
+
+            <section class="hd-review-resolved-main">
+
+                <div class="hd-review-resolved-local">
+
+                    <div class="hd-review-grid-label">
+                        LOCAL ROM
+                    </div>
+
+                    <h3>
+                        ${esc(localName)}
+                    </h3>
+
+                    <div class="hd-review-grid-filename">
+                        ${esc(
+                            local.filename
+                            || ""
+                        )}
+                    </div>
+
+                </div>
+
+
+                ${
+                    candidate
+                    ? `
+                        <div class="hd-review-resolved-arrow">
+                            →
+                        </div>
+
+
+                        <div class="hd-review-resolved-candidate">
+
+                            <div
+                                class="
+                                    hd-base-art
+                                    hd-review-resolved-cover
+                                "
+                            >
+
+                                ${
+                                    candidate.cover_url
+                                    ? `
+                                        <img
+                                            src="${esc(
+                                                candidate.cover_url
+                                            )}"
+                                            alt="${esc(
+                                                candidateName
+                                            )} cover"
+                                            loading="lazy"
+
+                                            onerror="
+                                                this.style.display='none';
+                                                this.nextElementSibling
+                                                    .style.display='flex';
+                                            "
+                                        >
+                                    `
+                                    : ""
+                                }
+
+
+                                <div
+                                    class="hd-base-art-fallback"
+                                    style="${
+                                        candidate.cover_url
+                                        ? "display:none"
+                                        : "display:flex"
+                                    }"
+                                >
+                                    <span>
+                                        HACKDEX
+                                    </span>
+
+                                    <strong>
+                                        ${esc(
+                                            candidate.platform
+                                            || "ROM"
+                                        )}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <div class="hd-review-grid-label">
+                                    HACKDEX
+                                </div>
+
+                                <h3>
+                                    ${esc(candidateName)}
+                                </h3>
+
+                                ${
+                                    candidate.latest_version
+                                    ? `
+                                        <div class="hd-review-resolved-version">
+                                            Latest:
+                                            <b>
+                                                ${esc(
+                                                    candidate.latest_version
+                                                )}
+                                            </b>
+                                        </div>
+                                    `
+                                    : ""
+                                }
+
+                            </div>
+
+                        </div>
+                    `
+                    : `
+                        <div class="hd-review-resolved-ignored">
+
+                            <div class="hd-review-resolved-ignore-icon">
+                                —
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    No HackDex mapping
+                                </strong>
+
+                                <span>
+                                    This ROM was intentionally ignored.
+                                </span>
+
+                            </div>
+
+                        </div>
+                    `
+                }
+
+            </section>
+
+
+            <section class="hd-review-resolved-info">
+
+                <div>
+
+                    <span>
+                        DECISION
+                    </span>
+
+                    <strong>
+                        ${esc(
+                            item.decision
+                            || "Resolved"
+                        )}
+                    </strong>
+
+                </div>
+
+
+                ${
+                    isVersion
+                    ? `
+                        <div>
+
+                            <span>
+                                INSTALLED
+                            </span>
+
+                            <strong>
+                                ${esc(
+                                    item.installed_version
+                                    || "Unknown"
+                                )}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                REMOTE
+                            </span>
+
+                            <strong>
+                                ${esc(
+                                    item.remote_version
+                                    || "Unknown"
+                                )}
+                            </strong>
+
+                        </div>
+                    `
+                    : ""
+                }
+
+
+                <div>
+
+                    <span>
+                        RESOLVED
+                    </span>
+
+                    <strong>
+                        ${esc(when)}
+                    </strong>
+
+                </div>
+
+            </section>
+
+
+            <footer
+                class="
+                    hd-review-grid-footer
+                    hd-review-resolved-footer
+                "
+            >
+
+                <div class="hd-review-grid-confirm">
+
+                    <span>
+                        HISTORY
+                    </span>
+
+                    <strong>
+                        ${
+                            isIgnored
+                            ? "ROM intentionally ignored"
+                            : (
+                                isVersion
+                                ? "Version decision saved"
+                                : "Manual HackDex mapping confirmed"
+                            )
+                        }
+                    </strong>
+
+                </div>
+
+
+                <div class="hd-review-grid-actions">
+
+                    ${
+                        candidate
+                        && !isVersion
+                        ? `
+                            <button
+                                type="button"
+                                class="hdw-btn"
+                                data-action="choose"
+                                data-rom-id="${romId}"
+                            >
+                                Change Match
+                            </button>
+                        `
+                        : ""
+                    }
+
+
+                    <button
+                        type="button"
+                        class="
+                            hdw-btn
+                            danger
+                        "
+                        data-action="reset"
+                        data-rom-id="${romId}"
+                    >
+                        Reset Decision
+                    </button>
+
+                </div>
+
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function render() {
+
+    document
+        .querySelectorAll(
+            "[data-tab]"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.tab
+                    === activeTab
+                );
+            }
+        );
+
+
+    const labels = {
+
+        ambiguous: [
+            "Ambiguous Matches",
+            (
+                "Review candidates that are plausible "
+                + "but not safe to confirm automatically."
+            ),
+        ],
+
+        unmatched: [
+            "Unmatched ROMs",
+            (
+                "ROMs with no sufficiently confident "
+                + "HackDex candidate."
+            ),
+        ],
+
+        version: [
+            "Version Review",
+            (
+                "Identity is confirmed; only the "
+                + "installed-versus-remote version "
+                + "needs a decision."
+            ),
+        ],
+
+        resolved: [
+            "Resolved",
+            (
+                "Persistent manual matches, version "
+                + "decisions, and ignored ROMs."
+            ),
+        ],
+    };
+
+
+    document
+        .getElementById(
+            "section-title"
+        )
+        .textContent =
+            labels[
+                activeTab
+            ][0];
+
+
+    document
+        .getElementById(
+            "section-description"
+        )
+        .textContent =
+            labels[
+                activeTab
+            ][1];
+
+
+    const items =
+        filteredItems();
+
+
+    document
+        .getElementById(
+            "shown-count"
+        )
+        .textContent =
+            `${items.length} shown`;
+
+
+    const host =
+        document
+            .getElementById(
+                "workstation-items"
+            );
+
+
+    if (!items.length) {
+
+        host.innerHTML = `
+            <div class="hdw-empty-state">
+
+                <b>
+                    Nothing to review here.
+                </b>
+
+                <span>
+                    Try another filter or tab.
+                </span>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    if (
+        activeTab
+        === "ambiguous"
+    ) {
+        host.innerHTML =
+            items
+                .map(
+                    renderAmbiguous
+                )
+                .join("");
+    }
+
+
+    if (
+        activeTab
+        === "unmatched"
+    ) {
+        host.innerHTML =
+            items
+                .map(
+                    renderUnmatched
+                )
+                .join("");
+    }
+
+
+    if (
+        activeTab
+        === "version"
+    ) {
+        host.innerHTML =
+            items
+                .map(
+                    renderVersion
+                )
+                .join("");
+    }
+
+
+    if (
+        activeTab
+        === "resolved"
+    ) {
+        host.innerHTML =
+            items
+                .map(
+                    renderResolved
+                )
+                .join("");
+    }
+
+
+    if (
+        activeTab
+        === "ambiguous"
+    ) {
+        loadAlternatePreviews(
+            items
+        );
+    }
+}
+
+
+async function getCandidates(
+    romId,
+    limit = 8,
+) {
+
+    const key =
+        `${romId}:${limit}`;
+
+
+    if (
+        candidateCache.has(
+            key
+        )
+    ) {
+        return candidateCache.get(
+            key
+        );
+    }
+
+
+    const promise =
+        fetchJson(
+            `/api/review/${romId}/candidates?limit=${limit}`
+        );
+
+
+    candidateCache.set(
+        key,
+        promise,
+    );
+
+
+    try {
+
+        return await promise;
+
+    } catch (error) {
+
+        candidateCache.delete(
+            key
+        );
+
+        throw error;
+    }
+}
+
+
+async function loadAlternatePreviews(
+    items,
+) {
+
+    for (
+        const item
+        of items
+    ) {
+
+        const romId =
+            item.rom_id;
+
+
+        const host =
+            document
+                .getElementById(
+                    `alts-${romId}`
+                );
+
+
+        if (!host) {
+            continue;
+        }
+
+
+        try {
+
+            const data =
+                await getCandidates(
+                    romId,
+                    5,
+                );
+
+
+            const alternatives =
+                (
+                    data.candidates
+                    || []
+                )
+                    .filter(
+                        candidate =>
+                            !candidate
+                                .is_current_suggestion
+                    )
+                    .slice(
+                        0,
+                        3,
+                    );
+
+
+            if (
+                !alternatives.length
+            ) {
+
+                host.innerHTML = `
+                    <span class="hdw-muted">
+                        No other catalog candidates.
+                    </span>
+                `;
+
+                continue;
+            }
+
+
+            host.innerHTML =
+                alternatives
+                    .map(
+                        candidate => `
+                            <div class="hdw-alt">
+
+                                <strong>
+                                    ${Number(
+                                        candidate.score
+                                        || 0
+                                    ).toFixed(2)}%
+                                </strong>
+
+                                <span>
+                                    ${esc(
+                                        candidate
+                                            .candidate
+                                            .title
+                                    )}
+                                </span>
+
+                            </div>
+                        `
+                    )
+                    .join("");
+
+
+        } catch (error) {
+
+            host.innerHTML = `
+                <span class="hdw-muted">
+                    Could not load alternatives.
+                </span>
+            `;
+        }
+    }
+}
+
+
+async function loadData(
+    message = null,
+) {
+
+    const data =
+        await fetchJson(
+            "/api/review"
+        );
+
+
+    reviewData =
+        data;
+
+    candidateCache =
+        new Map();
+
+
+    updateSummary();
+
+    populatePlatforms();
+
+    render();
+
+
+    if (message) {
+        showMessage(
+            message
+        );
+    }
+}
+
+
+async function runPost(
+    button,
+    url,
+    successMessage,
+) {
+
+    const original =
+        button?.textContent;
+
+
+    try {
+
+        if (button) {
+
+            button.disabled =
+                true;
+
+            button.textContent =
+                "Working…";
+        }
+
+
+        await fetchJson(
+            url,
+            {
+                method: "POST",
+            },
+        );
+
+
+        await loadData(
+            successMessage
+        );
+
+
+    } catch (error) {
+
+        showMessage(
+            error.message
+            || "Action failed.",
+            "error",
+        );
+
+
+    } finally {
+
+        if (
+            button
+            && document.body
+                .contains(
+                    button
+                )
+        ) {
+
+            button.disabled =
+                false;
+
+            button.textContent =
+                original;
+        }
+    }
+}
+
+
+async function ensureHacks() {
+
+    if (allHacks) {
+        return allHacks;
+    }
+
+
+    allHacks =
+        await fetchJson(
+            "/api/review/hacks"
+        );
+
+
+    return allHacks;
+}
+
+
+function pickerCandidateCard(
+    entry,
+    romId,
+    ranked = true,
+) {
+
+    const candidate =
+        entry.candidate
+        || entry;
+
+
+    const score =
+        ranked
+        ? entry.score
+        : null;
+
+
+    const reasons =
+        ranked
+        ? entry.match_reasons
+        : null;
+
+
+    return `
+        <article class="hdw-picker-card">
+
+            ${artwork(
+                candidate.cover_url,
+                candidate.title
+            )}
+
+
+            <div class="hdw-picker-copy">
+
+                <h4>
+                    ${esc(
+                        candidate.title
+                    )}
+                </h4>
+
+                <p>
+                    ${esc(
+                        [
+                            candidate.platform,
+                            candidate.latest_version,
+                            candidate.base_rom,
+                        ]
+                            .filter(Boolean)
+                            .join(" · ")
+                    )}
+                </p>
+
+                ${
+                    ranked
+                    ? `
+                        <div class="hdw-picker-score">
+
+                            ${Number(
+                                score
+                                || 0
+                            ).toFixed(2)}%
+
+                            ·
+
+                            ${esc(
+                                reasons
+                                    ?.confidence
+                                || "weak"
+                            )}
+
+                        </div>
+                    `
+                    : ""
+                }
+
+            </div>
+
+
+            <button
+                type="button"
+                class="hdw-btn primary"
+                data-action="assign"
+                data-rom-id="${romId}"
+                data-slug="${esc(
+                    candidate.slug
+                )}"
+            >
+                Use This Hack
+            </button>
+
+        </article>
+    `;
+}
+
+
+async function openPicker(
+    romId,
+) {
+
+    pickerRomId =
+        Number(
+            romId
+        );
+
+
+    const modal =
+        document.getElementById(
+            "hack-picker"
+        );
+
+
+    modal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "hdw-modal-open"
+    );
+
+
+    document
+        .getElementById(
+            "picker-ranked"
+        )
+        .innerHTML = `
+            <div class="hdw-loading">
+                Ranking HackDex candidates…
+            </div>
+        `;
+
+
+    document
+        .getElementById(
+            "picker-search-results"
+        )
+        .innerHTML = "";
+
+
+    document
+        .getElementById(
+            "picker-search"
+        )
+        .value = "";
+
+
+    try {
+
+        const [
+            ranked,
+        ] =
+            await Promise.all(
+                [
+                    getCandidates(
+                        pickerRomId,
+                        8,
+                    ),
+
+                    ensureHacks(),
+                ]
+            );
+
+
+        pickerLocal =
+            ranked.local
+            || null;
+
+
+        document
+            .getElementById(
+                "picker-rom-title"
+            )
+            .textContent =
+                ranked.local
+                    ?.local_title
+                || "Choose HackDex Match";
+
+
+        const candidates =
+            ranked.candidates
+            || [];
+
+
+        document
+            .getElementById(
+                "picker-ranked"
+            )
+            .innerHTML =
+                candidates.length
+                ? candidates
+                    .map(
+                        candidate =>
+                            pickerCandidateCard(
+                                candidate,
+                                pickerRomId,
+                                true,
+                            )
+                    )
+                    .join("")
+                : `
+                    <div class="hdw-empty-state">
+
+                        <b>
+                            No ranked candidates.
+                        </b>
+
+                        <span>
+                            Use catalog search below.
+                        </span>
+
+                    </div>
+                `;
+
+
+    } catch (error) {
+
+        document
+            .getElementById(
+                "picker-ranked"
+            )
+            .innerHTML = `
+                <div class="hdw-empty-state">
+
+                    <b>
+                        Could not load candidates.
+                    </b>
+
+                    <span>
+                        ${esc(
+                            error.message
+                        )}
+                    </span>
+
+                </div>
+            `;
+    }
+}
+
+
+function closePicker() {
+
+    document
+        .getElementById(
+            "hack-picker"
+        )
+        .hidden =
+            true;
+
+
+    document.body.classList.remove(
+        "hdw-modal-open"
+    );
+
+
+    pickerRomId =
+        null;
+
+    pickerLocal =
+        null;
+}
+
+
+function renderCatalogSearch() {
+
+    const host =
+        document.getElementById(
+            "picker-search-results"
+        );
+
+
+    const query =
+        document
+            .getElementById(
+                "picker-search"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    if (!query) {
+
+        host.innerHTML = `
+            <div class="hdw-muted">
+                Type to search the full HackDex catalog.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const platform =
+        pickerLocal?.platform
+        || "";
+
+
+    const results =
+        (
+            allHacks
+            || []
+        )
+            .filter(
+                hack =>
+
+                    [
+                        hack.title,
+                        hack.slug,
+                        hack.platform,
+                        hack.base_rom,
+                        hack.latest_version,
+                    ]
+                        .filter(Boolean)
+                        .join(" ")
+                        .toLowerCase()
+                        .includes(
+                            query
+                        )
+            )
+            .sort(
+                (
+                    first,
+                    second,
+                ) => {
+
+                    const firstPlatform =
+                        first.platform
+                            === platform
+                        ? 0
+                        : 1;
+
+
+                    const secondPlatform =
+                        second.platform
+                            === platform
+                        ? 0
+                        : 1;
+
+
+                    return (
+                        firstPlatform
+                        - secondPlatform
+                        || String(
+                            first.title
+                        ).localeCompare(
+                            String(
+                                second.title
+                            )
+                        )
+                    );
+                }
+            )
+            .slice(
+                0,
+                20,
+            );
+
+
+    host.innerHTML =
+        results.length
+        ? results
+            .map(
+                hack =>
+                    pickerCandidateCard(
+                        hack,
+                        pickerRomId,
+                        false,
+                    )
+            )
+            .join("")
+        : `
+            <div class="hdw-empty-state">
+
+                <b>
+                    No catalog results.
+                </b>
+
+                <span>
+                    Try a broader search.
+                </span>
+
+            </div>
+        `;
+}
+
+
+async function handleClick(
+    event,
+) {
+
+    const tab =
+        event.target.closest(
+            "[data-tab]"
+        );
+
+
+    if (tab) {
+
+        activeTab =
+            tab.dataset.tab;
+
+        render();
+
+        return;
+    }
+
+
+    const button =
+        event.target.closest(
+            "[data-action]"
+        );
+
+
+    if (!button) {
+        return;
+    }
+
+
+    const action =
+        button.dataset.action;
+
+
+    const romId =
+        Number(
+            button.dataset.romId
+        );
+
+
+    if (
+        action === "choose"
+    ) {
+
+        await openPicker(
+            romId
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "close-picker"
+    ) {
+
+        closePicker();
+
+        return;
+    }
+
+
+    if (
+        action === "confirm"
+    ) {
+
+        await runPost(
+            button,
+            `/api/review/${romId}/approve`,
+            (
+                "Match confirmed and "
+                + "library status updated."
+            ),
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "reject"
+    ) {
+
+        await runPost(
+            button,
+            `/api/review/${romId}/reject`,
+            (
+                "Candidate rejected. "
+                + "The queue has been recalculated."
+            ),
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "ignore"
+    ) {
+
+        await runPost(
+            button,
+            `/api/review/${romId}/ignore`,
+            (
+                "ROM ignored and "
+                + "moved to Resolved."
+            ),
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "reset"
+    ) {
+
+        await runPost(
+            button,
+            `/api/review/${romId}/reset`,
+            (
+                "Decision reset and "
+                + "matching recalculated."
+            ),
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "version"
+    ) {
+
+        const decision =
+            button.dataset.decision;
+
+
+        await runPost(
+            button,
+            (
+                `/api/review/${romId}`
+                + `/version/${decision}`
+            ),
+            "Version decision saved.",
+        );
+
+        return;
+    }
+
+
+    if (
+        action === "assign"
+    ) {
+
+        const slug =
+            button.dataset.slug;
+
+
+        try {
+
+            button.disabled =
+                true;
+
+
+            await fetchJson(
+                (
+                    `/api/review/${romId}`
+                    + `/assign/`
+                    + encodeURIComponent(
+                        slug
+                    )
+                ),
+                {
+                    method: "POST",
+                },
+            );
+
+
+            closePicker();
+
+
+            await loadData(
+                (
+                    "HackDex match assigned and "
+                    + "library status updated."
+                )
+            );
+
+
+        } catch (error) {
+
+            showMessage(
+                error.message
+                || "Could not assign match.",
+                "error",
+            );
+
+
+            button.disabled =
+                false;
+        }
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async () => {
+
+        document.addEventListener(
+            "click",
+            handleClick,
+        );
+
+
+        document
+            .getElementById(
+                "search"
+            )
+            .addEventListener(
+                "input",
+                render,
+            );
+
+
+        document
+            .getElementById(
+                "platform"
+            )
+            .addEventListener(
+                "change",
+                render,
+            );
+
+
+        document
+            .getElementById(
+                "sort"
+            )
+            .addEventListener(
+                "change",
+                render,
+            );
+
+
+        document
+            .getElementById(
+                "picker-search"
+            )
+            .addEventListener(
+                "input",
+                renderCatalogSearch,
+            );
+
+
+        document
+            .getElementById(
+                "hack-picker"
+            )
+            .addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target.id
+                        === "hack-picker"
+                    ) {
+                        closePicker();
+                    }
+                },
+            );
+
+
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Escape"
+                    && !document
+                        .getElementById(
+                            "hack-picker"
+                        )
+                        .hidden
+                ) {
+                    closePicker();
+                }
+            },
+        );
+
+
+        try {
+
+            await loadData();
+
+        } catch (error) {
+
+            showMessage(
+                (
+                    "Could not load review "
+                    + "workstation: "
+                    + error.message
+                ),
+                "error",
+            );
+        }
+    },
+);
+
+</script>
+
+
+</body>
+
+</html>

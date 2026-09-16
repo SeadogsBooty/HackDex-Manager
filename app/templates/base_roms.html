@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Base ROMs - HackDex Manager</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/hackdex-ui.css?v={{ app_version }}"
+    >
+
+    <script
+        src="/static/hackdex-ui.js?v={{ app_version }}"
+    ></script>
+</head>
+
+<body class="hd-base-rom-page">
+
+<main class="hd-base-main">
+
+    <header class="hd-base-header">
+
+        <div>
+            <div class="hd-panel-kicker">
+                PATCH FOUNDATION
+            </div>
+
+            <h1>Base ROMs</h1>
+
+            <p>
+                Exact verified clean ROMs available for
+                building HackDex patches.
+            </p>
+        </div>
+
+        <div class="hd-base-header-actions">
+
+            <div
+                class="hd-base-scan-status"
+                id="scan-status"
+            ></div>
+
+            <button
+                type="button"
+                class="hd-base-scan-button"
+                id="scan-button"
+            >
+                Scan Base ROMs
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <section class="hd-base-stats">
+
+        <article class="hd-base-stat owned">
+            <strong id="base-owned">—</strong>
+            <span>Owned</span>
+        </article>
+
+        <article class="hd-base-stat missing">
+            <strong id="base-missing">—</strong>
+            <span>Missing</span>
+        </article>
+
+        <article class="hd-base-stat">
+            <strong id="base-total">—</strong>
+            <span>Registry</span>
+        </article>
+
+        <article class="hd-base-stat">
+            <strong id="base-platform-count">—</strong>
+            <span>Platforms</span>
+        </article>
+
+    </section>
+
+
+    <section class="hd-base-browser">
+
+        <div class="hd-base-browser-header">
+
+            <div>
+                <div class="hd-panel-kicker">
+                    VERIFIED BASE LIBRARY
+                </div>
+
+                <h2>Base ROM Inventory</h2>
+
+                <p>
+                    Verification uses exact platform,
+                    CRC32 and SHA-1 identity.
+                </p>
+            </div>
+
+            <div
+                class="hd-base-result-count"
+                id="base-result-count"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <div class="hd-base-filter-row">
+
+            <div class="hd-base-filter-group">
+
+                <div class="hd-base-filter-label">
+                    Library
+                </div>
+
+                <div
+                    class="hd-base-tabs"
+                    id="ownership-tabs"
+                >
+                    <button
+                        type="button"
+                        class="active"
+                        data-status=""
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        data-status="owned"
+                    >
+                        Owned
+                    </button>
+
+                    <button
+                        type="button"
+                        data-status="missing"
+                    >
+                        Missing
+                    </button>
+                </div>
+
+            </div>
+
+
+            <div class="hd-base-filter-group">
+
+                <div class="hd-base-filter-label">
+                    Platform
+                </div>
+
+                <div
+                    class="hd-base-platform-tabs"
+                    id="platform-tabs"
+                >
+
+                    <button
+                        type="button"
+                        class="active"
+                        data-platform=""
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        data-platform="GB"
+                    >
+                        GB
+                    </button>
+
+                    <button
+                        type="button"
+                        data-platform="GBC"
+                    >
+                        GBC
+                    </button>
+
+                    <button
+                        type="button"
+                        data-platform="GBA"
+                    >
+                        GBA
+                    </button>
+
+                    <button
+                        type="button"
+                        data-platform="NDS"
+                    >
+                        NDS
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="hd-base-search-wrap">
+                <input
+                    id="base-search"
+                    type="search"
+                    placeholder="Search base ROMs..."
+                >
+            </div>
+
+        </div>
+
+
+        <div
+            class="hd-base-grid"
+            id="base-grid"
+        >
+            <div class="hd-base-loading">
+                Loading Base ROM inventory…
+            </div>
+        </div>
+
+    </section>
+
+</main>
+
+
+<script>
+let baseRows = [];
+
+let activeBaseStatus = "";
+let activePlatform = "";
+let requestedBase = "";
+
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function arrayFromPayload(
+    payload,
+    keys = [],
+) {
+    if (Array.isArray(payload)) {
+        return payload;
+    }
+
+    for (const key of keys) {
+        if (Array.isArray(payload?.[key])) {
+            return payload[key];
+        }
+    }
+
+    return [];
+}
+
+
+function registryId(item) {
+    return String(
+        item.id
+        || item.key
+        || item.base_key
+        || item.slug
+        || ""
+    );
+}
+
+
+function titleWords(value) {
+    return String(value || "")
+        .replaceAll("_", " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(
+            /\b\w/g,
+            char => char.toUpperCase()
+        );
+}
+
+
+function prettifyBaseId(value) {
+    let text =
+        String(value || "")
+            .replace(/^poke_/, "")
+            .replaceAll("_", " ")
+            .trim();
+
+    const replacements = [
+        ["firered", "FireRed"],
+        ["leafgreen", "LeafGreen"],
+        ["heartgold", "HeartGold"],
+        ["soulsilver", "SoulSilver"],
+        ["black 2", "Black 2"],
+        ["white 2", "White 2"],
+        ["md rrt", "Mystery Dungeon: Red Rescue Team"],
+        ["pinball rs", "Pinball: Ruby & Sapphire"],
+    ];
+
+    text = titleWords(text);
+
+    for (const [from, to] of replacements) {
+        text = text.replace(
+            new RegExp(from, "i"),
+            to,
+        );
+    }
+
+    return text
+        ? `Pokémon ${text}`
+        : "Unknown Base ROM";
+}
+
+
+function registryName(item) {
+    let name =
+        item.display_name
+        || item.name
+        || item.title
+        || item.label
+        || prettifyBaseId(
+            registryId(item)
+        );
+
+    const revision =
+        item.revision
+        || item.rev
+        || null;
+
+    if (
+        revision
+        && !String(name)
+            .toLowerCase()
+            .includes("rev")
+    ) {
+        name += ` (${revision})`;
+    }
+
+    return String(name);
+}
+
+
+function registryPlatform(item) {
+    return String(
+        item.platform || ""
+    ).toUpperCase();
+}
+
+
+function localKey(item) {
+    return String(
+        item.detected_key
+        || item.base_key
+        || item.key
+        || ""
+    );
+}
+
+
+
+function baseRomArtSrc(row) {
+    const id =
+        String(row?.id || "");
+
+    if (!id) {
+        return "";
+    }
+
+    return (
+        "/static/base-rom-art/"
+        + encodeURIComponent(id)
+        + ".png"
+    );
+}
+
+
+function baseRomArtMarkup(row) {
+    const src =
+        baseRomArtSrc(row);
+
+    const title =
+        row?.name
+        || "Base ROM";
+
+    const platform =
+        row?.platform
+        || "ROM";
+
+    return `
+        <div class="hd-base-art">
+
+            <img
+                src="${escapeHtml(src)}"
+                alt="${escapeHtml(
+                    title
+                )} box art"
+                loading="lazy"
+
+                onerror="
+                    this.style.display='none';
+                    this.nextElementSibling
+                        .style.display='flex';
+                "
+            >
+
+            <div
+                class="
+                    hd-base-art-fallback
+                "
+                style="display:none"
+            >
+                <span>
+                    ${escapeHtml(
+                        platform
+                    )}
+                </span>
+
+                <strong>
+                    ${escapeHtml(
+                        title
+                    )}
+                </strong>
+            </div>
+
+        </div>
+    `;
+}
+
+
+function shortHash(value) {
+    const text =
+        String(value || "");
+
+    if (!text) {
+        return "—";
+    }
+
+    if (text.length <= 18) {
+        return text;
+    }
+
+    return (
+        text.slice(0, 9)
+        + "…"
+        + text.slice(-7)
+    );
+}
+
+
+function formatBytes(value) {
+    const bytes = Number(value);
+
+    if (
+        !Number.isFinite(bytes)
+        || bytes <= 0
+    ) {
+        return "—";
+    }
+
+    const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB",
+    ];
+
+    let size = bytes;
+    let unit = 0;
+
+    while (
+        size >= 1024
+        && unit < units.length - 1
+    ) {
+        size /= 1024;
+        unit += 1;
+    }
+
+    return (
+        `${size.toFixed(
+            unit >= 2 ? 1 : 0
+        )} ${units[unit]}`
+    );
+}
+
+
+function registryRegion(item) {
+    return (
+        item.region
+        || item.country
+        || item.locale
+        || null
+    );
+}
+
+
+function setStatusTab(value) {
+    activeBaseStatus = value;
+
+    document
+        .querySelectorAll(
+            "#ownership-tabs button"
+        )
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.status
+                    === value,
+            );
+        });
+}
+
+
+function setPlatformTab(value) {
+    activePlatform = value;
+
+    document
+        .querySelectorAll(
+            "#platform-tabs button"
+        )
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.platform
+                    === value,
+            );
+        });
+}
+
+
+function render() {
+    const search =
+        document
+            .getElementById(
+                "base-search"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+    const rows =
+        baseRows.filter(row => {
+
+            if (
+                requestedBase
+                && row.id !== requestedBase
+            ) {
+                return false;
+            }
+
+            if (
+                activeBaseStatus
+                    === "owned"
+                && !row.owned
+            ) {
+                return false;
+            }
+
+            if (
+                activeBaseStatus
+                    === "missing"
+                && row.owned
+            ) {
+                return false;
+            }
+
+            if (
+                activePlatform
+                && row.platform
+                    !== activePlatform
+            ) {
+                return false;
+            }
+
+            if (
+                search
+                && ![
+                    row.name,
+                    row.id,
+                    row.platform,
+                    row.region,
+                    row.local?.filename,
+                ]
+                    .filter(Boolean)
+                    .some(
+                        value =>
+                            String(value)
+                                .toLowerCase()
+                                .includes(search)
+                    )
+            ) {
+                return false;
+            }
+
+            return true;
+        });
+
+
+    document
+        .getElementById(
+            "base-result-count"
+        )
+        .textContent =
+            `${rows.length} shown`;
+
+
+    const grid =
+        document.getElementById(
+            "base-grid"
+        );
+
+
+    if (!rows.length) {
+        grid.innerHTML = `
+            <div class="hd-base-empty">
+
+                <strong>
+                    No Base ROMs match
+                    these filters.
+                </strong>
+
+                ${
+                    requestedBase
+                    ? `
+                    <button
+                        type="button"
+                        onclick="
+                            requestedBase = '';
+                            history.replaceState(
+                                {},
+                                '',
+                                '/base-roms'
+                            );
+                            render();
+                        "
+                    >
+                        Show all Base ROMs
+                    </button>
+                    `
+                    : ""
+                }
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        rows.map(row => {
+
+            const local =
+                row.local || {};
+
+            const crc32 =
+                local.crc32
+                || row.registry.crc32
+                || "—";
+
+            const sha1 =
+                local.sha1
+                || row.registry.sha1
+                || "—";
+
+            const highlighted =
+                requestedBase
+                && row.id
+                    === requestedBase;
+
+            return `
+                <article
+                    class="
+                        hd-base-card
+                        ${
+                            row.owned
+                            ? "owned"
+                            : "missing"
+                        }
+                        ${
+                            highlighted
+                            ? "highlighted"
+                            : ""
+                        }
+                    "
+                    id="base-${escapeHtml(
+                        row.id
+                    )}"
+                >
+
+                    <div class="hd-base-card-chips">
+
+                        <span class="hd-base-platform">
+                            ${escapeHtml(
+                                row.platform
+                                || "?"
+                            )}
+                        </span>
+
+                        ${
+                            row.region
+                            ? `
+                            <span class="hd-base-region">
+                                ${escapeHtml(
+                                    row.region
+                                )}
+                            </span>
+                            `
+                            : ""
+                        }
+
+                        <span
+                            class="
+                                hd-base-state
+                                ${
+                                    row.owned
+                                    ? "owned"
+                                    : "missing"
+                                }
+                            "
+                        >
+                            ${
+                                row.owned
+                                ? "✓ Verified"
+                                : "Missing"
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <div class="hd-base-cover">
+                        ${baseRomArtMarkup(row)}
+                    </div>
+
+
+                    <div class="hd-base-card-body">
+
+                        <div class="hd-base-title-row">
+
+                            <h3>
+                                ${escapeHtml(
+                                    row.name
+                                )}
+                            </h3>
+
+                        </div>
+
+
+                        ${
+                            row.owned
+                            ? `
+                            <div class="hd-base-library-status">
+
+                                <div class="hd-base-library-icon">
+                                    ✓
+                                </div>
+
+                                <div>
+                                    <span>
+                                        Verified local copy
+                                    </span>
+
+                                    <strong
+                                        title="${escapeHtml(
+                                            local.filename
+                                            || ""
+                                        )}"
+                                    >
+                                        ${escapeHtml(
+                                            local.filename
+                                            || "Detected"
+                                        )}
+                                    </strong>
+                                </div>
+
+                            </div>
+                            `
+                            : `
+                            <div
+                                class="
+                                    hd-base-library-status
+                                    missing
+                                "
+                            >
+
+                                <div class="hd-base-library-icon">
+                                    !
+                                </div>
+
+                                <div>
+                                    <span>
+                                        Clean Base ROM missing
+                                    </span>
+
+                                    <strong>
+                                        Add the correct clean ROM
+                                        and scan again.
+                                    </strong>
+                                </div>
+
+                            </div>
+                            `
+                        }
+
+
+                        <details class="hd-base-tech">
+
+                            <summary>
+                                Technical details
+                            </summary>
+
+                            <div class="hd-base-tech-grid">
+
+                                <div>
+                                    <span>
+                                        Registry ID
+                                    </span>
+
+                                    <code>
+                                        ${escapeHtml(
+                                            row.id
+                                        )}
+                                    </code>
+                                </div>
+
+                                ${
+                                    row.owned
+                                    ? `
+                                    <div>
+                                        <span>
+                                            Size
+                                        </span>
+
+                                        <code>
+                                            ${escapeHtml(
+                                                formatBytes(
+                                                    local.size
+                                                )
+                                            )}
+                                        </code>
+                                    </div>
+                                    `
+                                    : ""
+                                }
+
+                                <div>
+                                    <span>
+                                        CRC32
+                                    </span>
+
+                                    <code>
+                                        ${escapeHtml(
+                                            crc32
+                                        )}
+                                    </code>
+                                </div>
+
+                                <div class="wide">
+                                    <span>
+                                        SHA-1
+                                    </span>
+
+                                    <code>
+                                        ${escapeHtml(
+                                            sha1
+                                        )}
+                                    </code>
+                                </div>
+
+                            </div>
+
+
+                            ${
+                                row.owned
+                                && (
+                                    local.source_path
+                                    || local.path
+                                )
+                                ? `
+                                <div class="hd-base-tech-path">
+
+                                    <span>
+                                        Local source
+                                    </span>
+
+                                    <code>
+                                        ${escapeHtml(
+                                            local.source_path
+                                            || local.path
+                                        )}
+                                    </code>
+
+                                </div>
+                                `
+                                : ""
+                            }
+
+                        </details>
+
+                    </div>
+
+                </article>
+            `;
+        }).join("");
+}
+
+
+async function loadBaseInventory() {
+    const grid =
+        document.getElementById(
+            "base-grid"
+        );
+
+    grid.innerHTML = `
+        <div class="hd-base-loading">
+            Loading Base ROM inventory…
+        </div>
+    `;
+
+    try {
+        const [
+            registryResponse,
+            localResponse,
+        ] = await Promise.all([
+            fetch(
+                "/api/base-roms/catalog",
+                {
+                    cache:
+                        "no-store",
+                },
+            ),
+            fetch(
+                "/api/base-roms",
+                {
+                    cache:
+                        "no-store",
+                },
+            ),
+        ]);
+
+
+        if (
+            !registryResponse.ok
+            || !localResponse.ok
+        ) {
+            throw new Error(
+                "Unable to load Base ROM inventory."
+            );
+        }
+
+
+        const registryPayload =
+            await registryResponse.json();
+
+        const localPayload =
+            await localResponse.json();
+
+
+        const registry =
+            arrayFromPayload(
+                registryPayload,
+                ["roms"],
+            );
+
+        const local =
+            arrayFromPayload(
+                localPayload,
+                [
+                    "roms",
+                    "items",
+                    "base_roms",
+                ],
+            );
+
+
+        const localByKey =
+            new Map();
+
+        for (const item of local) {
+            const key =
+                localKey(item);
+
+            if (key) {
+                localByKey.set(
+                    key,
+                    item,
+                );
+            }
+        }
+
+
+        baseRows =
+            registry.map(item => {
+
+                const id =
+                    registryId(item);
+
+                const localItem =
+                    localByKey.get(id)
+                    || null;
+
+                return {
+                    id,
+                    name:
+                        registryName(item),
+                    platform:
+                        registryPlatform(
+                            item
+                        ),
+                    region:
+                        registryRegion(
+                            item
+                        ),
+                    registry:
+                        item,
+                    local:
+                        localItem,
+                    owned:
+                        Boolean(
+                            localItem
+                        ),
+                };
+            })
+            .filter(
+                row => row.id
+            )
+            .sort(
+                (a, b) =>
+                    a.platform.localeCompare(
+                        b.platform
+                    )
+                    || a.name.localeCompare(
+                        b.name
+                    )
+            );
+
+
+        const owned =
+            baseRows.filter(
+                row => row.owned
+            ).length;
+
+        const platforms =
+            new Set(
+                baseRows
+                    .map(
+                        row =>
+                            row.platform
+                    )
+                    .filter(Boolean)
+            );
+
+
+        document
+            .getElementById(
+                "base-total"
+            )
+            .textContent =
+                baseRows.length;
+
+        document
+            .getElementById(
+                "base-owned"
+            )
+            .textContent =
+                owned;
+
+        document
+            .getElementById(
+                "base-missing"
+            )
+            .textContent =
+                baseRows.length
+                - owned;
+
+        document
+            .getElementById(
+                "base-platform-count"
+            )
+            .textContent =
+                platforms.size;
+
+
+        const params =
+            new URLSearchParams(
+                location.search
+            );
+
+        const status =
+            params.get("status");
+
+        const base =
+            params.get("base");
+
+        const platform =
+            params.get("platform");
+
+
+        if (
+            status === "owned"
+            || status === "missing"
+        ) {
+            setStatusTab(status);
+        }
+
+        if (
+            ["GB","GBC","GBA","NDS"]
+                .includes(platform)
+        ) {
+            setPlatformTab(
+                platform
+            );
+        }
+
+        if (base) {
+            requestedBase = base;
+
+            const target =
+                baseRows.find(
+                    row =>
+                        row.id === base
+                );
+
+            if (
+                target
+                && !target.owned
+            ) {
+                setStatusTab(
+                    "missing"
+                );
+            }
+        }
+
+
+        render();
+
+    } catch (error) {
+
+        grid.innerHTML = `
+            <div class="hd-base-error">
+                ${escapeHtml(
+                    error.message
+                    || "Unable to load Base ROM inventory."
+                )}
+            </div>
+        `;
+    }
+}
+
+
+document
+    .querySelectorAll(
+        "#ownership-tabs button"
+    )
+    .forEach(button => {
+        button.addEventListener(
+            "click",
+            () => {
+                requestedBase = "";
+
+                setStatusTab(
+                    button.dataset.status
+                    || ""
+                );
+
+                render();
+            }
+        );
+    });
+
+
+document
+    .querySelectorAll(
+        "#platform-tabs button"
+    )
+    .forEach(button => {
+        button.addEventListener(
+            "click",
+            () => {
+                requestedBase = "";
+
+                setPlatformTab(
+                    button.dataset.platform
+                    || ""
+                );
+
+                render();
+            }
+        );
+    });
+
+
+document
+    .getElementById(
+        "base-search"
+    )
+    .addEventListener(
+        "input",
+        () => {
+            requestedBase = "";
+            render();
+        }
+    );
+
+
+document
+    .getElementById(
+        "scan-button"
+    )
+    .addEventListener(
+        "click",
+        async () => {
+
+            const button =
+                document.getElementById(
+                    "scan-button"
+                );
+
+            const status =
+                document.getElementById(
+                    "scan-status"
+                );
+
+            button.disabled = true;
+            button.textContent =
+                "Scanning…";
+
+            status.textContent = "";
+
+            try {
+                const response =
+                    await fetch(
+                        "/api/base-roms/scan",
+                        {
+                            method:
+                                "POST",
+                        },
+                    );
+
+                const result =
+                    await response.json();
+
+                if (
+                    !response.ok
+                    || result.success
+                        === false
+                ) {
+                    throw new Error(
+                        result.error
+                        || result.message
+                        || "Base ROM scan failed."
+                    );
+                }
+
+                status.textContent =
+                    `${
+                        result.official_bases_found
+                        ?? "?"
+                    } verified · ${
+                        Number(
+                            result.elapsed_seconds
+                            || 0
+                        ).toFixed(2)
+                    }s`;
+
+                await loadBaseInventory();
+
+            } catch (error) {
+
+                status.textContent =
+                    error.message
+                    || "Scan failed.";
+
+            } finally {
+
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    "Scan Base ROMs";
+            }
+        }
+    );
+
+
+loadBaseInventory();
+</script>
+
+</body>
+</html>

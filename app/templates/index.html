@@ -1,0 +1,5454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>HackDex Manager</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #090c11;
+    color: #f4f6f8;
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+header {
+    height: 58px;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #11151d;
+    border-bottom: 1px solid #242a35;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.brand-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand {
+    color: #f4f6f8;
+    font-size: 20px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.brand:hover {
+    color: #ffffff;
+}
+
+.version-badge {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    border: 1px solid #313a49;
+    background: #171d27;
+    color: #8fa0b5;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: .02em;
+}
+
+.version-badge.loading {
+    opacity: .55;
+}
+
+nav a {
+    color: #cbd5e1;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 14px;
+}
+
+main {
+    max-width: 1480px;
+    margin: auto;
+    padding: 26px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns:
+        repeat(6, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: #151a23;
+    border: 1px solid #2b3240;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.stat-number {
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.stat-label {
+    color: #99a3b3;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+input,
+select {
+    background: #151a23;
+    color: white;
+    border: 1px solid #2c3442;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+input {
+    min-width: 300px;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.tab {
+    border: 1px solid #303847;
+    background: #1a202b;
+    color: #d7dde7;
+    border-radius: 8px;
+    padding: 8px 13px;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: #33405a;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fill, minmax(205px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background: #151a23;
+    border: 1px solid #2a3240;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition:
+        transform .12s ease,
+        border-color .12s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    border-color: #49566e;
+}
+
+.cover-wrap {
+    aspect-ratio: 2 / 3;
+    max-height: 310px;
+    background:
+        linear-gradient(
+            145deg,
+            #141923,
+            #0b0f15
+        );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.cover {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    padding: 6px;
+}
+
+.cover-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #707b8c;
+    padding: 20px;
+    text-align: center;
+}
+
+.cover-fallback strong {
+    font-size: 18px;
+    color: #8c97a8;
+}
+
+.body {
+    padding: 14px;
+}
+
+.title {
+    font-size: 16px;
+    font-weight: 750;
+    line-height: 1.25;
+    min-height: 40px;
+}
+
+.meta {
+    color: #98a3b4;
+    font-size: 12px;
+    margin-top: 7px;
+    line-height: 1.55;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .03em;
+}
+
+.status-owned {
+    background: #173d2b;
+    color: #86e3b3;
+}
+
+.status-missing {
+    background: #342c22;
+    color: #e8c184;
+}
+
+.status-update {
+    background: #49351b;
+    color: #ffd37b;
+}
+
+.status-review {
+    background: #44272e;
+    color: #ffadb8;
+}
+
+.empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #8f99a8;
+    padding: 60px;
+}
+
+/* Modal */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 24px;
+}
+
+.modal {
+    width: min(850px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    background: #151a23;
+    border: 1px solid #303949;
+    border-radius: 14px;
+}
+
+.modal-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+}
+
+.modal-image {
+    width: 100%;
+    min-height: 390px;
+    object-fit: cover;
+    background: #0d1118;
+}
+
+.modal-content {
+    padding: 24px;
+}
+
+.modal h2 {
+    margin-top: 0;
+}
+
+.summary {
+    color: #bbc3cf;
+    line-height: 1.55;
+    margin-top: 16px;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    background: #252d3a;
+    border: 1px solid #394354;
+    color: white;
+    border-radius: 7px;
+    padding: 7px 10px;
+}
+
+@media (max-width: 900px) {
+    .stats {
+        grid-template-columns:
+            repeat(2, minmax(130px, 1fr));
+    }
+
+    .modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-image {
+        max-height: 500px;
+    }
+}
+
+/* Readiness UI */
+
+.filter-group {
+    margin-bottom: 14px;
+}
+
+.filter-label {
+    color: #8994a5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+}
+
+.readiness-ready {
+    background: #173d2b;
+    color: #86e3b3;
+}
+
+.readiness-missing {
+    background: #49351b;
+    color: #ffd37b;
+}
+
+.readiness-problem {
+    background: #44272e;
+    color: #ffadb8;
+}
+
+.readiness-unknown {
+    background: #303540;
+    color: #b8c0cc;
+}
+
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.obtain-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #387553;
+    background: #1c5638;
+    color: #a9f0c8;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.obtain-button:hover:not(:disabled) {
+    background: #236846;
+}
+
+.obtain-button:disabled {
+    border-color: #343b47;
+    background: #222832;
+    color: #717b89;
+    cursor: not-allowed;
+}
+
+.readiness-info {
+    margin-top: 18px;
+    padding: 14px;
+    background: #0e131a;
+    border: 1px solid #303949;
+    border-radius: 10px;
+}
+
+.readiness-info-title {
+    font-weight: 800;
+    margin-bottom: 9px;
+}
+
+.readiness-field {
+    margin-top: 7px;
+    color: #b8c1ce;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.readiness-field strong {
+    color: #f1f4f8;
+}
+
+.hash {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.readiness-count {
+    opacity: .72;
+    margin-left: 4px;
+}
+
+.problem-detail {
+    margin-top: 9px;
+    color: #ffb9c2;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+.obtain-options {
+    margin-top: 18px;
+    padding: 14px;
+    background: #0e131a;
+    border: 1px solid #303949;
+    border-radius: 10px;
+}
+
+.obtain-options label {
+    display: block;
+    color: #f1f4f8;
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.obtain-options select {
+    width: 100%;
+    min-width: 0;
+}
+
+.obtain-help {
+    color: #8994a5;
+    font-size: 11px;
+    line-height: 1.45;
+    margin-top: 8px;
+}
+
+.obtain-result {
+    display: none;
+    margin-top: 12px;
+    padding: 11px;
+    border-radius: 8px;
+    background: #111822;
+    border: 1px solid #303949;
+    color: #b9c4d2;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.obtain-result.success {
+    display: block;
+    border-color: #276343;
+    color: #9ce0bc;
+}
+
+.obtain-result.error {
+    display: block;
+    border-color: #71333e;
+    color: #ffb0bc;
+}
+
+
+.install-button {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #4776a8;
+    background: #234b73;
+    color: #c8e4ff;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.install-button:hover:not(:disabled) {
+    background: #2b5c8d;
+}
+
+.install-button:disabled {
+    border-color: #343b47;
+    background: #222832;
+    color: #717b89;
+    cursor: not-allowed;
+}
+
+.install-preview {
+    margin-top: 12px;
+    padding: 11px;
+    border-radius: 8px;
+    background: #111822;
+    border: 1px solid #303949;
+    color: #b9c4d2;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+
+/* HackDex Manager dialog */
+
+.app-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(4, 7, 12, .84);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+}
+
+.app-dialog {
+    width: min(500px, 100%);
+    overflow: hidden;
+    background: #151a23;
+    border: 1px solid #374154;
+    border-radius: 16px;
+    box-shadow:
+        0 30px 90px
+        rgba(0, 0, 0, .65);
+}
+
+.app-dialog-header {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 20px 22px 14px;
+}
+
+.app-dialog-icon {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #33291a;
+    border: 1px solid #66502a;
+    color: #f0b84b;
+    font-size: 21px;
+}
+
+.app-dialog-title {
+    margin: 0;
+    color: #f5f7fa;
+    font-size: 19px;
+    font-weight: 850;
+}
+
+.app-dialog-body {
+    padding: 0 22px 20px;
+}
+
+.app-dialog-message {
+    color: #adb8c8;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.app-dialog-file {
+    margin-top: 15px;
+    padding: 13px 14px;
+    background: #0c1118;
+    border: 1px solid #303a49;
+    border-radius: 9px;
+    color: #e5ebf2;
+    font-size: 13px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.app-dialog-warning {
+    margin-top: 13px;
+    color: #8793a5;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.app-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 22px;
+    background: #11161e;
+    border-top: 1px solid #29313e;
+}
+
+.dialog-button {
+    min-width: 100px;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.dialog-cancel {
+    border: 1px solid #3b4657;
+    background: #202731;
+    color: #d7dee8;
+}
+
+.dialog-cancel:hover {
+    background: #29323e;
+}
+
+.dialog-danger {
+    border: 1px solid #81505a;
+    background: #713842;
+    color: #fff1f3;
+}
+
+.dialog-danger:hover {
+    background: #88434f;
+}
+
+
+/* Toast notifications */
+
+.toast-container {
+    position: fixed;
+    top: 76px;
+    right: 22px;
+    z-index: 250;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-toast {
+    width: min(390px, calc(100vw - 44px));
+    padding: 13px 15px;
+    background: #171e28;
+    border: 1px solid #394658;
+    border-radius: 10px;
+    box-shadow:
+        0 16px 45px
+        rgba(0,0,0,.42);
+    color: #dce3eb;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.app-toast.success {
+    border-color: #34704f;
+}
+
+.app-toast.error {
+    border-color: #884552;
+}
+
+
+.install-progress {
+    margin-top: 14px;
+    padding: 16px;
+    border: 1px solid #304055;
+    border-radius: 10px;
+    background: #101720;
+}
+
+.install-progress-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #edf4fb;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.install-spinner {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 3px solid #344559;
+    border-top-color: #70aef0;
+    border-radius: 50%;
+    animation: hackdex-spin .8s linear infinite;
+}
+
+@keyframes hackdex-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.install-progress-status {
+    margin-top: 13px;
+    color: #aebaca;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.install-progress-detail {
+    margin-top: 8px;
+    color: #748195;
+    font-size: 11px;
+}
+
+.install-button-working {
+    opacity: .75;
+    cursor: wait !important;
+}
+
+
+.version-delta {
+    margin-top: 9px;
+    padding: 8px 9px;
+    border-radius: 7px;
+    background: #161b23;
+    border: 1px solid #2b3441;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.version-delta-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.version-delta-label {
+    color: #7f8b9c;
+}
+
+.version-installed {
+    color: #c4ccd6;
+    font-weight: 700;
+}
+
+.version-available {
+    color: #ffd37b;
+    font-weight: 800;
+}
+
+</style>
+
+<link
+    rel="stylesheet"
+    href="/static/hackdex-ui.css?v={{ app_version }}"
+>
+
+<script
+    src="/static/hackdex-ui.js?v={{ app_version }}"
+></script>
+
+</head>
+
+<body>
+
+<header>
+    <div class="brand-wrap">
+    <a
+        class="brand"
+        href="/"
+        title="HackDex Manager Home"
+    >
+        HackDex Manager
+    </a>
+
+    <span
+        class="version-badge loading"
+        id="app-version"
+        title="Running HackDex Manager version"
+    >
+        v…
+    </span>
+</div>
+
+    <nav>
+        <a href="/">Library</a>
+        <a href="/review">Needs Review</a>
+        <a href="/library-health">Library Health</a>
+        <a href="/settings">Settings</a>
+    </nav>
+</header>
+
+<main>
+
+<section class="hd-dashboard-hero">
+    <div class="hd-dashboard-hero-copy">
+        <div class="hd-dashboard-eyebrow">
+            ROMHACK LIBRARY
+        </div>
+
+        <h1>
+            Welcome to HackDex Manager
+        </h1>
+
+        <p>
+            Manage, verify, update, and discover
+            your Pokémon romhack collection.
+        </p>
+    </div>
+
+    <div class="hd-dashboard-hero-badge">
+        <span class="hd-dashboard-hero-dot"></span>
+        Live HackDex catalog
+    </div>
+</section>
+
+<div class="stats hd-dashboard-stats">
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="all"
+        aria-label="Open all HackDex catalog hacks"
+    >
+        <div
+            class="stat-number"
+            id="stat-total"
+        >-</div>
+        <div class="stat-label">
+            HackDex Catalog
+        </div>
+    </button>
+
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="owned"
+        aria-label="Open owned hacks"
+    >
+        <div
+            class="stat-number"
+            id="stat-owned"
+        >-</div>
+        <div class="stat-label">
+            Owned
+        </div>
+    </button>
+
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="missing"
+        aria-label="Open missing hacks"
+    >
+        <div
+            class="stat-number"
+            id="stat-missing"
+        >-</div>
+        <div class="stat-label">
+            Missing
+        </div>
+    </button>
+
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="updates"
+        aria-label="Open hacks with updates"
+    >
+        <div
+            class="stat-number"
+            id="stat-updates"
+        >-</div>
+        <div class="stat-label">
+            Updates
+        </div>
+    </button>
+
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="review"
+        aria-label="Open hacks needing review"
+    >
+        <div
+            class="stat-number"
+            id="stat-review"
+        >-</div>
+        <div class="stat-label">
+            Needs Review
+        </div>
+    </button>
+
+    <button
+        type="button"
+        class="stat hd-dashboard-stat-link"
+        data-catalog-view="local"
+        aria-label="Open local hacks"
+    >
+        <div
+            class="stat-number"
+            id="stat-local"
+        >-</div>
+        <div class="stat-label">
+            Local Hacks
+        </div>
+    </button>
+</div>
+
+<section class="hd-dashboard-overview">
+
+    <div class="hd-dashboard-panel">
+
+        <div class="hd-dashboard-panel-header">
+            <div>
+                <div class="hd-panel-kicker">
+                    VERSION MANAGEMENT
+                </div>
+
+                <h2>
+                    Update Queue
+                </h2>
+
+                <p>
+                    Installed hacks with newer
+                    HackDex versions available.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="hd-panel-link"
+                onclick="openCatalogView('updates')"
+            >
+                View all
+            </button>
+        </div>
+
+        <div
+            class="hd-update-list"
+            id="dashboard-update-list"
+        >
+            <div class="hd-dashboard-loading">
+                Loading updates…
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="hd-dashboard-panel">
+
+        <div class="hd-dashboard-panel-header">
+            <div>
+                <div class="hd-panel-kicker">
+                    LIBRARY INTEGRITY
+                </div>
+
+                <h2>
+                    Library Health
+                </h2>
+
+                <p>
+                    Integrity, matching, and
+                    version-state overview.
+                </p>
+            </div>
+
+            <a
+                href="/library-health"
+                class="hd-panel-link hd-panel-anchor"
+            >
+                View details
+            </a>
+        </div>
+
+        <div
+            class="hd-health-summary"
+            id="dashboard-health-summary"
+        >
+            <div class="hd-dashboard-loading">
+                Loading health…
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section
+    class="hd-library-browser hd-catalog-drilldown"
+    id="catalog-browser"
+>
+
+    <div class="hd-library-heading">
+        <div>
+            <div class="hd-panel-kicker">
+                HACKDEX CATALOG
+            </div>
+
+            <h2 id="catalog-view-title">
+                All Hacks
+            </h2>
+
+            <p id="catalog-view-description">
+                Browse the live HackDex catalog
+                alongside your installed library.
+            </p>
+        </div>
+
+        <div
+            class="hd-library-total"
+            id="dashboard-library-total"
+        >
+            —
+        </div>
+    </div>
+
+<div class="controls">
+
+    <input
+        id="search"
+        type="search"
+        placeholder="Search hacks..."
+    >
+
+    <select id="platform">
+        <option value="">
+            All Systems
+        </option>
+        <option value="GB">GB</option>
+        <option value="GBC">GBC</option>
+        <option value="GBA">GBA</option>
+        <option value="NDS">NDS</option>
+    </select>
+
+</div>
+
+<div class="filter-group">
+    <div class="filter-label">
+        Library
+    </div>
+
+    <div
+        class="tabs"
+        id="library-tabs"
+    >
+        <button
+            class="tab active"
+            data-library-status=""
+        >
+            All
+        </button>
+
+        <button
+            class="tab"
+            data-library-status="OWNED"
+        >
+            Owned
+        </button>
+
+        <button
+            class="tab"
+            data-library-status="MISSING"
+        >
+            Missing
+        </button>
+
+        <button
+            class="tab"
+            data-library-status="UPDATE_AVAILABLE"
+        >
+            Updates
+        </button>
+
+        <button
+            class="tab"
+            data-library-status="NEEDS_REVIEW"
+        >
+            Needs Review
+        </button>
+
+        <button
+            class="tab"
+            data-library-status="LOCAL"
+        >
+            Local
+        </button>
+    </div>
+</div>
+
+<div class="filter-group">
+    <div class="filter-label">
+        Patch Readiness
+    </div>
+
+    <div
+        class="tabs"
+        id="readiness-tabs"
+    >
+        <button
+            class="tab active"
+            data-readiness=""
+        >
+            All
+            <span
+                class="readiness-count"
+                id="count-readiness-all"
+            ></span>
+        </button>
+
+        <button
+            class="tab"
+            data-readiness="READY"
+        >
+            Ready
+            <span
+                class="readiness-count"
+                id="count-readiness-ready"
+            ></span>
+        </button>
+
+        <button
+            class="tab"
+            data-readiness="BASE_MISSING"
+        >
+            Missing Base
+            <span
+                class="readiness-count"
+                id="count-readiness-missing"
+            ></span>
+        </button>
+
+        <button
+            class="tab"
+            data-readiness="PROBLEM"
+        >
+            Problems
+            <span
+                class="readiness-count"
+                id="count-readiness-problem"
+            ></span>
+        </button>
+    </div>
+</div>
+
+<div
+    class="grid"
+    id="grid"
+></div>
+
+</section>
+
+</main>
+
+<div
+    class="modal-backdrop"
+    id="modal-backdrop"
+    onclick="closeModal(event)"
+>
+    <div
+        class="modal"
+        id="modal"
+        onclick="event.stopPropagation()"
+    ></div>
+</div>
+
+<script>
+let catalog = [];
+let readiness = {};
+let readinessCounts = {};
+
+let activeLibraryStatus = "";
+let activeReadiness = "";
+let activeCatalogView = null;
+
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function statusClass(status) {
+    if (status === "OWNED") {
+        return "status-owned";
+    }
+
+    if (status === "MISSING") {
+        return "status-missing";
+    }
+
+    if (status === "UPDATE_AVAILABLE") {
+        return "status-update";
+    }
+
+    return "status-review";
+}
+
+
+function statusLabel(status) {
+    return String(status || "UNKNOWN")
+        .replaceAll("_", " ");
+}
+
+
+
+function versionDeltaMarkup(item) {
+    if (
+        item.library_status
+        !== "UPDATE_AVAILABLE"
+    ) {
+        return "";
+    }
+
+    return `
+        <div class="version-delta">
+
+            <div class="version-delta-row">
+                <span class="version-delta-label">
+                    Installed
+                </span>
+
+                <span class="version-installed">
+                    ${escapeHtml(
+                        item.installed_version
+                        || "Unknown"
+                    )}
+                </span>
+            </div>
+
+            <div class="version-delta-row">
+                <span class="version-delta-label">
+                    Available
+                </span>
+
+                <span class="version-available">
+                    ${escapeHtml(
+                        item.latest_version
+                        || "Unknown"
+                    )}
+                </span>
+            </div>
+
+        </div>
+    `;
+}
+
+
+
+
+function updateMarkup(item) {
+    if (
+        item.library_status
+        !== "UPDATE_AVAILABLE"
+    ) {
+        return "";
+    }
+
+    return `
+        <div class="install-preview">
+
+            <strong class="version-available">
+                Update Available
+            </strong>
+
+            <br><br>
+
+            Installed version:
+            <strong>
+                ${escapeHtml(
+                    item.installed_version
+                    || "Unknown"
+                )}
+            </strong>
+
+            <br>
+
+            Latest HackDex version:
+            <strong class="version-available">
+                ${escapeHtml(
+                    item.latest_version
+                    || "Unknown"
+                )}
+            </strong>
+
+            ${
+                item.local_filename
+                ? `
+                <br><br>
+                Current library file:
+                <br>
+                <span class="hash">
+                    ${escapeHtml(
+                        item.local_filename
+                    )}
+                </span>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
+const PROBLEM_READINESS_STATUSES = new Set([
+    "PATCH_INVALID",
+    "SOURCE_NOT_IN_REGISTRY",
+    "SOURCE_AMBIGUOUS",
+    "INCOMPATIBLE",
+    "PREFLIGHT_FAILED",
+    "ENGINE_MISSING",
+    "UNSUPPORTED_FORMAT",
+    "XDELTA_NO_CHECKSUM",
+    "XDELTA_CHECKSUM_UNKNOWN",
+]);
+
+
+function isProblemReadiness(status) {
+    return PROBLEM_READINESS_STATUSES.has(
+        status
+    );
+}
+
+
+function readinessClass(status) {
+    if (status === "READY") {
+        return "readiness-ready";
+    }
+
+    if (status === "BASE_MISSING") {
+        return "readiness-missing";
+    }
+
+    if (isProblemReadiness(status)) {
+        return "readiness-problem";
+    }
+
+    return "readiness-unknown";
+}
+
+
+function readinessLabel(status) {
+    const labels = {
+        READY:
+            "READY",
+
+        BASE_MISSING:
+            "MISSING BASE ROM",
+
+        PATCH_INVALID:
+            "INVALID PATCH",
+
+        SOURCE_NOT_IN_REGISTRY:
+            "UNSUPPORTED SOURCE",
+
+        SOURCE_AMBIGUOUS:
+            "AMBIGUOUS SOURCE",
+
+        INCOMPATIBLE:
+            "INCOMPATIBLE",
+
+        PREFLIGHT_FAILED:
+            "PATCH PREFLIGHT FAILED",
+
+        ENGINE_MISSING:
+            "PATCH ENGINE MISSING",
+
+        UNSUPPORTED_FORMAT:
+            "UNSUPPORTED FORMAT",
+
+        XDELTA_NO_CHECKSUM:
+            "XDELTA CHECKSUM MISSING",
+
+        XDELTA_CHECKSUM_UNKNOWN:
+            "XDELTA CHECKSUM UNKNOWN",
+    };
+
+    return (
+        labels[status]
+        || String(status || "UNKNOWN")
+            .replaceAll("_", " ")
+    );
+}
+
+
+function coverMarkup(item) {
+    if (!item.cover_url) {
+        return `
+            <div class="cover-fallback">
+                <strong>
+                    ${escapeHtml(item.title)}
+                </strong>
+                <span>
+                    No artwork
+                </span>
+            </div>
+        `;
+    }
+
+    return `
+        <img
+            class="cover"
+            src="${escapeHtml(item.cover_url)}"
+            alt="${escapeHtml(item.title)}"
+            loading="lazy"
+            onerror="
+                this.style.display='none';
+                this.nextElementSibling.style.display='flex';
+            "
+        >
+
+        <div
+            class="cover-fallback"
+            style="display:none"
+        >
+            <strong>
+                ${escapeHtml(item.title)}
+            </strong>
+            <span>
+                Artwork unavailable
+            </span>
+        </div>
+    `;
+}
+
+
+function readinessFor(item) {
+    return (
+        readiness[item.slug]
+        || {
+            status: "UNKNOWN",
+            obtain_enabled: false,
+        }
+    );
+}
+
+
+function matchesReadiness(item) {
+    if (!activeReadiness) {
+        return true;
+    }
+
+    const state =
+        readinessFor(item).status;
+
+    if (
+        activeReadiness
+        === "PROBLEM"
+    ) {
+        return isProblemReadiness(
+            state
+        );
+    }
+
+    return (
+        state === activeReadiness
+    );
+}
+
+
+
+function compactSummary(item) {
+    const summary =
+        String(
+            item.summary
+            || "No description available."
+        ).trim();
+
+    return escapeHtml(summary);
+}
+
+
+function versionPillMarkup(item) {
+    if (!item.latest_version) {
+        return "";
+    }
+
+    return `
+        <span class="hd-hack-version">
+            v${escapeHtml(
+                item.latest_version
+            )}
+        </span>
+    `;
+}
+
+
+function authorMarkup(item) {
+    if (!item.author) {
+        return "";
+    }
+
+    return `
+        <div class="hd-hack-author">
+            By ${escapeHtml(
+                item.author
+            )}
+        </div>
+    `;
+}
+
+
+
+function titleCaseWords(value) {
+    return String(value || "")
+        .split(" ")
+        .filter(Boolean)
+        .map(word => {
+            if (
+                word.toUpperCase() === word
+                && word.length <= 4
+            ) {
+                return word;
+            }
+
+            return (
+                word.charAt(0).toUpperCase()
+                + word.slice(1)
+            );
+        })
+        .join(" ");
+}
+
+
+function formatBaseRomName(value) {
+    const raw = String(value || "")
+        .trim();
+
+    if (!raw) {
+        return "Not listed";
+    }
+
+    const normalized = raw
+        .toLowerCase()
+        .replaceAll("_", " ")
+        .replaceAll("-", " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    const mapping = {
+        "poke red": "Pokémon Red",
+        "poke blue": "Pokémon Blue",
+        "poke yellow": "Pokémon Yellow",
+        "poke gold": "Pokémon Gold",
+        "poke silver": "Pokémon Silver",
+        "poke crystal": "Pokémon Crystal",
+        "poke ruby": "Pokémon Ruby",
+        "poke sapphire": "Pokémon Sapphire",
+        "poke emerald": "Pokémon Emerald",
+        "poke firered": "Pokémon FireRed",
+        "poke fire red": "Pokémon FireRed",
+        "poke leafgreen": "Pokémon LeafGreen",
+        "poke leaf green": "Pokémon LeafGreen",
+        "poke diamond": "Pokémon Diamond",
+        "poke pearl": "Pokémon Pearl",
+        "poke platinum": "Pokémon Platinum",
+        "poke heartgold": "Pokémon HeartGold",
+        "poke heart gold": "Pokémon HeartGold",
+        "poke soulsilver": "Pokémon SoulSilver",
+        "poke soul silver": "Pokémon SoulSilver",
+        "poke black": "Pokémon Black",
+        "poke white": "Pokémon White",
+        "poke black 2": "Pokémon Black 2",
+        "poke white 2": "Pokémon White 2"
+    };
+
+    if (mapping[normalized]) {
+        return mapping[normalized];
+    }
+
+    return titleCaseWords(normalized)
+        .replace(/\bRom\b/g, "ROM");
+}
+
+
+function richVersionStatusMarkup(item) {
+    const installed = String(
+        item.installed_version || ""
+    ).trim();
+
+    const latest = String(
+        item.latest_version || ""
+    ).trim();
+
+    if (!installed && !latest) {
+        return "";
+    }
+
+    if (installed && latest) {
+        return `
+            <div class="hd-version-compare">
+                <div class="hd-version-side">
+                    <span>Installed</span>
+                    <strong>
+                        ${escapeHtml(installed)}
+                    </strong>
+                </div>
+
+                <div class="hd-version-side available">
+                    <span>Available</span>
+                    <strong>
+                        v${escapeHtml(latest)}
+                    </strong>
+                </div>
+            </div>
+        `;
+    }
+
+    if (latest) {
+        return `
+            <div class="hd-version-compare single">
+                <div class="hd-version-side available">
+                    <span>Latest Version</span>
+                    <strong>
+                        v${escapeHtml(latest)}
+                    </strong>
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="hd-version-compare single">
+            <div class="hd-version-side">
+                <span>Installed</span>
+                <strong>
+                    ${escapeHtml(installed)}
+                </strong>
+            </div>
+        </div>
+    `;
+}
+
+
+
+const CATALOG_VIEWS = {
+
+    all: {
+        status: "",
+        title: "All Hacks",
+        description:
+            "Browse the complete live HackDex catalog.",
+    },
+
+    owned: {
+        status: "OWNED",
+        title: "Owned Hacks",
+        description:
+            "HackDex entries currently represented in your library.",
+    },
+
+    missing: {
+        status: "MISSING",
+        title: "Missing Hacks",
+        description:
+            "HackDex entries that are not currently installed.",
+    },
+
+    updates: {
+        status: "UPDATE_AVAILABLE",
+        title: "Updates Available",
+        description:
+            "Installed hacks with newer HackDex versions available.",
+    },
+
+    review: {
+        status: "NEEDS_REVIEW",
+        title: "Needs Review",
+        description:
+            "Catalog entries requiring identity or version review.",
+    },
+
+    local: {
+        status: "LOCAL",
+        title: "Local Hacks",
+        description:
+            "HackDex entries linked to ROM files in your local library.",
+    },
+};
+
+
+function catalogViewFromUrl() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const requested =
+        String(
+            params.get("catalog")
+            || ""
+        )
+        .trim()
+        .toLowerCase();
+
+    return CATALOG_VIEWS[
+        requested
+    ]
+        ? requested
+        : "all";
+}
+
+
+function updateCatalogTabs(
+    status
+) {
+
+    document
+        .querySelectorAll(
+            "[data-library-status]"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.libraryStatus
+                        === status
+                );
+            }
+        );
+}
+
+
+function showDashboardOnly() {
+
+    /*
+     * The Home page always includes the HackDex catalog.
+     * "All Hacks" is the default Library view.
+     */
+
+    activeCatalogView =
+        "all";
+
+    activeLibraryStatus =
+        "";
+
+    activeReadiness =
+        "";
+
+    const catalogBrowser =
+        document.getElementById(
+            "catalog-browser"
+        );
+
+    if (catalogBrowser) {
+        catalogBrowser.hidden =
+            false;
+    }
+
+
+    const title =
+        document.getElementById(
+            "catalog-view-title"
+        );
+
+    const description =
+        document.getElementById(
+            "catalog-view-description"
+        );
+
+    if (title) {
+        title.textContent =
+            CATALOG_VIEWS.all.title;
+    }
+
+    if (description) {
+        description.textContent =
+            CATALOG_VIEWS.all.description;
+    }
+
+
+    updateCatalogTabs(
+        ""
+    );
+
+
+    document
+        .querySelectorAll(
+            "[data-readiness]"
+        )
+        .forEach(
+            button => {
+
+                button.classList.toggle(
+                    "active",
+                    button.dataset.readiness
+                        === ""
+                );
+            }
+        );
+
+
+    const search =
+        document.getElementById(
+            "search"
+        );
+
+    if (search) {
+        search.value = "";
+    }
+
+
+    const platform =
+        document.getElementById(
+            "platform"
+        );
+
+    if (platform) {
+        platform.value = "";
+    }
+
+
+    render();
+}
+
+
+function applyCatalogView(
+    viewName,
+    {
+        updateHistory = true,
+        scroll = true,
+    } = {},
+) {
+
+    const view =
+        CATALOG_VIEWS[
+            viewName
+        ];
+
+    if (!view) {
+        showDashboardOnly();
+        return;
+    }
+
+
+    activeCatalogView =
+        viewName;
+
+    activeLibraryStatus =
+        view.status;
+
+
+    const catalogBrowser =
+        document.getElementById(
+            "catalog-browser"
+        );
+
+    if (!catalogBrowser) {
+        return;
+    }
+
+    catalogBrowser.hidden =
+        false;
+
+
+    const title =
+        document.getElementById(
+            "catalog-view-title"
+        );
+
+    if (title) {
+        title.textContent =
+            view.title;
+    }
+
+
+    const description =
+        document.getElementById(
+            "catalog-view-description"
+        );
+
+    if (description) {
+        description.textContent =
+            view.description;
+    }
+
+
+    updateCatalogTabs(
+        view.status
+    );
+
+
+    if (updateHistory) {
+
+        const url =
+            new URL(
+                window.location.href
+            );
+
+        url.searchParams.set(
+            "catalog",
+            viewName
+        );
+
+        history.pushState(
+            {
+                catalogView:
+                    viewName,
+            },
+            "",
+            url.pathname
+                + url.search
+        );
+    }
+
+
+    render();
+
+
+    if (scroll) {
+
+        catalogBrowser.scrollIntoView(
+            {
+                behavior:
+                    "smooth",
+
+                block:
+                    "start",
+            }
+        );
+    }
+}
+
+
+function openCatalogView(
+    viewName
+) {
+
+    applyCatalogView(
+        viewName,
+        {
+            updateHistory:
+                true,
+
+            scroll:
+                true,
+        }
+    );
+}
+
+
+function syncCatalogFromUrl(
+    {
+        scroll = false,
+    } = {},
+) {
+
+    const viewName =
+        catalogViewFromUrl();
+
+    applyCatalogView(
+        viewName,
+        {
+            updateHistory:
+                false,
+
+            scroll:
+                scroll,
+        }
+    );
+}
+
+
+function render() {
+    const search = (
+        document
+            .getElementById("search")
+            .value
+            || ""
+    )
+        .trim()
+        .toLowerCase();
+
+    const platform =
+        document
+            .getElementById("platform")
+            .value;
+
+    const items = catalog.filter(
+        item => {
+            if (
+                activeLibraryStatus === "LOCAL"
+            ) {
+                if (!item.local_filename) {
+                    return false;
+                }
+            }
+
+            else if (
+                activeLibraryStatus
+                && item.library_status
+                    !== activeLibraryStatus
+            ) {
+                return false;
+            }
+
+            if (
+                platform
+                && item.platform
+                    !== platform
+            ) {
+                return false;
+            }
+
+            if (!matchesReadiness(item)) {
+                return false;
+            }
+
+            if (search) {
+                const haystack = [
+                    item.title,
+                    item.author,
+                    item.base_rom,
+                    item.latest_version,
+                    item.slug,
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+                if (
+                    !haystack.includes(
+                        search
+                    )
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    );
+
+    const grid =
+        document.getElementById(
+            "grid"
+        );
+
+    if (!items.length) {
+        grid.innerHTML = `
+            <div class="empty">
+                No hacks match these filters.
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = items.map(
+        item => {
+            const ready =
+                readinessFor(item);
+
+            const enabled =
+                ready.obtain_enabled
+                === true;
+
+            const primaryAction =
+                item.library_status === "UPDATE_AVAILABLE"
+                    ? "Update"
+                    : item.library_status === "OWNED"
+                        ? "Reinstall"
+                        : "Download";
+
+            const unavailableAction =
+                item.library_status === "UPDATE_AVAILABLE"
+                    ? "Update Unavailable"
+                    : item.library_status === "OWNED"
+                        ? "Reinstall Unavailable"
+                        : "Download Unavailable";
+
+            return `
+                <article
+                    class="card hd-hack-card"
+                    onclick="
+                        openDetails(
+                            '${escapeHtml(
+                                item.slug
+                            )}'
+                        )
+                    "
+                >
+
+                    <div class="hd-hack-card-chips">
+
+                        <span class="hd-hack-chip">
+                            ${escapeHtml(
+                                item.platform
+                                || "Unknown"
+                            )}
+                        </span>
+
+                        <span
+                            class="
+                                hd-hack-chip
+                                ${statusClass(
+                                    item.library_status
+                                )}
+                            "
+                        >
+                            ${escapeHtml(
+                                statusLabel(
+                                    item.library_status
+                                )
+                            )}
+                        </span>
+
+                        <span
+                            class="
+                                hd-hack-chip
+                                ${readinessClass(
+                                    ready.status
+                                )}
+                            "
+                        >
+                            ${escapeHtml(
+                                readinessLabel(
+                                    ready.status
+                                )
+                            )}
+                        </span>
+
+                    </div>
+
+
+                    <div class="cover-wrap hd-hack-cover">
+                        ${coverMarkup(item)}
+                    </div>
+
+
+                    <div class="body hd-hack-card-body">
+
+                        <div class="hd-hack-title-row">
+
+                            <div class="title">
+                                ${escapeHtml(
+                                    item.title
+                                )}
+                            </div>
+
+                            ${versionPillMarkup(
+                                item
+                            )}
+
+                        </div>
+
+
+                        ${authorMarkup(item)}
+
+
+                        <div class="hd-hack-summary">
+                            ${compactSummary(item)}
+                        </div>
+
+
+                        <div class="hd-hack-card-meta">
+
+                            <div class="hd-hack-meta-tile">
+                                <span>
+                                    Base ROM
+                                </span>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        formatBaseRomName(
+                                            item.base_rom
+                                        )
+                                    )}
+                                </strong>
+                            </div>
+
+                        </div>
+
+                        ${richVersionStatusMarkup(item)}
+
+
+                        <div class="hd-hack-card-actions">
+
+                            <button
+                                type="button"
+                                class="hd-details-button"
+                                onclick="
+                                    event.stopPropagation();
+
+                                    openDetails(
+                                        '${escapeHtml(
+                                            item.slug
+                                        )}'
+                                    );
+                                "
+                            >
+                                View Details
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="obtain-button"
+                                ${enabled
+                                    ? ""
+                                    : "disabled"
+                                }
+                                onclick="
+                                    event.stopPropagation();
+
+                                    obtainHack(
+                                        '${escapeHtml(
+                                            item.slug
+                                        )}'
+                                    );
+                                "
+                                title="${
+                                    enabled
+                                    ? "Validated and ready"
+                                    : "Not currently ready"
+                                }"
+                            >
+                                ${
+                                    enabled
+                                    ? primaryAction
+                                    : unavailableAction
+                                }
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            `;
+        }
+    ).join("");
+}
+
+
+function baseRequirementMarkup(ready) {
+    if (
+        ready.status
+        !== "BASE_MISSING"
+    ) {
+        return "";
+    }
+
+    return `
+        <div class="readiness-info">
+
+            <div
+                class="readiness-info-title"
+            >
+                Required clean base ROM
+            </div>
+
+            <div class="readiness-field">
+                <strong>Name:</strong>
+                ${escapeHtml(
+                    ready.base_name
+                    || ready.base_key
+                    || "Unknown"
+                )}
+            </div>
+
+            <div class="readiness-field">
+                <strong>Platform:</strong>
+                ${escapeHtml(
+                    ready.base_platform
+                    || "Unknown"
+                )}
+            </div>
+
+            <div class="readiness-field">
+                <strong>Region:</strong>
+                ${escapeHtml(
+                    ready.base_region
+                    || "Unknown"
+                )}
+            </div>
+
+            <div class="readiness-field">
+                <strong>CRC32:</strong>
+                <span class="hash">
+                    ${escapeHtml(
+                        ready.base_crc32
+                        || "Unknown"
+                    )}
+                </span>
+            </div>
+
+            <div class="readiness-field">
+                <strong>SHA-1:</strong>
+                <span class="hash">
+                    ${escapeHtml(
+                        ready.base_sha1
+                        || "Unknown"
+                    )}
+                </span>
+            </div>
+
+            ${
+                ready.base_key
+                ? `
+                <div
+                    class="
+                        hd-missing-base-link-row
+                    "
+                >
+                    <a
+                        href="/base-roms?status=missing&base=${encodeURIComponent(
+                            ready.base_key
+                        )}"
+                        class="
+                            hd-missing-base-link
+                        "
+                    >
+                        View required Base ROM →
+                    </a>
+                </div>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
+function problemMarkup(ready) {
+    if (
+        !ready
+        || !isProblemReadiness(
+            ready.status
+        )
+    ) {
+        return "";
+    }
+
+    const showSource =
+        ready.status
+        === "SOURCE_NOT_IN_REGISTRY"
+        || ready.status
+        === "SOURCE_AMBIGUOUS"
+        || ready.status
+        === "INCOMPATIBLE";
+
+    return `
+        <div class="readiness-info">
+
+            <div
+                class="readiness-info-title"
+            >
+                ${escapeHtml(
+                    readinessLabel(
+                        ready.status
+                    )
+                )}
+            </div>
+
+            ${
+                ready.detail
+                ? `
+                <div class="readiness-field">
+                    ${escapeHtml(
+                        ready.detail
+                    )}
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                showSource
+                && ready.expected_source_crc32
+                ? `
+                <div class="readiness-field">
+                    <strong>
+                        Expected CRC32:
+                    </strong>
+                    <span class="hash">
+                        ${escapeHtml(
+                            ready
+                            .expected_source_crc32
+                        )}
+                    </span>
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                showSource
+                && ready.expected_source_size
+                ? `
+                <div class="readiness-field">
+                    <strong>
+                        Expected size:
+                    </strong>
+                    ${Number(
+                        ready
+                        .expected_source_size
+                    ).toLocaleString()} bytes
+                </div>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
+
+function formatHackDexDate(value) {
+    if (!value) {
+        return null;
+    }
+
+    const text = String(value);
+    const match =
+        text.match(
+            /^(\d{4})-(\d{2})-(\d{2})/
+        );
+
+    if (!match) {
+        return text;
+    }
+
+    const date = new Date(
+        `${match[1]}-${match[2]}-${match[3]}T00:00:00Z`
+    );
+
+    return date.toLocaleDateString(
+        undefined,
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            timeZone: "UTC",
+        }
+    );
+}
+
+
+function formatDownloadCount(value) {
+    const count = Number(value);
+
+    if (!Number.isFinite(count)) {
+        return null;
+    }
+
+    return count.toLocaleString();
+}
+
+
+function safeExternalUrl(value) {
+    const text =
+        String(value || "").trim();
+
+    if (
+        text.startsWith("https://")
+        || text.startsWith("http://")
+    ) {
+        return text;
+    }
+
+    return "";
+}
+
+
+function richCreatorMarkup(item) {
+    const creator =
+        item.creator || {};
+
+    const name =
+        creator.username
+        || item.author
+        || null;
+
+    if (!name) {
+        return "";
+    }
+
+    return `
+        <div class="hd-rich-creator">
+
+            <span>
+                By
+                <strong>
+                    ${escapeHtml(name)}
+                </strong>
+            </span>
+
+            ${
+                creator.verified
+                ? `
+                <span
+                    class="hd-rich-verified"
+                    title="Verified HackDex creator"
+                >
+                    ✓ Verified
+                </span>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
+function richFactsMarkup(item) {
+    const facts = [];
+
+    if (item.completion_status) {
+        facts.push(
+            escapeHtml(
+                item.completion_status
+            )
+        );
+    }
+
+    if (item.language) {
+        facts.push(
+            escapeHtml(
+                item.language
+            )
+        );
+    }
+
+    const downloads =
+        formatDownloadCount(
+            item.downloads
+        );
+
+    if (downloads !== null) {
+        facts.push(
+            `${downloads} downloads`
+        );
+    }
+
+    if (!facts.length) {
+        return "";
+    }
+
+    return `
+        <div class="hd-rich-facts">
+            ${facts.map(
+                value => `
+                    <span>
+                        ${value}
+                    </span>
+                `
+            ).join("")}
+        </div>
+    `;
+}
+
+
+function richTagsMarkup(item) {
+    const tags =
+        Array.isArray(item.tags)
+        ? item.tags.filter(Boolean)
+        : [];
+
+    if (!tags.length) {
+        return "";
+    }
+
+    const visibleCount = 10;
+
+    return `
+        <div class="hd-rich-tags">
+
+            ${tags.map(
+                (tag, index) => `
+                    <span
+                        class="
+                            hd-rich-tag
+                            ${
+                                index >= visibleCount
+                                ? "is-extra"
+                                : ""
+                            }
+                        "
+                    >
+                        ${escapeHtml(tag)}
+                    </span>
+                `
+            ).join("")}
+
+            ${
+                tags.length > visibleCount
+                ? `
+                <button
+                    type="button"
+                    class="hd-rich-tags-more"
+                    onclick="
+                        toggleDetailTags(this)
+                    "
+                    data-expanded="false"
+                >
+                    +${tags.length - visibleCount} more
+                </button>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
+function toggleDetailTags(button) {
+    const container =
+        button.closest(
+            ".hd-rich-tags"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const expanded =
+        button.dataset.expanded
+        === "true";
+
+    container
+        .querySelectorAll(
+            ".hd-rich-tag.is-extra"
+        )
+        .forEach(
+            tag => {
+                tag.style.display =
+                    expanded
+                    ? "none"
+                    : "inline-flex";
+            }
+        );
+
+    button.dataset.expanded =
+        expanded
+        ? "false"
+        : "true";
+
+    const hiddenCount =
+        container.querySelectorAll(
+            ".hd-rich-tag.is-extra"
+        ).length;
+
+    button.textContent =
+        expanded
+        ? `+${hiddenCount} more`
+        : "Show less";
+}
+
+
+function richGalleryMarkup(item) {
+    let images =
+        Array.isArray(item.images)
+        ? item.images.filter(
+            image =>
+                image
+                && image.url
+        )
+        : [];
+
+    if (
+        !images.length
+        && item.cover_url
+    ) {
+        images = [
+            {
+                url:
+                    item.cover_url,
+                alt:
+                    item.title,
+            },
+        ];
+    }
+
+    if (!images.length) {
+        return `
+            <div class="hd-detail-cover">
+                ${coverMarkup(item)}
+            </div>
+        `;
+    }
+
+    const first =
+        images[0];
+
+    return `
+        <div class="hd-rich-gallery">
+
+            <div class="hd-rich-gallery-main">
+                <img
+                    id="hd-detail-main-image"
+                    src="${escapeHtml(
+                        first.url
+                    )}"
+                    alt="${escapeHtml(
+                        first.alt
+                        || item.title
+                        || "HackDex artwork"
+                    )}"
+                >
+            </div>
+
+            ${
+                images.length > 1
+                ? `
+                <div
+                    class="hd-rich-gallery-thumbs"
+                >
+                    ${images.map(
+                        (image, index) => `
+                            <button
+                                type="button"
+                                class="
+                                    hd-rich-gallery-thumb
+                                    ${
+                                        index === 0
+                                        ? "active"
+                                        : ""
+                                    }
+                                "
+                                data-url="${escapeHtml(
+                                    image.url
+                                )}"
+                                data-index="${index}"
+                                data-alt="${escapeHtml(
+                                    image.alt
+                                    || item.title
+                                    || "HackDex artwork"
+                                )}"
+                                onclick="
+                                    selectDetailImage(
+                                        this
+                                    )
+                                "
+                            >
+                                <img
+                                    src="${escapeHtml(
+                                        image.url
+                                    )}"
+                                    alt=""
+                                    loading="lazy"
+                                >
+                            </button>
+                        `
+                    ).join("")}
+                </div>
+                `
+                : ""
+            }
+
+            <div
+                class="hd-detail-media-caption"
+            >
+                <span>
+                    Official HackDex artwork
+                </span>
+
+                ${
+                    images.length > 1
+                    ? `
+                    <span
+                        class="hd-gallery-counter"
+                        id="hd-detail-image-counter"
+                    >
+                        1 / ${images.length}
+                    </span>
+                    `
+                    : ""
+                }
+            </div>
+
+        </div>
+    `;
+}
+
+
+function selectDetailImage(button) {
+    const image =
+        document.getElementById(
+            "hd-detail-main-image"
+        );
+
+    if (!image) {
+        return;
+    }
+
+    image.src =
+        button.dataset.url || "";
+
+    image.alt =
+        button.dataset.alt
+        || "HackDex artwork";
+
+    document
+        .querySelectorAll(
+            ".hd-rich-gallery-thumb"
+        )
+        .forEach(
+            thumb =>
+                thumb.classList.remove(
+                    "active"
+                )
+        );
+
+    button.classList.add(
+        "active"
+    );
+
+    const counter =
+        document.getElementById(
+            "hd-detail-image-counter"
+        );
+
+    if (counter) {
+        const thumbnails =
+            document.querySelectorAll(
+                ".hd-rich-gallery-thumb"
+            );
+
+        const index =
+            Number(
+                button.dataset.index
+                || 0
+            );
+
+        counter.textContent =
+            `${index + 1} / ${thumbnails.length}`;
+    }
+}
+
+
+function richDescriptionMarkup(item) {
+    let description =
+        String(
+            item.description
+            || item.summary
+            || "No description available."
+        ).trim();
+
+    /*
+     * Keep the upstream text safe.
+     * Convert Markdown links to readable
+     * label + URL text rather than injecting
+     * arbitrary HTML.
+     */
+    description =
+        description.replace(
+            /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+            "$1 ($2)"
+        );
+
+    return escapeHtml(
+        description
+    ).replace(
+        /\r?\n/g,
+        "<br>"
+    );
+}
+
+
+
+function detailDescriptionIsLong(item) {
+    return String(
+        item.description
+        || item.summary
+        || ""
+    ).length > 1100;
+}
+
+
+function toggleDetailDescription(button) {
+    const section =
+        button.closest(
+            ".hd-detail-about-media"
+        );
+
+    const description =
+        section?.querySelector(
+            ".hd-rich-description"
+        );
+
+    if (!description) {
+        return;
+    }
+
+    const collapsed =
+        description.classList.contains(
+            "is-collapsed"
+        );
+
+    description.classList.toggle(
+        "is-collapsed",
+        !collapsed,
+    );
+
+    button.textContent =
+        collapsed
+        ? "Show less"
+        : "Show more";
+}
+
+
+function richReleaseMarkup(item) {
+    const hackCreated =
+        formatHackDexDate(
+            item.created_at
+        );
+
+    const hackUpdated =
+        formatHackDexDate(
+            item.updated_at
+        );
+
+    const patchPublished =
+        formatHackDexDate(
+            item.published_at
+        );
+
+    const hasSaveInfo =
+        item.current_patch_breaks_saves
+        !== null
+        && item.current_patch_breaks_saves
+        !== undefined;
+
+    const changelog =
+        String(
+            item.current_patch_changelog
+            || ""
+        ).trim();
+
+    if (
+        !hackCreated
+        && !hackUpdated
+        && !patchPublished
+        && !hasSaveInfo
+        && !changelog
+    ) {
+        return "";
+    }
+
+    return `
+        <section class="hd-rich-section">
+
+            <div class="hd-rich-section-title">
+                Release Information
+            </div>
+
+            <div class="hd-rich-release-grid">
+
+                ${
+                    hackCreated
+                    ? `
+                    <div>
+                        <span>
+                            Added to HackDex
+                        </span>
+                        <strong>
+                            ${escapeHtml(
+                                hackCreated
+                            )}
+                        </strong>
+                    </div>
+                    `
+                    : ""
+                }
+
+                ${
+                    hackUpdated
+                    ? `
+                    <div>
+                        <span>
+                            Hack Updated
+                        </span>
+                        <strong>
+                            ${escapeHtml(
+                                hackUpdated
+                            )}
+                        </strong>
+                    </div>
+                    `
+                    : ""
+                }
+
+                ${
+                    patchPublished
+                    ? `
+                    <div>
+                        <span>
+                            Patch Released
+                        </span>
+                        <strong>
+                            ${escapeHtml(
+                                patchPublished
+                            )}
+                        </strong>
+                    </div>
+                    `
+                    : ""
+                }
+
+                ${
+                    hasSaveInfo
+                    ? `
+                    <div>
+                        <span>
+                            Save Compatibility
+                        </span>
+
+                        <strong
+                            class="${
+                                item.current_patch_breaks_saves
+                                ? "hd-save-warning"
+                                : "hd-save-safe"
+                            }"
+                        >
+                            ${
+                                item.current_patch_breaks_saves
+                                ? "Breaks existing saves"
+                                : "Existing saves supported"
+                            }
+                        </strong>
+                    </div>
+                    `
+                    : ""
+                }
+
+            </div>
+
+            ${
+                item.current_patch_breaks_saves === true
+                ? `
+                <div class="hd-save-break-warning">
+                    <strong>
+                        Save compatibility warning
+                    </strong>
+
+                    This release is marked by HackDex
+                    as breaking existing saves.
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                changelog
+                ? `
+                <div class="hd-rich-changelog">
+                    <span>
+                        Changelog
+                    </span>
+
+                    <div
+                        class="hd-rich-changelog-body ${
+                            changelog.length > 600
+                            ? "is-collapsed"
+                            : ""
+                        }"
+                    >
+                        ${escapeHtml(
+                            changelog
+                        ).replace(
+                            /\r?\n/g,
+                            "<br>"
+                        )}
+                    </div>
+
+                    ${
+                        changelog.length > 600
+                        ? `
+                        <button
+                            type="button"
+                            class="hd-changelog-toggle"
+                            onclick="
+                                toggleDetailChangelog(
+                                    this
+                                )
+                            "
+                        >
+                            Show full changelog
+                        </button>
+                        `
+                        : ""
+                    }
+                </div>
+                `
+                : ""
+            }
+
+        </section>
+    `;
+}
+
+
+
+function socialIconMarkup(service) {
+    const icons = {
+        discord: "◈",
+        twitter: "𝕏",
+        youtube: "▶",
+        github: "◉",
+        website: "↗",
+        reddit: "●",
+    };
+
+    return `
+        <span
+            class="hd-social-icon"
+            aria-hidden="true"
+        >
+            ${icons[service] || "↗"}
+        </span>
+    `;
+}
+
+
+
+function toggleDetailChangelog(button) {
+    const container =
+        button.closest(
+            ".hd-rich-changelog"
+        );
+
+    const body =
+        container?.querySelector(
+            ".hd-rich-changelog-body"
+        );
+
+    if (!body) {
+        return;
+    }
+
+    const collapsed =
+        body.classList.contains(
+            "is-collapsed"
+        );
+
+    body.classList.toggle(
+        "is-collapsed",
+        !collapsed,
+    );
+
+    button.textContent =
+        collapsed
+        ? "Show less"
+        : "Show full changelog";
+}
+
+
+function richCommunityMarkup(item) {
+    const links = [];
+
+    const socials =
+        item.social_links
+        && typeof item.social_links
+            === "object"
+        ? item.social_links
+        : {};
+
+    const labels = {
+        discord: "Discord",
+        twitter: "X / Twitter",
+        youtube: "YouTube",
+        github: "GitHub",
+        website: "Website",
+        reddit: "Reddit",
+    };
+
+    for (
+        const [service, value]
+        of Object.entries(socials)
+    ) {
+        const url =
+            safeExternalUrl(value);
+
+        if (!url) {
+            continue;
+        }
+
+        links.push({
+            service,
+            label:
+                labels[service]
+                || service
+                    .replaceAll("_", " ")
+                    .replace(
+                        /\b\w/g,
+                        char =>
+                            char.toUpperCase()
+                    ),
+            url,
+        });
+    }
+
+    const creatorWebsite =
+        safeExternalUrl(
+            item.creator?.website
+        );
+
+    if (
+        creatorWebsite
+        && !links.some(
+            link =>
+                link.url
+                === creatorWebsite
+        )
+    ) {
+        links.push({
+            service:
+                "website",
+            label:
+                "Creator Website",
+            url:
+                creatorWebsite,
+        });
+    }
+
+    const creatorName =
+        item.creator?.username
+        || item.author
+        || null;
+
+    if (
+        !creatorName
+        && !links.length
+    ) {
+        return "";
+    }
+
+    return `
+        <section class="hd-rich-section">
+
+            <div class="hd-rich-section-title">
+                Creator & Community
+            </div>
+
+            ${
+                creatorName
+                ? `
+                <div class="hd-rich-community-author">
+                    <strong>
+                        ${escapeHtml(
+                            creatorName
+                        )}
+                    </strong>
+
+                    ${
+                        item.creator?.verified
+                        ? `
+                        <span
+                            class="hd-rich-verified"
+                        >
+                            ✓ Verified on HackDex
+                        </span>
+                        `
+                        : ""
+                    }
+                </div>
+                `
+                : ""
+            }
+
+            ${
+                links.length
+                ? `
+                <div class="hd-rich-links">
+                    ${links.map(
+                        link => `
+                            <a
+                                href="${escapeHtml(
+                                    link.url
+                                )}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                ${socialIconMarkup(
+                                    link.service
+                                )}
+
+                                ${escapeHtml(
+                                    link.label
+                                )}
+                            </a>
+                        `
+                    ).join("")}
+                </div>
+                `
+                : ""
+            }
+
+        </section>
+    `;
+}
+
+
+function openDetails(slug) {
+    const item =
+        catalog.find(
+            entry =>
+                entry.slug === slug
+        );
+
+    if (!item) {
+        return;
+    }
+
+    const ready =
+        readinessFor(item);
+
+    
+    const isUpdate =
+        item.library_status
+        === "UPDATE_AVAILABLE";
+
+const enabled =
+        ready.obtain_enabled
+        === true;
+
+    const modal =
+        document.getElementById(
+            "modal"
+        );
+
+    modal.innerHTML = `
+        <div class="hd-detail-view">
+
+            
+            <section class="hd-detail-media">
+
+                ${richGalleryMarkup(item)}
+
+                <section class="hd-detail-about hd-detail-about-media">
+
+                    <div class="hd-detail-section-label">
+                        ABOUT THIS HACK
+                    </div>
+
+                    <div
+                        class="
+                            hd-rich-description
+                            ${
+                                detailDescriptionIsLong(item)
+                                ? "is-collapsed"
+                                : ""
+                            }
+                        "
+                    >
+                        ${richDescriptionMarkup(item)}
+                    </div>
+
+                    ${
+                        detailDescriptionIsLong(item)
+                        ? `
+                        <button
+                            type="button"
+                            class="hd-about-toggle"
+                            onclick="
+                                toggleDetailDescription(
+                                    this
+                                )
+                            "
+                        >
+                            Show more
+                        </button>
+                        `
+                        : ""
+                    }
+
+                </section>
+
+            </section>
+
+
+
+            <section class="hd-detail-content">
+
+                <div class="hd-detail-header">
+
+                    <div>
+
+                        <div class="hd-detail-eyebrow">
+                            ${escapeHtml(
+                                item.platform
+                                || "ROM HACK"
+                            )}
+                        </div>
+
+                        <div class="hd-detail-title-row">
+
+                            <h2>
+                                ${escapeHtml(
+                                    item.title
+                                )}
+                            </h2>
+
+                            ${versionPillMarkup(
+                                item
+                            )}
+
+                        </div>
+
+                        ${richCreatorMarkup(item)}
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="close hd-detail-close"
+                        onclick="closeModal()"
+                        aria-label="Close details"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <div class="hd-detail-badges">
+
+                    <span
+                        class="
+                            badge
+                            ${statusClass(
+                                item.library_status
+                            )}
+                        "
+                    >
+                        ${escapeHtml(
+                            statusLabel(
+                                item.library_status
+                            )
+                        )}
+                    </span>
+
+                    <span
+                        class="
+                            badge
+                            ${readinessClass(
+                                ready.status
+                            )}
+                        "
+                    >
+                        ${escapeHtml(
+                            readinessLabel(
+                                ready.status
+                            )
+                        )}
+                    </span>
+
+                </div>
+
+
+                <div class="hd-rich-source">
+                    Metadata from HackDex
+                </div>
+
+                ${richFactsMarkup(item)}
+
+                ${richTagsMarkup(item)}
+
+
+                <div class="hd-detail-data-heading">
+                    Library &amp; Patch
+                </div>
+
+                <section class="hd-detail-meta-grid">
+
+                    <div>
+                        <span>
+                            Platform
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.platform
+                                || "Unknown"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Base ROM
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                formatBaseRomName(
+                                    item.base_rom
+                                )
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Latest Version
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.latest_version
+                                || "Unknown"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Installed Version
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.installed_version
+                                || "Not installed"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Patch Status
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                readinessLabel(
+                                    ready.status
+                                )
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Patch Format
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                (
+                                    ready.patch_format
+                                    || "Unknown"
+                                ).toUpperCase()
+                            )}
+                        </strong>
+                    </div>
+
+                </section>
+
+
+                
+                ${richReleaseMarkup(item)}
+
+                ${richCommunityMarkup(item)}
+
+
+
+                ${updateMarkup(
+                    item
+                )}
+
+
+                <section class="readiness-info hd-detail-readiness">
+
+                    <div class="readiness-info-title">
+                        Patch readiness
+                    </div>
+
+                    <div class="readiness-field">
+                        <strong>Status:</strong>
+
+                        ${escapeHtml(
+                            readinessLabel(
+                                ready.status
+                            )
+                        )}
+                    </div>
+
+                    ${
+                        ready.patch_filename
+                        ? `
+                        <div class="readiness-field">
+                            <strong>
+                                Patch:
+                            </strong>
+
+                            ${escapeHtml(
+                                ready.patch_filename
+                            )}
+                        </div>
+                        `
+                        : ""
+                    }
+
+                    ${
+                        ready.base_key
+                        ? `
+                        <div class="readiness-field">
+                            <strong>
+                                Base ID:
+                            </strong>
+
+                            ${escapeHtml(
+                                ready.base_key
+                            )}
+                        </div>
+                        `
+                        : ""
+                    }
+
+                </section>
+
+
+                ${baseRequirementMarkup(
+                    ready
+                )}
+
+                ${problemMarkup(
+                    ready
+                )}
+
+
+                ${
+                    enabled
+                    ? `
+                    <section class="obtain-options">
+
+                        <label>
+                            Output format
+                        </label>
+
+                        <select
+                            id="obtain-format"
+                        >
+                            <option value="">
+                                Use Settings default
+                            </option>
+
+                            <option value="7z">
+                                7z Archive (.7z)
+                            </option>
+
+                            <option value="zip">
+                                ZIP Archive (.zip)
+                            </option>
+
+                            <option value="raw">
+                                Raw ROM
+                                (.gba/.gbc/.gb/.nds)
+                            </option>
+                        </select>
+
+                        <div class="obtain-help">
+                            The raw patched ROM is
+                            verified before packaging.
+                        </div>
+
+                    </section>
+
+                    <div
+                        id="obtain-result"
+                        class="obtain-result"
+                    ></div>
+                    `
+                    : ""
+                }
+
+
+                <div class="hd-detail-primary-action">
+
+                    <button
+                        type="button"
+                        class="obtain-button"
+                        ${enabled
+                            ? ""
+                            : "disabled"
+                        }
+                        onclick="
+                            stageObtain(
+                                '${escapeHtml(
+                                    item.slug
+                                )}'
+                            )
+                        "
+                    >
+                        ${
+                            enabled
+                            ? (
+                                isUpdate
+                                ? "Update"
+                                : (
+                                    item.library_status === "OWNED"
+                                    ? "Reinstall"
+                                    : "Download"
+                                )
+                            )
+                            : (
+                                isUpdate
+                                ? "Update Unavailable"
+                                : (
+                                    item.library_status === "OWNED"
+                                    ? "Reinstall Unavailable"
+                                    : "Download Unavailable"
+                                )
+                            )
+                        }
+                    </button>
+
+                </div>
+
+            </section>
+
+        </div>
+    `;
+
+
+    document
+        .getElementById(
+            "modal-backdrop"
+        )
+        .style
+        .display = "flex";
+}
+
+
+function closeDetailsModal() {
+    //
+    // Close every possible details backdrop.
+    // Using querySelectorAll makes this resilient
+    // even if duplicate markup ever exists.
+    //
+    document
+        .querySelectorAll(
+            "#modal-backdrop, .modal-backdrop"
+        )
+        .forEach(
+            backdrop => {
+                backdrop.style.display = "none";
+                backdrop.setAttribute(
+                    "aria-hidden",
+                    "true"
+                );
+            }
+        );
+
+    //
+    // Clear the details panel so stale Download
+    // state cannot remain visible after refresh.
+    //
+    const modal =
+        document.getElementById(
+            "modal"
+        );
+
+    if (modal) {
+        modal.innerHTML = "";
+    }
+
+    document.body.style.overflow = "";
+}
+
+
+
+function closeModal(event) {
+    if (
+        event
+        && event.target
+        !== document.getElementById(
+            "modal-backdrop"
+        )
+    ) {
+        return;
+    }
+
+    closeDetailsModal();
+}
+
+
+function obtainHack(slug) {
+    openDetails(slug);
+}
+
+
+async function stageObtain(slug) {
+    const ready =
+        readiness[slug];
+
+    const item =
+        catalog.find(
+            entry =>
+                entry.slug === slug
+        );
+
+    const isUpdate =
+        item
+        && item.library_status
+            === "UPDATE_AVAILABLE";
+
+    if (
+        !ready
+        || ready.status !== "READY"
+    ) {
+        return;
+    }
+
+    const selector =
+        document.getElementById(
+            "obtain-format"
+        );
+
+    const resultBox =
+        document.getElementById(
+            "obtain-result"
+        );
+
+    const format =
+        selector
+        ? selector.value
+        : "";
+
+    const button =
+        document.querySelector(
+            ".modal-content "
+            + ".obtain-button"
+        );
+
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "Staging...";
+    }
+
+    if (resultBox) {
+        resultBox.className =
+            "obtain-result";
+        resultBox.style.display =
+            "block";
+        resultBox.textContent =
+            isUpdate
+            ? (
+                "Building and verifying "
+                + "updated ROM..."
+            )
+            : (
+                "Building and verifying "
+                + "patched ROM..."
+            );
+    }
+
+    try {
+        let url =
+            "/api/obtain/"
+            + encodeURIComponent(slug)
+            + "/stage";
+
+        if (format) {
+            url +=
+                "?output_format="
+                + encodeURIComponent(
+                    format
+                );
+        }
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "POST",
+                }
+            );
+
+        const rawResponse =
+            await response.text();
+
+        let data;
+
+        try {
+            data =
+                JSON.parse(
+                    rawResponse
+                );
+
+        } catch {
+            throw new Error(
+                "HackDex Manager encountered "
+                + "a server error while staging "
+                + "this hack (HTTP "
+                + response.status
+                + ")."
+            );
+        }
+
+        if (!data.success) {
+            throw new Error(
+                data.message
+                || data.status
+                || "Staging failed."
+            );
+        }
+
+        const artifact =
+            data.artifact || {};
+
+        const install =
+            data.install || {};
+
+        if (resultBox) {
+            resultBox.className =
+                "obtain-result success";
+
+            resultBox.innerHTML = `
+                <strong>
+                    Staged & verified
+                </strong>
+
+                <br><br>
+
+                Format:
+                ${escapeHtml(
+                    data.output_format
+                    || artifact.format
+                    || "raw"
+                )}
+
+                <br>
+
+                Staged artifact:
+                ${escapeHtml(
+                    artifact.filename
+                    || "Unknown"
+                )}
+
+                <br>
+
+                Size:
+                ${escapeHtml(
+                    artifact.size
+                    || ""
+                )}
+                bytes
+
+                <br>
+
+                SHA-256:
+                <span class="hash">
+                    ${escapeHtml(
+                        artifact.sha256
+                        || ""
+                    )}
+                </span>
+
+                <div class="install-preview">
+                    <strong>
+                        Library filename
+                    </strong>
+                    <br>
+                    ${escapeHtml(
+                        install.filename
+                        || artifact.filename
+                        || "Unknown"
+                    )}
+                </div>
+
+                <button
+                    class="install-button"
+                    id="install-button"
+                    onclick="
+                        installStaged(
+                            '${escapeHtml(slug)}',
+                            '${escapeHtml(
+                                data.transaction_id
+                            )}'
+                        )
+                    "
+                >
+                    ${
+                            data.update
+                            && data.update.is_update
+                            ? "Install Update"
+                            : "Install to Library"
+                        }
+                </button>
+
+                <br>
+
+                No ROM-library write
+                has been performed yet.
+            `;
+        }
+
+    } catch (error) {
+        if (resultBox) {
+            resultBox.className =
+                "obtain-result error";
+
+            resultBox.textContent =
+                error.message
+                || String(error);
+        }
+
+    } finally {
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "Stage Download";
+        }
+    }
+}
+
+
+
+
+
+function showToast(
+    message,
+    type="success",
+) {
+    const container =
+        document.getElementById(
+            "toast-container"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+    toast.className =
+        "app-toast " + type;
+
+    toast.textContent =
+        message;
+
+    container.appendChild(
+        toast
+    );
+
+    setTimeout(
+        () => {
+            toast.remove();
+        },
+        4500
+    );
+}
+
+
+function appConfirm({
+    title="Confirm",
+    message="",
+    file="",
+    confirmText="Confirm",
+}) {
+    return new Promise(
+        resolve => {
+
+            const backdrop =
+                document.getElementById(
+                    "app-dialog-backdrop"
+                );
+
+            const titleElement =
+                document.getElementById(
+                    "app-dialog-title"
+                );
+
+            const messageElement =
+                document.getElementById(
+                    "app-dialog-message"
+                );
+
+            const fileElement =
+                document.getElementById(
+                    "app-dialog-file"
+                );
+
+            const cancelButton =
+                document.getElementById(
+                    "app-dialog-cancel"
+                );
+
+            const confirmButton =
+                document.getElementById(
+                    "app-dialog-confirm"
+                );
+
+            titleElement.textContent =
+                title;
+
+            messageElement.textContent =
+                message;
+
+            confirmButton.textContent =
+                confirmText;
+
+            if (file) {
+                fileElement.textContent =
+                    file;
+
+                fileElement.style.display =
+                    "block";
+
+            } else {
+                fileElement.style.display =
+                    "none";
+            }
+
+            backdrop.style.display =
+                "flex";
+
+            const finish = value => {
+                backdrop.style.display =
+                    "none";
+
+                cancelButton.onclick =
+                    null;
+
+                confirmButton.onclick =
+                    null;
+
+                resolve(value);
+            };
+
+            cancelButton.onclick =
+                () => finish(false);
+
+            confirmButton.onclick =
+                () => finish(true);
+
+            backdrop.onclick =
+                event => {
+                    if (
+                        event.target
+                        === backdrop
+                    ) {
+                        finish(false);
+                    }
+                };
+        }
+    );
+}
+
+
+
+
+function showInstallProgress(
+    resultBox,
+    message,
+) {
+    if (!resultBox) {
+        return;
+    }
+
+    resultBox.className =
+        "obtain-result";
+
+    resultBox.style.display =
+        "block";
+
+    resultBox.innerHTML = `
+        <div class="install-progress">
+
+            <div class="install-progress-header">
+
+                <div class="install-spinner"></div>
+
+                <div>
+                    Installing to Library
+                </div>
+
+            </div>
+
+            <div
+                class="install-progress-status"
+                id="install-progress-status"
+            >
+                ${escapeHtml(message)}
+            </div>
+
+            <div class="install-progress-detail">
+                HackDex Manager is verifying,
+                installing, rescanning, and
+                updating your library status.
+                This may take a few seconds.
+            </div>
+
+        </div>
+    `;
+}
+
+
+function updateInstallProgress(
+    message,
+) {
+    const status =
+        document.getElementById(
+            "install-progress-status"
+        );
+
+    if (status) {
+        status.textContent =
+            message;
+    }
+}
+
+
+
+async function installStaged(
+    slug,
+    transactionId,
+    replace=false,
+) {
+    const resultBox =
+        document.getElementById(
+            "obtain-result"
+        );
+
+    const button =
+        document.getElementById(
+            "install-button"
+        );
+
+    const catalogItem =
+        catalog.find(
+            item =>
+                item.slug === slug
+        );
+
+    const isUpdate =
+        Boolean(
+            catalogItem
+            && catalogItem.library_status
+                === "UPDATE_AVAILABLE"
+        );
+
+    if (button) {
+        button.disabled = true;
+        button.classList.add(
+            "install-button-working"
+        );
+
+        button.textContent =
+            isUpdate
+            ? "Updating ROM..."
+            : (
+                replace
+                ? "Replacing ROM..."
+                : "Installing ROM..."
+            );
+    }
+
+    showInstallProgress(
+        resultBox,
+        isUpdate
+            ? "Preparing verified update..."
+            : (
+                replace
+                ? "Preparing verified replacement..."
+                : "Preparing verified ROM..."
+            )
+    );
+
+    //
+    // Give the browser a chance to paint
+    // the progress state before beginning
+    // the network request.
+    //
+    await new Promise(
+        resolve =>
+            requestAnimationFrame(resolve)
+    );
+
+    //
+    // We do not have streamed backend progress
+    // yet, so these messages describe the
+    // long-running phase without inventing
+    // fake percentages.
+    //
+    const progressTimer1 =
+        setTimeout(
+            () => {
+                updateInstallProgress(
+                    "Writing and verifying "
+                    + "the library artifact..."
+                );
+            },
+            900
+        );
+
+    const progressTimer2 =
+        setTimeout(
+            () => {
+                updateInstallProgress(
+                    isUpdate
+                    ? (
+                        "Verifying update and "
+                        + "retiring the old ROM..."
+                    )
+                    : (
+                        "Refreshing ROM inventory "
+                        + "and HackDex ownership..."
+                    )
+                );
+            },
+            2200
+        );
+
+    try {
+        let url =
+            "/api/obtain/"
+            + encodeURIComponent(slug)
+            + "/install/"
+            + encodeURIComponent(
+                transactionId
+            );
+
+        if (replace) {
+            url += "?replace=true";
+        }
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "POST",
+                }
+            );
+
+        const rawResponse =
+            await response.text();
+
+        let data;
+
+        try {
+            data =
+                JSON.parse(
+                    rawResponse
+                );
+
+        } catch {
+            throw new Error(
+                response.ok
+                ? (
+                    "HackDex Manager returned "
+                    + "an invalid response."
+                )
+                : (
+                    "HackDex Manager encountered "
+                    + "a server error (HTTP "
+                    + response.status
+                    + ")."
+                )
+            );
+        }
+
+        clearTimeout(
+            progressTimer1
+        );
+
+        clearTimeout(
+            progressTimer2
+        );
+
+        if (
+            !data.success
+            && data.status
+                === "DESTINATION_EXISTS"
+        ) {
+            const destination =
+                data.destination
+                || "";
+
+            const filename =
+                destination
+                .split("/")
+                .pop()
+                || destination;
+
+            const confirmed =
+                await appConfirm({
+                    title:
+                        "ROM already installed",
+
+                    message:
+                        "HackDex Manager found "
+                        + "an existing ROM with "
+                        + "the same library name.",
+
+                    file:
+                        filename,
+
+                    confirmText:
+                        "Replace ROM",
+                });
+
+            if (confirmed) {
+                return installStaged(
+                    slug,
+                    transactionId,
+                    true,
+                );
+            }
+
+            if (resultBox) {
+                resultBox.className =
+                    "obtain-result";
+
+                resultBox.style.display =
+                    "block";
+
+                resultBox.innerHTML = `
+                    <strong>
+                        Installation cancelled
+                    </strong>
+                    <br><br>
+                    The existing ROM was
+                    not changed.
+                `;
+            }
+
+            return;
+        }
+
+        if (!data.success) {
+            throw new Error(
+                data.message
+                || data.status
+                || "Installation failed."
+            );
+        }
+
+        if (resultBox) {
+            resultBox.className =
+                "obtain-result success";
+
+            resultBox.innerHTML = `
+                <strong>
+                    ${
+                        data.updated
+                        ? "Updated & verified"
+                        : "Installed & verified"
+                    }
+                </strong>
+
+                <br><br>
+
+                Filename:
+                ${escapeHtml(
+                    data.filename
+                    || "Unknown"
+                )}
+
+                <br>
+
+                Platform:
+                ${escapeHtml(
+                    data.platform
+                    || ""
+                )}
+
+                <br>
+
+                SHA-256:
+                <span class="hash">
+                    ${escapeHtml(
+                        data.sha256
+                        || ""
+                    )}
+                </span>
+
+                <br><br>
+
+                Library scan and matching
+                completed successfully.
+            `;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                data.updated
+                ? "Updated"
+                : "Installed";
+        }
+
+        //
+        // Installation has completed and the
+        // backend has already refreshed/bound
+        // the ROM. Return the user to the
+        // library immediately.
+        //
+        //
+        // Close the Download/details modal
+        // immediately after a verified install.
+        //
+        closeDetailsModal();
+
+        //
+        // Refresh the entire library/catalog.
+        //
+        await load();
+
+        //
+        // Ensure the modal stays closed after
+        // render has completed.
+        //
+        closeDetailsModal();
+
+        //
+        // Allow the browser one paint cycle,
+        // then enforce the closed state once
+        // more in case any queued UI work ran.
+        //
+        await new Promise(
+            resolve =>
+                requestAnimationFrame(resolve)
+        );
+
+        closeDetailsModal();
+
+        const refreshed =
+            catalog.find(
+                item =>
+                    item.slug === slug
+            );
+
+        if (
+            data.updated
+            && refreshed
+        ) {
+            const fromVersion =
+                data.previous_version
+                || "previous version";
+
+            const toVersion =
+                data.target_version
+                || refreshed.latest_version
+                || "latest version";
+
+            showToast(
+                refreshed.title
+                + " updated "
+                + fromVersion
+                + " → "
+                + toVersion
+                + "."
+                ,
+                "success",
+            );
+
+        } else if (
+            refreshed
+            && refreshed.library_status
+                !== "MISSING"
+        ) {
+            showToast(
+                (
+                    data.replaced
+                    ? "ROM replaced successfully. "
+                    : "ROM installed successfully. "
+                )
+                + refreshed.title
+                + " is now "
+                + statusLabel(
+                    refreshed.library_status
+                )
+                + "."
+                ,
+                "success",
+            );
+
+        } else {
+            showToast(
+                "ROM installed successfully. "
+                + "Library refresh completed."
+                ,
+                "success",
+            );
+        }
+
+
+
+    } catch (error) {
+        clearTimeout(
+            progressTimer1
+        );
+
+        clearTimeout(
+            progressTimer2
+        );
+
+        if (resultBox) {
+            resultBox.className =
+                "obtain-result error";
+
+            resultBox.textContent =
+                error.message
+                || String(error);
+        }
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "Install to Library";
+        }
+    }
+}
+
+
+
+function setReadinessCounts() {
+    const ready =
+        readinessCounts.READY
+        || 0;
+
+    const missing =
+        readinessCounts.BASE_MISSING
+        || 0;
+
+    const problems =
+        Object.entries(
+            readinessCounts
+        )
+        .filter(
+            ([status]) =>
+                isProblemReadiness(
+                    status
+                )
+        )
+        .reduce(
+            (
+                total,
+                [, count],
+            ) =>
+                total
+                + Number(
+                    count || 0
+                ),
+            0,
+        );
+
+    document
+        .getElementById(
+            "count-readiness-all"
+        )
+        .textContent =
+            `(${Object.keys(
+                readiness
+            ).length})`;
+
+    document
+        .getElementById(
+            "count-readiness-ready"
+        )
+        .textContent =
+            `(${ready})`;
+
+    document
+        .getElementById(
+            "count-readiness-missing"
+        )
+        .textContent =
+            `(${missing})`;
+
+    document
+        .getElementById(
+            "count-readiness-problem"
+        )
+        .textContent =
+            `(${problems})`;
+}
+
+
+
+
+function renderDashboardUpdates() {
+    const container =
+        document.getElementById(
+            "dashboard-update-list"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const updates =
+        catalog
+            .filter(
+                item =>
+                    item.library_status
+                    === "UPDATE_AVAILABLE"
+            )
+            .slice(0, 4);
+
+    if (!updates.length) {
+        container.innerHTML = `
+            <div class="hd-dashboard-empty">
+                <div class="hd-dashboard-empty-icon">
+                    ✓
+                </div>
+
+                <div>
+                    <strong>
+                        Everything is current
+                    </strong>
+
+                    <p>
+                        No installed hacks have
+                        HackDex updates available.
+                    </p>
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        updates.map(
+            item => `
+                <button
+                    type="button"
+                    class="hd-update-row"
+                    onclick="
+                        openDetails(
+                            '${escapeHtml(
+                                item.slug
+                            )}'
+                        )
+                    "
+                >
+                    <div class="hd-update-symbol">
+                        ↻
+                    </div>
+
+                    <div class="hd-update-main">
+                        <div class="hd-update-title">
+                            ${escapeHtml(
+                                item.title
+                                || item.slug
+                            )}
+                        </div>
+
+                        <div class="hd-update-meta">
+                            ${escapeHtml(
+                                item.platform
+                                || ""
+                            )}
+                            ${
+                                item.installed_version
+                                ? `
+                                    <span>•</span>
+                                    ${escapeHtml(
+                                        item.installed_version
+                                    )}
+                                `
+                                : ""
+                            }
+                        </div>
+                    </div>
+
+                    <div class="hd-version-arrow">
+                        <span>
+                            ${escapeHtml(
+                                item.installed_version
+                                || "?"
+                            )}
+                        </span>
+
+                        <strong>
+                            →
+                        </strong>
+
+                        <span class="hd-new-version">
+                            ${escapeHtml(
+                                item.latest_version
+                                || "Latest"
+                            )}
+                        </span>
+                    </div>
+
+                    <span class="hd-row-action">
+                        Update
+                    </span>
+                </button>
+            `
+        ).join("");
+}
+
+
+function renderDashboardHealth(data) {
+    const container =
+        document.getElementById(
+            "dashboard-health-summary"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const attention =
+        Number(
+            data.attention_required || 0
+        );
+
+    const errors =
+        Number(
+            data.error_count || 0
+        );
+
+    const warnings =
+        Number(
+            data.warning_count || 0
+        );
+
+    const variants =
+        Number(
+            data.variant_groups || 0
+        );
+
+    const buildReviews =
+        Number(
+            data.build_review_groups || 0
+        );
+
+    const healthy =
+        attention === 0;
+
+    container.innerHTML = `
+        <div class="hd-health-overview">
+
+            <div
+                class="
+                    hd-health-score
+                    ${
+                        healthy
+                        ? "is-good"
+                        : "needs-attention"
+                    }
+                "
+            >
+                <div class="hd-health-score-icon">
+                    ${healthy ? "✓" : "!"}
+                </div>
+
+                <div>
+                    <strong>
+                        ${
+                            healthy
+                            ? "Library looks healthy"
+                            : (
+                                attention
+                                + " item"
+                                + (
+                                    attention === 1
+                                    ? ""
+                                    : "s"
+                                )
+                                + " need attention"
+                            )
+                        }
+                    </strong>
+
+                    <span>
+                        ${
+                            data.rom_rows || 0
+                        }
+                        local ROM records audited
+                    </span>
+                </div>
+            </div>
+
+            <div class="hd-health-metrics">
+
+                <a
+                    href="/library-health"
+                    class="hd-health-metric"
+                >
+                    <strong>
+                        ${errors}
+                    </strong>
+
+                    <span>
+                        Errors
+                    </span>
+                </a>
+
+                <a
+                    href="/library-health"
+                    class="hd-health-metric"
+                >
+                    <strong>
+                        ${warnings}
+                    </strong>
+
+                    <span>
+                        Warnings
+                    </span>
+                </a>
+
+                <a
+                    href="/library-health"
+                    class="hd-health-metric"
+                >
+                    <strong>
+                        ${variants}
+                    </strong>
+
+                    <span>
+                        Variant groups
+                    </span>
+                </a>
+
+                <a
+                    href="/library-health"
+                    class="hd-health-metric"
+                >
+                    <strong>
+                        ${buildReviews}
+                    </strong>
+
+                    <span>
+                        Build reviews
+                    </span>
+                </a>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+function renderDashboardSummary(
+    stats,
+    status,
+    health,
+) {
+    const total =
+        document.getElementById(
+            "dashboard-library-total"
+        );
+
+    if (total) {
+        total.textContent =
+            String(stats.total || 0)
+            + " hacks";
+    }
+
+    renderDashboardUpdates();
+    renderDashboardHealth(
+        health || {}
+    );
+}
+
+
+async function loadAppVersion() {
+    const badge =
+        document.getElementById(
+            "app-version"
+        );
+
+    if (!badge) {
+        return;
+    }
+
+    try {
+        const response =
+            await fetch(
+                "/health",
+                {
+                    cache: "no-store",
+                }
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Health request failed."
+            );
+        }
+
+        const data =
+            await response.json();
+
+        const version =
+            String(
+                data.version || ""
+            ).trim();
+
+        badge.textContent =
+            version
+            ? (
+                version.startsWith("v")
+                ? version
+                : "v" + version
+            )
+            : "Unknown";
+
+        badge.classList.remove(
+            "loading"
+        );
+
+    } catch {
+        badge.textContent =
+            "Unknown";
+
+        badge.classList.remove(
+            "loading"
+        );
+    }
+}
+
+
+
+async function load() {
+    const [
+        catalogResponse,
+        statsResponse,
+        statusResponse,
+        readinessResponse,
+        healthResponse,
+    ] = await Promise.all([
+        fetch("/api/catalog"),
+        fetch("/api/catalog/stats"),
+        fetch("/api/status"),
+        fetch("/api/readiness/details"),
+        fetch(
+            "/api/library-health",
+            {
+                cache: "no-store",
+            }
+        ),
+    ]);
+
+    catalog =
+        await catalogResponse.json();
+
+    const stats =
+        await statsResponse.json();
+
+    const status =
+        await statusResponse.json();
+
+    const readinessData =
+        await readinessResponse.json();
+
+    const healthData =
+        await healthResponse.json();
+
+    readiness =
+        readinessData.items
+        || {};
+
+    readinessCounts =
+        readinessData.counts
+        || {};
+
+    document
+        .getElementById(
+            "stat-total"
+        ).textContent =
+            stats.total;
+
+    document
+        .getElementById(
+            "stat-owned"
+        ).textContent =
+            stats.owned;
+
+    document
+        .getElementById(
+            "stat-missing"
+        ).textContent =
+            stats.missing;
+
+    document
+        .getElementById(
+            "stat-updates"
+        ).textContent =
+            stats.updates;
+
+    document
+        .getElementById(
+            "stat-review"
+        ).textContent =
+            stats.needs_review;
+
+    document
+        .getElementById(
+            "stat-local"
+        ).textContent =
+            status.tracked;
+
+    setReadinessCounts();
+
+    renderDashboardSummary(
+        stats,
+        status,
+        healthData,
+    );
+
+    syncCatalogFromUrl(
+        {
+            scroll:
+                false,
+        }
+    );
+
+    return {
+        catalog:
+            catalog,
+
+        readiness:
+            readiness,
+    };
+}
+
+
+
+document
+    .querySelectorAll(
+        "[data-catalog-view]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    openCatalogView(
+                        button.dataset
+                            .catalogView
+                    );
+                }
+            );
+        }
+    );
+
+
+window.addEventListener(
+    "popstate",
+    () => {
+
+        syncCatalogFromUrl(
+            {
+                scroll:
+                    false,
+            }
+        );
+    }
+);
+
+
+document
+    .getElementById("search")
+    .addEventListener(
+        "input",
+        render
+    );
+
+
+document
+    .getElementById("platform")
+    .addEventListener(
+        "change",
+        render
+    );
+
+
+document
+    .querySelectorAll(
+        "[data-library-status]"
+    )
+    .forEach(button => {
+        button.addEventListener(
+            "click",
+            () => {
+                document
+                    .querySelectorAll(
+                        "[data-library-status]"
+                    )
+                    .forEach(item => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
+
+                button.classList.add(
+                    "active"
+                );
+
+                activeLibraryStatus =
+                    button.dataset
+                        .libraryStatus;
+
+                const statusToView = {
+                    "": "all",
+                    "OWNED": "owned",
+                    "MISSING": "missing",
+                    "UPDATE_AVAILABLE":
+                        "updates",
+                    "NEEDS_REVIEW":
+                        "review",
+                    "LOCAL": "local",
+                };
+
+                const viewName =
+                    statusToView[
+                        activeLibraryStatus
+                    ]
+                    || "all";
+
+                activeCatalogView =
+                    viewName;
+
+                const view =
+                    CATALOG_VIEWS[
+                        viewName
+                    ];
+
+                const title =
+                    document.getElementById(
+                        "catalog-view-title"
+                    );
+
+                const description =
+                    document.getElementById(
+                        "catalog-view-description"
+                    );
+
+                if (title && view) {
+                    title.textContent =
+                        view.title;
+                }
+
+                if (
+                    description
+                    && view
+                ) {
+                    description.textContent =
+                        view.description;
+                }
+
+                const url =
+                    new URL(
+                        window.location.href
+                    );
+
+                url.searchParams.set(
+                    "catalog",
+                    viewName
+                );
+
+                history.replaceState(
+                    {
+                        catalogView:
+                            viewName,
+                    },
+                    "",
+                    url.pathname
+                        + url.search
+                );
+
+                render();
+            }
+        );
+    });
+
+
+document
+    .querySelectorAll(
+        "[data-readiness]"
+    )
+    .forEach(button => {
+        button.addEventListener(
+            "click",
+            () => {
+                document
+                    .querySelectorAll(
+                        "[data-readiness]"
+                    )
+                    .forEach(item => {
+                        item.classList.remove(
+                            "active"
+                        );
+                    });
+
+                button.classList.add(
+                    "active"
+                );
+
+                activeReadiness =
+                    button.dataset
+                        .readiness;
+
+                render();
+            }
+        );
+    });
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+        if (event.key === "Escape") {
+            closeModal();
+        }
+    }
+);
+
+
+loadAppVersion();
+load();
+</script>
+
+
+<div
+    class="app-dialog-backdrop"
+    id="app-dialog-backdrop"
+>
+    <div
+        class="app-dialog"
+        role="dialog"
+        aria-modal="true"
+    >
+
+        <div class="app-dialog-header">
+
+            <div class="app-dialog-icon">
+                ↻
+            </div>
+
+            <div
+                class="app-dialog-title"
+                id="app-dialog-title"
+            >
+                Confirm
+            </div>
+
+        </div>
+
+        <div class="app-dialog-body">
+
+            <div
+                class="app-dialog-message"
+                id="app-dialog-message"
+            ></div>
+
+            <div
+                class="app-dialog-file"
+                id="app-dialog-file"
+                style="display:none"
+            ></div>
+
+            <div class="app-dialog-warning">
+                The replacement is verified
+                before it becomes the active
+                library file.
+            </div>
+
+        </div>
+
+        <div class="app-dialog-actions">
+
+            <button
+                class="dialog-button dialog-cancel"
+                id="app-dialog-cancel"
+            >
+                Keep Existing
+            </button>
+
+            <button
+                class="dialog-button dialog-danger"
+                id="app-dialog-confirm"
+            >
+                Replace ROM
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<div
+    class="toast-container"
+    id="toast-container"
+></div>
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,102 @@
+services:
+
+  hackdex-manager:
+
+    # --------------------------------------------------------
+    # Image
+    #
+    # During development this image is built locally.
+    # The v1 public release will default to the published
+    # HackDex Manager image.
+    # --------------------------------------------------------
+
+    image: ${HACKDEX_IMAGE:-hackdex-manager:local}
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+
+    restart:
+      unless-stopped
+
+
+    # --------------------------------------------------------
+    # Runtime user/group
+    #
+    # Change these when the mounted host directories are owned
+    # by another UID/GID.
+    # --------------------------------------------------------
+
+    user:
+      "${PUID:-1000}:${PGID:-1000}"
+
+
+    environment:
+
+      # Application timezone
+      TZ: ${TZ:-UTC}
+
+      # DEBUG / INFO / WARNING / ERROR / CRITICAL
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Internal container ROM path.
+      # Do not replace this with the host path.
+      ROM_PATH: /roms
+
+
+    ports:
+
+      # Host port can be configured through .env:
+      #
+      #   HACKDEX_PORT=8080
+      #
+      # or replaced directly here:
+      #
+      #   - "8081:8080"
+
+      - "${HACKDEX_PORT:-8080}:8080"
+
+
+    volumes:
+
+      # ------------------------------------------------------
+      # Persistent HackDex Manager data
+      # ------------------------------------------------------
+
+      - ${HACKDEX_DATA_PATH:-./data}:/data
+
+      - ${HACKDEX_STAGING_PATH:-./staging}:/staging
+
+
+      # ------------------------------------------------------
+      # General ROM source
+      #
+      # Read-only by design.
+      # ------------------------------------------------------
+
+      - ${ROM_PATH:-./roms}:/roms:ro
+
+
+      # ------------------------------------------------------
+      # Platform hack libraries
+      #
+      # These can be set in .env OR replaced with literal
+      # host paths directly in this file.
+      # ------------------------------------------------------
+
+      - ${GBA_HACK_PATH:-./roms/gba-hacks}:/hack-library/gba:rw
+
+      - ${GB_HACK_PATH:-./roms/gb-hacks}:/hack-library/gb:rw
+
+      - ${GBC_HACK_PATH:-./roms/gbc-hacks}:/hack-library/gbc:rw
+
+      - ${NDS_HACK_PATH:-./roms/nds-hacks}:/hack-library/nds:rw
+
+
+    security_opt:
+      - no-new-privileges:true
+
+
+    cap_drop:
+      - ALL

@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+    HackDex Manager - Library Health
+</title>
+
+<link
+    rel="stylesheet"
+    href="/static/hackdex-ui.css?v={{ app_version }}"
+>
+
+<script
+    src="/static/hackdex-ui.js?v={{ app_version }}"
+></script>
+</head>
+
+<body class="hd-base-rom-page hd-health-page">
+
+<main class="hd-base-main">
+
+<header class="hd-base-header">
+
+    <div>
+        <div class="hd-dashboard-eyebrow">
+            LIBRARY INTEGRITY
+        </div>
+
+        <h1>
+            Library Health
+        </h1>
+
+        <p>
+            Integrity checks, review backlog,
+            and library consistency in one place.
+        </p>
+    </div>
+
+    <div class="hd-health-header-actions">
+
+        <span
+            class="hd-base-result-count"
+            id="health-summary"
+        >
+            Loading…
+        </span>
+
+        <button
+            type="button"
+            class="hd-health-refresh"
+            id="refresh-health"
+        >
+            Refresh Audit
+        </button>
+
+    </div>
+
+</header>
+
+
+<section
+    class="hd-health-status-banner"
+    id="health-banner"
+>
+    Loading library health…
+</section>
+
+
+<section class="hd-base-stats hd-health-stats">
+
+    <div class="hd-base-stat warning">
+        <strong id="stat-attention">—</strong>
+        <span>Attention Required</span>
+    </div>
+
+    <div class="hd-base-stat error">
+        <strong id="stat-errors">—</strong>
+        <span>Errors</span>
+    </div>
+
+    <div class="hd-base-stat warning">
+        <strong id="stat-warnings">—</strong>
+        <span>Warnings</span>
+    </div>
+
+    <div class="hd-base-stat info">
+        <strong id="stat-info">—</strong>
+        <span>Informational</span>
+    </div>
+
+    <div class="hd-base-stat">
+        <strong id="stat-roms">—</strong>
+        <span>Local ROM Records</span>
+    </div>
+
+</section>
+
+
+<section class="hd-health-workflow-section">
+
+    <div class="hd-health-section-header">
+
+        <div>
+            <div class="hd-panel-kicker">
+                REVIEW WORKFLOW
+            </div>
+
+            <h2>
+                Review Backlog
+            </h2>
+
+            <p>
+                Workflow items are not integrity failures.
+                They simply need review or matching.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="hd-health-workflow-grid">
+
+        <a
+            class="hd-health-workflow-card unmatched"
+            href="/review"
+        >
+            <div class="hd-health-workflow-top">
+                <span>UNMATCHED</span>
+                <strong id="workflow-unmatched">—</strong>
+            </div>
+
+            <p>
+                ROMs without a confirmed HackDex identity.
+            </p>
+
+            <b>
+                Review unmatched ROMs →
+            </b>
+        </a>
+
+
+        <a
+            class="hd-health-workflow-card ambiguous"
+            href="/review"
+        >
+            <div class="hd-health-workflow-top">
+                <span>AMBIGUOUS</span>
+                <strong id="workflow-ambiguous">—</strong>
+            </div>
+
+            <p>
+                ROMs with more than one plausible identity.
+            </p>
+
+            <b>
+                Resolve matches →
+            </b>
+        </a>
+
+
+        <a
+            class="hd-health-workflow-card version"
+            href="/review"
+        >
+            <div class="hd-health-workflow-top">
+                <span>VERSION REVIEW</span>
+                <strong id="workflow-version">—</strong>
+            </div>
+
+            <p>
+                Installed and HackDex versions needing a decision.
+            </p>
+
+            <b>
+                Review versions →
+            </b>
+        </a>
+
+
+        <a
+            class="hd-health-workflow-card resolved"
+            href="/review"
+        >
+            <div class="hd-health-workflow-top">
+                <span>RESOLVED</span>
+                <strong id="workflow-resolved">—</strong>
+            </div>
+
+            <p>
+                Manual review decisions already completed.
+            </p>
+
+            <b>
+                View history →
+            </b>
+        </a>
+
+    </div>
+
+</section>
+
+
+
+<section class="hd-health-operations-section">
+
+    <div class="hd-health-section-header">
+
+        <div>
+            <div class="hd-panel-kicker">
+                PATCH READINESS
+            </div>
+
+            <h2>
+                Base ROM & Patch Readiness
+            </h2>
+
+            <p>
+                Verified source ROM coverage and patch
+                compatibility across the HackDex catalog.
+            </p>
+        </div>
+
+        <a
+            href="/base-roms"
+            class="hd-health-section-link"
+        >
+            Open Base ROMs →
+        </a>
+
+    </div>
+
+
+    <div class="hd-health-operations-grid">
+
+        <div class="hd-health-operation-card success">
+
+            <span>
+                READY TO BUILD
+            </span>
+
+            <strong id="readiness-ready">
+                —
+            </strong>
+
+            <p>
+                Catalog entries with a verified compatible
+                source ROM and valid patch.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card warning">
+
+            <span>
+                BASE ROM MISSING
+            </span>
+
+            <strong id="readiness-missing">
+                —
+            </strong>
+
+            <p>
+                Patches blocked because the exact required
+                base ROM revision is not verified.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card danger">
+
+            <span>
+                PATCH INVALID
+            </span>
+
+            <strong id="readiness-invalid">
+                —
+            </strong>
+
+            <p>
+                Patch files that fail structural or
+                source validation.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card warning">
+
+            <span>
+                SOURCE UNKNOWN
+            </span>
+
+            <strong id="readiness-source">
+                —
+            </strong>
+
+            <p>
+                Patches whose expected source is not
+                represented in the official registry.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="hd-health-base-strip">
+
+        <div>
+            <span>
+                VERIFIED BASE ROMS
+            </span>
+
+            <strong id="base-verified">
+                —
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                UNVERIFIED
+            </span>
+
+            <strong id="base-unverified">
+                —
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                PLATFORMS
+            </span>
+
+            <strong id="base-platforms">
+                —
+            </strong>
+        </div>
+
+
+        <div>
+            <span>
+                REGISTERED BASES
+            </span>
+
+            <strong id="base-total">
+                —
+            </strong>
+        </div>
+
+    </div>
+
+</section>
+
+
+<section class="hd-health-operations-section">
+
+    <div class="hd-health-section-header">
+
+        <div>
+            <div class="hd-panel-kicker">
+                HACKDEX CATALOG
+            </div>
+
+            <h2>
+                Catalog Coverage
+            </h2>
+
+            <p>
+                Current ownership and update state across
+                the locally cached HackDex catalog.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="hd-health-operations-grid catalog">
+
+        <div class="hd-health-operation-card neutral">
+
+            <span>
+                CATALOG ENTRIES
+            </span>
+
+            <strong id="catalog-total">
+                —
+            </strong>
+
+            <p>
+                Hacks currently available in the local
+                HackDex catalog.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card success">
+
+            <span>
+                OWNED / CURRENT
+            </span>
+
+            <strong id="catalog-owned">
+                —
+            </strong>
+
+            <p>
+                Catalog entries already represented by
+                current local ROMs.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card neutral">
+
+            <span>
+                NOT INSTALLED
+            </span>
+
+            <strong id="catalog-missing">
+                —
+            </strong>
+
+            <p>
+                Catalog entries not currently present
+                in the local ROM library.
+            </p>
+
+        </div>
+
+
+        <div class="hd-health-operation-card update">
+
+            <span>
+                UPDATES AVAILABLE
+            </span>
+
+            <strong id="catalog-updates">
+                —
+            </strong>
+
+            <p>
+                Installed hacks where HackDex reports
+                a newer release.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="hd-health-catalog-footer">
+
+        <div>
+
+            <span>
+                NEEDS REVIEW
+            </span>
+
+            <strong id="catalog-review">
+                —
+            </strong>
+
+            <p>
+                Catalog entries requiring identity or
+                version confirmation.
+            </p>
+
+        </div>
+
+
+        <a
+            href="/review"
+            class="hd-health-section-link"
+        >
+            Open Needs Review →
+        </a>
+
+    </div>
+
+</section>
+
+
+<section class="hd-base-browser hd-health-browser">
+
+    <div class="hd-base-browser-header">
+
+        <div>
+            <div class="hd-panel-kicker">
+                INTEGRITY AUDIT
+            </div>
+
+            <h2>
+                Findings
+            </h2>
+
+            <p>
+                File, mapping, duplicate, and database
+                consistency checks.
+            </p>
+        </div>
+
+        <span
+            class="hd-base-result-count"
+            id="finding-count"
+        >
+            —
+        </span>
+
+    </div>
+
+
+    <div class="hd-health-filter-row">
+
+        <div
+            class="hd-base-tabs"
+            id="health-tabs"
+        >
+
+            <button
+                type="button"
+                data-filter="attention"
+                class="active"
+            >
+                Attention
+            </button>
+
+            <button
+                type="button"
+                data-filter="all"
+            >
+                All
+            </button>
+
+            <button
+                type="button"
+                data-filter="warning"
+            >
+                Warnings
+            </button>
+
+            <button
+                type="button"
+                data-filter="error"
+            >
+                Errors
+            </button>
+
+            <button
+                type="button"
+                data-filter="info"
+            >
+                Informational
+            </button>
+
+        </div>
+
+
+        <input
+            type="search"
+            id="health-search"
+            class="hd-health-search"
+            placeholder="Search findings..."
+        >
+
+    </div>
+
+
+    <div
+        id="health-findings"
+        class="hd-health-findings-grid"
+    >
+
+        <div class="hd-base-loading">
+            Loading audit…
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<script>
+
+let healthData = null;
+let reviewData = null;
+let readinessData = null;
+let baseRomData = null;
+let statusData = null;
+let activeFilter = "attention";
+
+
+function esc(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function friendlyCode(code) {
+
+    const labels = {
+
+        MULTIPLE_BUILDS_REVIEW:
+            "Multiple Builds Need Review",
+
+        MULTIPLE_VARIANTS:
+            "Multiple Intentional Variants",
+
+        MISSING_PHYSICAL_FILE:
+            "Missing Physical File",
+
+        DUPLICATE_CONTENT:
+            "Duplicate Content",
+
+        MULTIPLE_CONFIRMED_MATCHES:
+            "Multiple Confirmed Matches",
+
+        ROM_MATCH_DRIFT:
+            "ROM Match Drift",
+
+        ROM_IDENTITY_WITHOUT_MATCH:
+            "Stored Identity Without Match",
+
+        ORPHAN_MATCH_ROM:
+            "Orphaned Match",
+
+        ORPHAN_MATCH_HACK:
+            "Orphaned Hack Match",
+
+        ORPHAN_MATCH_REJECTION:
+            "Orphaned Match Rejection",
+
+        ORPHAN_VERSION_DECISION:
+            "Orphaned Version Decision",
+
+        VERSION_DECISION_MATCH_DRIFT:
+            "Version Decision Drift",
+
+        STALE_VERSION_DECISION:
+            "Stale Version Decision",
+    };
+
+    return (
+        labels[code]
+        || String(code || "Finding")
+            .replaceAll("_", " ")
+    );
+}
+
+
+function findingTitle(item) {
+
+    return (
+        item.hack_title
+        || item.filename
+        || item.hack_slug
+        || friendlyCode(item.code)
+    );
+}
+
+
+function severity(item) {
+
+    return String(
+        item.severity || "INFO"
+    ).toUpperCase();
+}
+
+
+function filteredFindings() {
+
+    const query =
+        document
+            .getElementById("health-search")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    return (healthData?.findings || [])
+        .filter(item => {
+
+            const level =
+                severity(item);
+
+            if (
+                activeFilter === "attention"
+                && level !== "ERROR"
+                && level !== "WARNING"
+            ) {
+                return false;
+            }
+
+            if (
+                activeFilter === "error"
+                && level !== "ERROR"
+            ) {
+                return false;
+            }
+
+            if (
+                activeFilter === "warning"
+                && level !== "WARNING"
+            ) {
+                return false;
+            }
+
+            if (
+                activeFilter === "info"
+                && level !== "INFO"
+            ) {
+                return false;
+            }
+
+            if (!query) {
+                return true;
+            }
+
+            const haystack = [
+                findingTitle(item),
+                item.code,
+                item.message,
+                item.hack_slug,
+                item.recommended_action,
+
+                ...(item.roms || []).flatMap(
+                    rom => [
+                        rom.filename,
+                        rom.variant,
+                        rom.status,
+                        rom.path,
+                    ]
+                ),
+
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            return haystack.includes(query);
+        });
+}
+
+
+function renderRomRows(item) {
+
+    const roms =
+        Array.isArray(item.roms)
+        ? item.roms
+        : [];
+
+
+    if (!roms.length) {
+
+        if (!item.filename) {
+            return "";
+        }
+
+        return `
+            <div class="hd-health-rom-list">
+
+                <div class="hd-health-rom-row">
+
+                    <div>
+                        <strong>
+                            ${esc(item.filename)}
+                        </strong>
+
+                        <span>
+                            ${esc(
+                                item.installed_version
+                                || "Version unknown"
+                            )}
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+    }
+
+
+    return `
+        <div class="hd-health-rom-list">
+
+            ${roms.map(
+                rom => `
+                    <div class="hd-health-rom-row">
+
+                        <div class="hd-health-rom-copy">
+
+                            <strong>
+                                ${esc(
+                                    rom.filename
+                                    || rom.path
+                                    || ("ROM " + rom.rom_id)
+                                )}
+                            </strong>
+
+                            <span>
+                                ${esc(
+                                    rom.variant
+                                    || "Standard build"
+                                )}
+
+                                ·
+
+                                ${esc(
+                                    rom.installed_version
+                                    || "Version unknown"
+                                )}
+                            </span>
+
+                        </div>
+
+                        ${
+                            rom.status
+                            ? `
+                                <span class="hd-health-rom-state">
+                                    ${esc(rom.status)}
+                                </span>
+                            `
+                            : ""
+                        }
+
+                    </div>
+                `
+            ).join("")}
+
+        </div>
+    `;
+}
+
+
+function renderFinding(item) {
+
+    const level =
+        severity(item)
+            .toLowerCase();
+
+    const expected =
+        item.code
+        === "MULTIPLE_VARIANTS";
+
+
+    return `
+        <article
+            class="
+                hd-health-finding
+                ${level}
+                ${expected ? "expected" : ""}
+            "
+        >
+
+            <header class="hd-health-finding-header">
+
+                <div class="hd-health-finding-icon">
+                    ${
+                        level === "info"
+                        ? "i"
+                        : "!"
+                    }
+                </div>
+
+
+                <div class="hd-health-finding-title">
+
+                    <span>
+                        ${esc(
+                            friendlyCode(item.code)
+                        )}
+                    </span>
+
+                    <h3>
+                        ${esc(
+                            findingTitle(item)
+                        )}
+                    </h3>
+
+                </div>
+
+
+                <span
+                    class="
+                        hd-health-severity
+                        ${level}
+                    "
+                >
+                    ${
+                        expected
+                        ? "EXPECTED"
+                        : esc(severity(item))
+                    }
+                </span>
+
+            </header>
+
+
+            <div class="hd-health-finding-body">
+
+                <p>
+                    ${esc(item.message)}
+                </p>
+
+
+                ${
+                    item.recommended_action
+                    ? `
+                        <div class="hd-health-recommendation">
+
+                            <span>
+                                RECOMMENDED
+                            </span>
+
+                            <strong>
+                                ${esc(
+                                    item.recommended_action
+                                )}
+                            </strong>
+
+                        </div>
+                    `
+                    : ""
+                }
+
+
+                ${renderRomRows(item)}
+
+            </div>
+
+
+            <footer class="hd-health-finding-footer">
+
+                <code>
+                    ${esc(item.code)}
+                </code>
+
+                ${
+                    item.action_kind === "review"
+                    ? `
+                        <a href="/review">
+                            Review →
+                        </a>
+                    `
+                    : (
+                        expected
+                        ? `
+                            <span>
+                                No action needed
+                            </span>
+                        `
+                        : ""
+                    )
+                }
+
+            </footer>
+
+        </article>
+    `;
+}
+
+
+function renderFindings() {
+
+    const findings =
+        filteredFindings();
+
+
+    document
+        .getElementById("finding-count")
+        .textContent =
+            `${findings.length} shown`;
+
+
+    const host =
+        document.getElementById(
+            "health-findings"
+        );
+
+
+    if (!findings.length) {
+
+        host.innerHTML = `
+            <div class="hd-base-empty">
+
+                <strong>
+                    Nothing in this view
+                </strong>
+
+                <span>
+                    No findings match the current
+                    filter and search.
+                </span>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    host.innerHTML =
+        findings
+            .map(renderFinding)
+            .join("");
+}
+
+
+function renderHealthOverview() {
+
+    document
+        .getElementById("stat-attention")
+        .textContent =
+            healthData.attention_required ?? 0;
+
+    document
+        .getElementById("stat-errors")
+        .textContent =
+            healthData.error_count ?? 0;
+
+    document
+        .getElementById("stat-warnings")
+        .textContent =
+            healthData.warning_count ?? 0;
+
+    document
+        .getElementById("stat-info")
+        .textContent =
+            healthData.info_count ?? 0;
+
+    document
+        .getElementById("stat-roms")
+        .textContent =
+            healthData.rom_rows ?? 0;
+
+
+    document
+        .getElementById("health-summary")
+        .textContent =
+            `${
+                healthData.rom_rows ?? 0
+            } ROMs · ${
+                healthData.finding_count ?? 0
+            } findings`;
+
+
+    const banner =
+        document.getElementById(
+            "health-banner"
+        );
+
+
+    if ((healthData.error_count ?? 0) > 0) {
+
+        banner.className =
+            "hd-health-status-banner error";
+
+        banner.innerHTML = `
+            <strong>
+                Integrity problems detected
+            </strong>
+
+            <span>
+                ${healthData.error_count} error(s)
+                and ${healthData.warning_count} warning(s)
+                require attention.
+            </span>
+        `;
+
+    } else if (
+        (healthData.warning_count ?? 0) > 0
+    ) {
+
+        banner.className =
+            "hd-health-status-banner warning";
+
+        banner.innerHTML = `
+            <strong>
+                Library integrity is generally healthy
+            </strong>
+
+            <span>
+                No errors were found.
+                ${healthData.warning_count}
+                warning(s) still need review.
+            </span>
+        `;
+
+    } else {
+
+        banner.className =
+            "hd-health-status-banner good";
+
+        banner.innerHTML = `
+            <strong>
+                Library integrity looks healthy
+            </strong>
+
+            <span>
+                No errors or warnings were found.
+            </span>
+        `;
+    }
+}
+
+
+function renderOperationalHealth() {
+
+    const readiness =
+        readinessData?.counts
+        || {};
+
+    const base =
+        baseRomData
+        || {};
+
+    const catalog =
+        statusData?.catalog
+        || {};
+
+
+    document
+        .getElementById(
+            "readiness-ready"
+        )
+        .textContent =
+            readiness.READY
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "readiness-missing"
+        )
+        .textContent =
+            readiness.BASE_MISSING
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "readiness-invalid"
+        )
+        .textContent =
+            readiness.PATCH_INVALID
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "readiness-source"
+        )
+        .textContent =
+            readiness.SOURCE_NOT_IN_REGISTRY
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "base-verified"
+        )
+        .textContent =
+            base.verified
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "base-unverified"
+        )
+        .textContent =
+            base.unverified
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "base-total"
+        )
+        .textContent =
+            base.total
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "base-platforms"
+        )
+        .textContent =
+            Object.keys(
+                base.platforms
+                || {}
+            ).length;
+
+
+    document
+        .getElementById(
+            "catalog-total"
+        )
+        .textContent =
+            catalog.total
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "catalog-owned"
+        )
+        .textContent =
+            catalog.owned
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "catalog-missing"
+        )
+        .textContent =
+            catalog.missing
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "catalog-updates"
+        )
+        .textContent =
+            catalog.updates
+            ?? 0;
+
+
+    document
+        .getElementById(
+            "catalog-review"
+        )
+        .textContent =
+            catalog.needs_review
+            ?? 0;
+}
+
+
+
+function renderReviewOverview() {
+
+    const summary =
+        reviewData?.summary
+        || {};
+
+    document
+        .getElementById("workflow-unmatched")
+        .textContent =
+            summary.unmatched ?? 0;
+
+    document
+        .getElementById("workflow-ambiguous")
+        .textContent =
+            summary.ambiguous ?? 0;
+
+    document
+        .getElementById("workflow-version")
+        .textContent =
+            summary.version_review ?? 0;
+
+    document
+        .getElementById("workflow-resolved")
+        .textContent =
+            summary.resolved ?? 0;
+}
+
+
+async function loadHealth() {
+
+    const button =
+        document.getElementById(
+            "refresh-health"
+        );
+
+    button.disabled = true;
+    button.textContent = "Auditing…";
+
+
+    try {
+
+        const [
+            healthResponse,
+            reviewResponse,
+            readinessResponse,
+            baseRomResponse,
+            statusResponse,
+        ] = await Promise.all([
+            fetch(
+                "/api/library-health",
+                {cache: "no-store"}
+            ),
+
+            fetch(
+                "/api/review",
+                {cache: "no-store"}
+            ),
+
+            fetch(
+                "/api/readiness",
+                {cache: "no-store"}
+            ),
+
+            fetch(
+                "/api/base-roms/summary",
+                {cache: "no-store"}
+            ),
+
+            fetch(
+                "/api/status",
+                {cache: "no-store"}
+            ),
+        ]);
+
+
+        if (!healthResponse.ok) {
+            throw new Error(
+                "Library Health API returned "
+                + healthResponse.status
+            );
+        }
+
+
+        if (!reviewResponse.ok) {
+            throw new Error(
+                "Review API returned "
+                + reviewResponse.status
+            );
+        }
+
+
+        if (!readinessResponse.ok) {
+            throw new Error(
+                "Readiness API returned "
+                + readinessResponse.status
+            );
+        }
+
+
+        if (!baseRomResponse.ok) {
+            throw new Error(
+                "Base ROM API returned "
+                + baseRomResponse.status
+            );
+        }
+
+
+        if (!statusResponse.ok) {
+            throw new Error(
+                "Status API returned "
+                + statusResponse.status
+            );
+        }
+
+
+        healthData =
+            await healthResponse.json();
+
+        reviewData =
+            await reviewResponse.json();
+
+        readinessData =
+            await readinessResponse.json();
+
+        baseRomData =
+            await baseRomResponse.json();
+
+        statusData =
+            await statusResponse.json();
+
+
+        renderHealthOverview();
+        renderReviewOverview();
+        renderOperationalHealth();
+        renderFindings();
+
+
+    } catch (error) {
+
+        document
+            .getElementById(
+                "health-findings"
+            )
+            .innerHTML = `
+                <div class="hd-base-error">
+
+                    <strong>
+                        Could not load Library Health
+                    </strong>
+
+                    <span>
+                        ${esc(error.message)}
+                    </span>
+
+                </div>
+            `;
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent = "Refresh Audit";
+    }
+}
+
+
+document
+    .getElementById("refresh-health")
+    .addEventListener(
+        "click",
+        loadHealth
+    );
+
+
+document
+    .getElementById("health-search")
+    .addEventListener(
+        "input",
+        renderFindings
+    );
+
+
+document
+    .getElementById("health-tabs")
+    .addEventListener(
+        "click",
+        event => {
+
+            const button =
+                event.target.closest(
+                    "[data-filter]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            activeFilter =
+                button.dataset.filter;
+
+
+            document
+                .querySelectorAll(
+                    "#health-tabs [data-filter]"
+                )
+                .forEach(
+                    tab => {
+
+                        tab.classList.toggle(
+                            "active",
+                            tab === button
+                        );
+                    }
+                );
+
+
+            renderFindings();
+        }
+    );
+
+
+loadHealth();
+
+</script>
+
+</body>
+
+</html>

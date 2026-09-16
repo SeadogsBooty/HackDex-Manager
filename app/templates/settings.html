@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>HackDex Manager Settings</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #0b0d12;
+            color: #f3f4f6;
+            font-family: Inter, Arial, sans-serif;
+        }
+
+        header {
+            padding: 22px 32px;
+            border-bottom: 1px solid #252a35;
+            background: #11141b;
+        }
+
+        header a {
+            color: #cbd5e1;
+            text-decoration: none;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: auto;
+            padding: 28px;
+        }
+
+        section {
+            background: #151922;
+            border: 1px solid #292f3c;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            align-items: center;
+            margin: 14px 0;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #303746;
+            background: #0f1218;
+            color: white;
+        }
+
+        button {
+            padding: 11px 18px;
+            border-radius: 8px;
+            border: 1px solid #394151;
+            background: #293140;
+            color: white;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-left: 14px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 700px) {
+            .row {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+        }
+    
+        .help {
+            color: #9ca3af;
+            line-height: 1.5;
+            margin-top: -6px;
+            margin-bottom: 18px;
+        }
+
+        .location-card {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            padding: 14px;
+            margin: 10px 0;
+            background: #0f1218;
+            border: 1px solid #303746;
+            border-radius: 10px;
+        }
+
+        .location-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .location-path {
+            color: #c4cad4;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .location-meta {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            padding: 4px 7px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pill-ready {
+            background: #173d2b;
+            color: #86e3b3;
+        }
+
+        .pill-warning {
+            background: #49351b;
+            color: #ffd37b;
+        }
+
+        .pill-disabled {
+            background: #303540;
+            color: #aab1bd;
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .danger {
+            background: #4d2228;
+        }
+
+        .primary {
+            background: #294f7a;
+        }
+
+        .add-button {
+            margin-top: 10px;
+        }
+
+        .empty-location {
+            color: #7f8998;
+            padding: 18px;
+            border: 1px dashed #343b48;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .base-actions {
+            margin-top: 20px;
+        }
+
+        #base-scan-message {
+            margin-left: 10px;
+            color: #aeb6c3;
+        }
+
+        .base-summary {
+            margin-top: 14px;
+            color: #aeb6c3;
+            line-height: 1.6;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .72);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal {
+            width: min(520px, 100%);
+            background: #151922;
+            border: 1px solid #343c4b;
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .form-field {
+            margin: 14px 0;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        #location-message {
+            margin-top: 12px;
+            color: #f1b0b7;
+        }
+
+        @media (max-width: 700px) {
+            .location-card {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    
+.section-help {
+    margin: -4px 0 18px;
+    color: #8f9aac;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.romm-fields {
+    margin-top: 8px;
+}
+
+.romm-fields.disabled {
+    display: none;
+}
+
+.romm-token-note {
+    margin-top: 7px;
+    color: #7f8a9a;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.romm-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.secondary-button {
+    background: #232a35;
+    border-color: #394354;
+}
+
+.romm-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid #394354;
+    background: #171d25;
+    color: #aab5c3;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.romm-status.connected {
+    border-color: #286344;
+    background: #173d2b;
+    color: #86e3b3;
+}
+
+.romm-status.error {
+    border-color: #75424c;
+    background: #44272e;
+    color: #ffadb8;
+}
+
+.romm-status.disabled {
+    color: #8792a1;
+}
+
+
+.romm-platform-mappings {
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid #303949;
+    border-radius: 10px;
+    background: #111720;
+}
+
+.mapping-heading {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.mapping-help {
+    margin: 6px 0 15px;
+    color: #8490a1;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.romm-platform-select option {
+    background: #151a23;
+}
+
+
+.romm-setup-guide {
+    margin: 16px 0 22px;
+    padding: 16px 18px;
+    border: 1px solid #303949;
+    border-radius: 10px;
+    background: #111720;
+}
+
+.romm-setup-guide ol {
+    margin: 10px 0 16px 20px;
+    padding: 0;
+    color: #c4ccd6;
+    line-height: 1.7;
+}
+
+.romm-permission-box {
+    padding: 13px 14px;
+    border: 1px solid #394354;
+    border-radius: 8px;
+    background: #151b24;
+}
+
+.romm-permission-box code {
+    display: inline-block;
+    margin: 8px 6px 8px 0;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #202836;
+    color: #9bd3ff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+.romm-user-note {
+    margin-top: 14px;
+    padding: 18px;
+    border: 1px solid #303949;
+    border-radius: 10px;
+    background: #111720;
+}
+
+.romm-user-note p {
+    color: #aab4c2;
+    line-height: 1.55;
+}
+
+.romm-instruction-block {
+    margin-top: 18px;
+}
+
+.romm-instruction-block strong {
+    color: #d6dde7;
+}
+
+.romm-user-note pre {
+    margin: 10px 0 0;
+    padding: 14px;
+    overflow-x: auto;
+    border: 1px solid #303949;
+    border-radius: 8px;
+    background: #0b1017;
+}
+
+.romm-user-note pre code {
+    color: #a8d7ff;
+    font-size: 12px;
+}
+
+.romm-user-note code {
+    color: #a8d7ff;
+}
+
+.romm-info-callout {
+    margin-top: 18px;
+    padding: 13px 14px;
+    border: 1px solid #394354;
+    border-radius: 8px;
+    background: #151b24;
+}
+
+.romm-info-callout p:last-child {
+    margin-bottom: 0;
+}
+
+
+.safety-policy {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.safety-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px 14px;
+    border: 1px solid #303949;
+    border-radius: 9px;
+    background: #111720;
+}
+
+.safety-check {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #173d2b;
+    color: #86e3b3;
+    font-weight: 900;
+}
+
+.safety-item strong {
+    color: #d7dee8;
+}
+
+.safety-item p {
+    margin: 4px 0 0;
+    color: #8f9bac;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+.settings-hub-heading {
+    margin-bottom: 16px;
+}
+
+.settings-hub-heading h1 {
+    margin: 0 0 3px;
+    font-size: 24px;
+}
+
+.settings-hub-heading p {
+    margin: 0;
+    color: #8290a3;
+    font-size: 13px;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 780px;
+}
+
+@media (max-width: 760px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.settings-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-height: 72px;
+    padding: 13px 14px;
+
+    border: 1px solid #2d3746;
+    border-radius: 9px;
+
+    background: #111720;
+    color: inherit;
+
+    text-decoration: none;
+
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.settings-card:hover {
+    border-color: #53657d;
+    background: #161d27;
+    transform: translateY(-1px);
+}
+
+.settings-card-icon {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 32px;
+    height: 32px;
+
+    border: 1px solid #354257;
+    border-radius: 8px;
+
+    background: #182130;
+    color: #79bfff;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.settings-card strong {
+    display: block;
+    margin: 0;
+    color: #e2e7ee;
+    font-size: 14px;
+}
+
+.settings-card p {
+    margin: 3px 0 0;
+    color: #8491a3;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.settings-subpage-header {
+    display: none;
+
+    margin-bottom: 20px;
+}
+
+.settings-subpage-header h1 {
+    margin:
+        12px 0
+        4px;
+}
+
+.settings-subpage-header p {
+    margin: 0;
+    color: #8f9bac;
+}
+
+.settings-back {
+    display: inline-flex;
+
+    color: #9bbfe0;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    text-decoration: none;
+}
+
+.settings-back:hover {
+    text-decoration: underline;
+}
+
+.settings-page-hidden {
+    display: none !important;
+}
+
+</style>
+
+<link
+    rel="stylesheet"
+    href="/static/hackdex-ui.css?v={{ app_version }}"
+>
+
+<script
+    src="/static/hackdex-ui.js?v={{ app_version }}"
+></script>
+
+</head>
+
+<body class="hd-settings-page">
+
+<header class="hd-settings-legacy-header">
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+        "
+    >
+        <a href="/">
+            ← HackDex Manager
+        </a>
+
+        <a href="/library-health">
+            Library Health
+        </a>
+    </div>
+</header>
+
+<main class="hd-settings-main">
+<div
+    class="settings-hub"
+    id="settings-hub"
+>
+    <div class="settings-hub-heading">
+
+        <div class="hd-dashboard-eyebrow">
+            CONFIGURATION
+        </div>
+
+        <h1>
+            Settings
+        </h1>
+
+        <p>
+            Configure libraries, acquisition behavior,
+            matching, appearance, diagnostics, and integrations.
+        </p>
+
+    </div>
+
+    <div class="settings-grid">
+
+        
+
+        <a
+            class="settings-card"
+            data-settings-target="library"
+            href="/settings/library"
+        >
+            <div class="settings-card-icon">
+                ▣
+            </div>
+
+            <div>
+                <strong>Libraries</strong>
+
+                <p>
+                    ROM locations, base ROMs,
+                    and storage paths.
+                </p>
+            </div>
+        </a>
+
+        <a
+            class="settings-card"
+            data-settings-target="obtain"
+            href="/settings/download"
+        >
+            <div class="settings-card-icon">
+                ↓
+            </div>
+
+            <div>
+                <strong>
+                    Download &amp; Naming
+                </strong>
+
+                <p>
+                    Output format, packaging,
+                    and ROM filenames.
+                </p>
+            </div>
+        </a>
+
+        <a
+            class="settings-card"
+            data-settings-target="catalog"
+            href="/settings/catalog"
+        >
+            <div class="settings-card-icon">
+                ⟳
+            </div>
+
+            <div>
+                <strong>
+                    Catalog &amp; Matching
+                </strong>
+
+                <p>
+                    HackDex synchronization,
+                    refresh behavior, and matching.
+                </p>
+            </div>
+        </a>
+
+        <a
+            class="settings-card"
+            data-settings-target="appearance"
+            href="/settings/appearance"
+        >
+            <div class="settings-card-icon">
+                ◐
+            </div>
+
+            <div>
+                <strong>
+                    Appearance
+                </strong>
+
+                <p>
+                    Light, dark, system mode,
+                    and application colors.
+                </p>
+            </div>
+        </a>
+
+
+        <a
+            class="settings-card"
+            data-settings-target="about"
+            href="/settings/about"
+        >
+            <div class="settings-card-icon">
+                i
+            </div>
+
+            <div>
+                <strong>
+                    About &amp; Help
+                </strong>
+
+                <p>
+                    Safety protections, RomM
+                    guidance, and application info.
+                </p>
+            </div>
+        </a>
+
+
+        <a
+            class="settings-card"
+            data-settings-target="logs"
+            href="/settings/logs"
+        >
+            <div class="settings-card-icon">
+                &gt;_
+            </div>
+
+            <div>
+                <strong>
+                    Diagnostics &amp; Logs
+                </strong>
+
+                <p>
+                    Application logs, debug capture,
+                    request tracing, and diagnostics.
+                </p>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+<div
+    class="settings-subpage-header"
+    id="settings-subpage-header"
+>
+    <a
+        href="/settings"
+        class="settings-back"
+    >
+        ← Settings
+    </a>
+
+    <h1 id="settings-page-title">
+        Settings
+    </h1>
+
+    <p id="settings-page-description"></p>
+</div>
+
+
+    
+
+    <section
+        data-settings-group-fixed="appearance"
+    >
+        <h2>Appearance</h2>
+
+        <p class="help">
+            Choose how HackDex Manager looks.
+            Display mode and color palette are
+            independent, so you can combine them.
+        </p>
+
+        <div class="appearance-grid">
+
+            <div class="appearance-choice">
+                <label>
+                    Display Mode
+                </label>
+
+                <select
+                    data-key="ui_mode"
+                    id="ui-mode"
+                    onchange="previewAppearance()"
+                >
+                    <option value="system">
+                        Follow System
+                    </option>
+
+                    <option value="light">
+                        Light
+                    </option>
+
+                    <option value="dark">
+                        Dark
+                    </option>
+                </select>
+
+                <p class="help">
+                    System automatically follows
+                    your browser or operating-system
+                    light/dark preference.
+                </p>
+            </div>
+
+            <div class="appearance-choice">
+                <label>
+                    Color Theme
+                </label>
+
+                <select
+                    data-key="ui_theme"
+                    id="ui-theme"
+                    onchange="previewAppearance()"
+                >
+                    <option value="fusion">
+                        Fusion
+                    </option>
+
+                    <option value="nebula">
+                        Nebula
+                    </option>
+
+                    <option value="ember">
+                        Ember
+                    </option>
+
+                    <option value="neutral">
+                        Neutral
+                    </option>
+                </select>
+
+                <p class="help">
+                    Fusion blends blue and teal
+                    accents for a balanced everyday
+                    interface.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="appearance-preview">
+            <strong>
+                Theme Preview
+            </strong>
+
+            <p class="help">
+                Changes preview immediately.
+                Use Save Settings to make the
+                selection persistent.
+            </p>
+
+            <div class="appearance-preview-row">
+                <div
+                    class="appearance-swatch primary"
+                    title="Primary"
+                ></div>
+
+                <div
+                    class="appearance-swatch secondary"
+                    title="Secondary"
+                ></div>
+
+                <div
+                    class="appearance-swatch accent"
+                    title="Accent"
+                ></div>
+
+                <div
+                    class="appearance-swatch surface"
+                    title="Surface"
+                ></div>
+            </div>
+        </div>
+    </section>
+
+
+    <section>
+        <h2>Hack Locations</h2>
+
+        <p class="help">
+            Locations containing patched ROM hacks.
+            Paths must be visible inside the HackDex Manager container.
+        </p>
+
+        <div id="hack-locations"></div>
+
+        <button
+            type="button"
+            class="add-button"
+            onclick="openLocationForm('hack')"
+        >
+            + Add Hack Location
+        </button>
+    </section>
+
+    <section>
+        <h2>Base ROM Source</h2>
+
+        <p class="help">
+            Root of the normal clean ROM library.
+            HackDex Manager uses the live HackDex
+            catalog to determine which canonical
+            Batocera platform folders are needed.
+        </p>
+
+        <div class="row">
+            <label>
+                Clean ROM Root
+            </label>
+
+            <input
+                data-key="base_rom_root"
+                placeholder="/roms"
+            >
+        </div>
+
+        <p class="help">
+            Example:
+            HackDex GBA hacks use
+            <code>/roms/gba</code>.
+            HackDex GB hacks use
+            <code>/roms/gb</code>.
+            Hack locations are completely separate
+            and are always explicitly configured above.
+        </p>
+
+        <div
+            id="base-platforms"
+            class="base-summary"
+        ></div>
+
+        <div class="base-actions">
+
+            <button
+                type="button"
+                onclick="scanBaseRoms()"
+            >
+                Scan Base ROMs
+            </button>
+
+            <span
+                id="base-scan-message"
+            ></span>
+
+        </div>
+
+        <div
+            id="base-summary"
+            class="base-summary"
+        ></div>
+
+    </section>
+
+    <div
+        id="location-modal"
+        class="modal-backdrop"
+        style="display:none"
+    >
+        <div class="modal">
+
+            <h2 id="location-modal-title">
+                Add Location
+            </h2>
+
+            <input
+                type="hidden"
+                id="location-kind"
+            >
+
+            <div class="form-field">
+                <label>Label</label>
+                <input
+                    id="location-label"
+                    placeholder="Example: GBA Hacks"
+                >
+            </div>
+
+            <div class="form-field">
+                <label>Container Path</label>
+                <input
+                    id="location-path"
+                    placeholder="/roms/example"
+                >
+            </div>
+
+            <div class="form-field">
+                <label>Platform</label>
+
+                <select id="location-platform">
+                    <option value="AUTO">Auto Detect</option>
+                    <option value="GB">GB</option>
+                    <option value="GBC">GBC</option>
+                    <option value="GBA">GBA</option>
+                    <option value="NDS">NDS</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    onclick="closeLocationForm()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="button"
+                    class="primary"
+                    onclick="addLocation()"
+                >
+                    Add Location
+                </button>
+            </div>
+
+            <div id="location-message"></div>
+
+        </div>
+    </div>
+
+    
+    <section>
+        <h2>Download & Packaging</h2>
+
+        <p class="help">
+            Choose the default final format for
+            ROM hacks created by HackDex Manager.
+            The patched raw ROM is always verified
+            before optional archive packaging.
+        </p>
+
+        <div class="row">
+            <label>
+                Default Output Format
+            </label>
+
+            <select
+                data-key="obtain_output_format"
+            >
+                <option value="7z">
+                    7z Archive (.7z)
+                </option>
+
+                <option value="zip">
+                    ZIP Archive (.zip)
+                </option>
+
+                <option value="raw">
+                    Raw ROM (.gba/.gbc/.gb/.nds)
+                </option>
+            </select>
+        </div>
+
+        <p class="help">
+            You can override this default for an
+            individual hack when using Download.
+        </p>
+
+        <div class="row">
+            <label>
+                Installed Filename Style
+            </label>
+
+            <select
+                data-key="obtain_filename_style"
+            >
+                <option value="name_version">
+                    Game Name + Version
+                </option>
+
+                <option value="name">
+                    Game Name Only
+                </option>
+            </select>
+        </div>
+
+        <div class="row">
+            <label>
+                Pokémon Prefix
+            </label>
+
+            <select
+                data-key="obtain_pokemon_prefix"
+            >
+                <option value="always">
+                    Always add Pokémon if missing
+                </option>
+
+                <option value="preserve">
+                    Preserve HackDex title
+                </option>
+
+                <option value="never">
+                    Remove Pokémon from filename
+                </option>
+            </select>
+        </div>
+
+        <p class="help">
+            These settings control the final
+            filename installed into your hack
+            ROM library. HackDex catalog titles
+            are not modified.
+        </p>
+    </section>
+
+<section>
+        <h2>Catalog Provider</h2>
+
+        
+
+        
+
+        
+
+        <button
+            type="button"
+            onclick="syncCatalog()"
+        >
+            Sync Catalog Now
+        </button>
+
+        <span id="sync-message"></span>
+    </section>
+
+    
+
+    <section>
+        <h2>Matching</h2>
+
+        <div class="row">
+            <label>Automatic Matching</label>
+            <select data-key="automatic_matching">
+                <option value="true">Enabled</option>
+                <option value="false">Disabled</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <label>Auto-match Threshold (%)</label>
+            <input
+                type="number"
+                min="0"
+                max="100"
+                data-key="match_threshold"
+            >
+        </div>
+    </section>
+
+    
+
+    <section>
+        <h2>Install & Update Safety</h2>
+
+        <p class="section-help">
+            These protections are always enforced
+            by HackDex Manager and cannot be
+            disabled.
+        </p>
+
+        <div class="safety-policy">
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>Verified staging</strong>
+                    <p>
+                        Patched ROMs and packaged
+                        artifacts are hash-verified
+                        before any library write.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>Atomic installation</strong>
+                    <p>
+                        HackDex Manager writes to a
+                        temporary file, verifies it,
+                        and then performs the final
+                        placement atomically.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>Verified updates</strong>
+                    <p>
+                        The currently installed ROM
+                        is hash-checked before an
+                        update begins and checked
+                        again before it is retired.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>Rollback protection</strong>
+                    <p>
+                        Same-name replacements use
+                        a verified rollback copy so
+                        the existing ROM can be
+                        restored if final
+                        verification fails.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>
+                        Old versions retire last
+                    </strong>
+                    <p>
+                        An older ROM is removed only
+                        after the replacement has
+                        been successfully installed
+                        and verified.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>
+                        Collision confirmation
+                    </strong>
+                    <p>
+                        If an unrelated file already
+                        uses the intended filename,
+                        HackDex Manager asks before
+                        replacing it.
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-item">
+                <span class="safety-check">✓</span>
+                <div>
+                    <strong>
+                        Base ROMs stay untouched
+                    </strong>
+                    <p>
+                        Clean base ROMs are used only
+                        as patch sources and are
+                        never modified.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section>
+        <h2>About HackDex Manager</h2>
+
+        <div class="row">
+            <label>Version</label>
+
+            <span
+                id="about-version"
+                class="about-version-badge"
+            >
+                Loading...
+            </span>
+        </div>
+
+        <div class="row">
+            <label>Purpose</label>
+
+            <span>
+                Manage, download, verify, and
+                update ROM hacks using HackDex
+                metadata and your own clean
+                base ROM library.
+            </span>
+        </div>
+    </section>
+
+    <section>
+        <h2>RomM Users</h2>
+
+        <p class="section-help">
+            HackDex Manager does not require
+            RomM and does not connect directly
+            to RomM.
+        </p>
+
+        <div class="romm-user-note">
+            <div class="mapping-heading">
+                Automatic RomM synchronization
+            </div>
+
+            <p>
+                If you use RomM, enable RomM's
+                filesystem watcher. RomM will then
+                detect ROM hacks that HackDex Manager
+                adds, updates, or removes from your
+                library folders.
+            </p>
+
+            <div class="romm-instruction-block">
+                <strong>
+                    1. Open your RomM Docker Compose
+                    or environment configuration.
+                </strong>
+
+                <p>
+                    Under the RomM container's
+                    <code>environment</code> settings,
+                    add:
+                </p>
+
+                <pre><code>ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
+RESCAN_ON_FILESYSTEM_CHANGE_DELAY: "5"</code></pre>
+            </div>
+
+            <div class="romm-instruction-block">
+                <strong>
+                    2. Recreate or restart the
+                    RomM container.
+                </strong>
+
+                <p>
+                    RomM will begin monitoring its
+                    library filesystem for additions,
+                    updates, moves, and removals.
+                </p>
+            </div>
+
+            <div class="romm-instruction-block">
+                <strong>
+                    3. Optional: disable scheduled
+                    full-library rescans.
+                </strong>
+
+                <p>
+                    If you do not independently need
+                    RomM's scheduled full-library
+                    rescan, HackDex Manager recommends
+                    leaving it disabled:
+                </p>
+
+                <pre><code>ENABLE_SCHEDULED_RESCAN: "false"</code></pre>
+            </div>
+
+            <div class="romm-info-callout">
+                <strong>
+                    About the watcher delay
+                </strong>
+
+                <p>
+                    <code>RESCAN_ON_FILESYSTEM_CHANGE_DELAY</code>
+                    is the delay, in minutes, before
+                    RomM processes filesystem changes.
+                </p>
+
+                <p>
+                    A value of <code>5</code> is a
+                    good general-purpose setting.
+                    You can lower it if you want
+                    newly downloaded or updated hacks
+                    to appear in RomM sooner.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <button onclick="saveSettings()">
+        Save Settings
+    </button>
+
+    <span id="message"></span>
+
+</main>
+
+<script>
+const SETTINGS_PAGE =
+    "{{ settings_page }}";
+
+
+const SETTINGS_PAGE_META = {
+
+    library: {
+        title: "Libraries",
+        description:
+            "Configure hack libraries, "
+            + "base ROM sources, and scanning.",
+    },
+
+    obtain: {
+        title: "Download & Naming",
+        description:
+            "Control packaging, output format, "
+            + "and ROM naming behavior.",
+    },
+
+    catalog: {
+        title: "Catalog & Matching",
+        description:
+            "Configure HackDex catalog behavior "
+            + "and local-library matching.",
+    },
+
+    appearance: {
+        title: "Appearance",
+        description:
+            "Choose display mode and the "
+            + "HackDex Manager color palette.",
+    },
+
+    about: {
+        title: "About & Help",
+        description:
+            "Safety protections, integration "
+            + "guidance, and product information.",
+    },
+};
+
+
+function settingsSectionGroup(
+    section,
+) {
+    const html =
+        section.innerHTML
+            .toLowerCase();
+
+    const heading =
+        (
+            section.querySelector("h2")
+            ?.textContent
+            || ""
+        ).toLowerCase();
+
+    const fixedGroup =
+        section.dataset
+            .settingsGroupFixed;
+
+    if (fixedGroup) {
+        return fixedGroup;
+    }
+
+    if (
+        heading.includes("appearance")
+        || html.includes(
+            'data-key="ui_mode"'
+        )
+        || html.includes(
+            'data-key="ui_theme"'
+        )
+    ) {
+        return "appearance";
+    }
+
+    //
+    // About / documentation.
+    //
+    if (
+        heading.includes(
+            "install & update safety"
+        )
+        || heading.includes(
+            "romm users"
+        )
+        || heading.includes("about")
+    ) {
+        return "about";
+    }
+
+    //
+    // Library/storage configuration.
+    //
+    if (
+        heading.includes("hack locations")
+        || heading.includes("base rom")
+        || html.includes(
+            'id="hack-locations"'
+        )
+        || html.includes(
+            'data-key="base_rom_root"'
+        )
+    ) {
+        return "library";
+    }
+
+    //
+    // Download / naming / packaging.
+    //
+    if (
+        heading.includes("obtain")
+        || heading.includes("output")
+        || heading.includes("naming")
+        || heading.includes("archive")
+        || heading.includes("packaging")
+        || html.includes(
+            'data-key="obtain_'
+        )
+        || html.includes(
+            'data-key="archive_format"'
+        )
+        || html.includes(
+            'data-key="naming_template"'
+        )
+        || html.includes(
+            'data-key="preserve_variant"'
+        )
+    ) {
+        return "obtain";
+    }
+
+    //
+    // Catalog / matching.
+    //
+    if (
+        heading.includes("catalog")
+        || heading.includes("matching")
+        || html.includes(
+            'data-key="catalog_'
+        )
+        || html.includes(
+            'data-key="automatic_matching"'
+        )
+        || html.includes(
+            'data-key="match_threshold"'
+        )
+        || html.includes(
+            "synccatalog"
+        )
+    ) {
+        return "catalog";
+    }
+
+    //
+    // Unknown informational sections remain
+    // accessible under About & Help until they
+    // receive an explicit category.
+    //
+    return "about";
+}
+
+
+function applySettingsPageLayout() {
+    const hub =
+        document.getElementById(
+            "settings-hub"
+        );
+
+    const header =
+        document.getElementById(
+            "settings-subpage-header"
+        );
+
+    const title =
+        document.getElementById(
+            "settings-page-title"
+        );
+
+    const description =
+        document.getElementById(
+            "settings-page-description"
+        );
+
+    const saveButton =
+        document.querySelector(
+            'button[onclick="saveSettings()"]'
+        );
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    const sections =
+        Array.from(
+            document.querySelectorAll(
+                "main > section"
+            )
+        );
+
+    sections.forEach(
+        section => {
+            section.dataset.settingsGroup =
+                settingsSectionGroup(
+                    section
+                );
+        }
+    );
+
+    //
+    // Do not display navigation cards for
+    // categories that currently contain no
+    // Settings sections.
+    //
+    document
+        .querySelectorAll(
+            "[data-settings-target]"
+        )
+        .forEach(card => {
+            const target =
+                card.dataset.settingsTarget;
+
+            const hasSections =
+                sections.some(
+                    section =>
+                        section.dataset.settingsGroup
+                        === target
+                );
+
+            card.style.display =
+                hasSections
+                ? ""
+                : "none";
+        });
+
+    if (
+        !SETTINGS_PAGE
+        || SETTINGS_PAGE === "home"
+    ) {
+        if (hub) {
+            hub.style.display = "";
+        }
+
+        if (header) {
+            header.style.display = "none";
+        }
+
+        sections.forEach(
+            section => {
+                section.classList.add(
+                    "settings-page-hidden"
+                );
+            }
+        );
+
+        if (saveButton) {
+            saveButton.style.display =
+                "none";
+        }
+
+        if (message) {
+            message.style.display =
+                "none";
+        }
+
+        return;
+    }
+
+    if (hub) {
+        hub.style.display = "none";
+    }
+
+    if (header) {
+        header.style.display = "block";
+    }
+
+    const meta =
+        SETTINGS_PAGE_META[
+            SETTINGS_PAGE
+        ]
+        || SETTINGS_PAGE_META.general;
+
+    if (title) {
+        title.textContent =
+            meta.title;
+    }
+
+    if (description) {
+        description.textContent =
+            meta.description;
+    }
+
+    sections.forEach(
+        section => {
+            const visible =
+                section.dataset.settingsGroup
+                === SETTINGS_PAGE;
+
+            section.classList.toggle(
+                "settings-page-hidden",
+                !visible,
+            );
+        }
+    );
+
+    //
+    // About is informational only.
+    //
+    const informational =
+        SETTINGS_PAGE === "about";
+
+    if (saveButton) {
+        saveButton.style.display =
+            informational
+            ? "none"
+            : "";
+    }
+
+    if (message) {
+        message.style.display =
+            informational
+            ? "none"
+            : "";
+    }
+}
+
+
+
+async function loadAboutVersion() {
+    const element =
+        document.getElementById(
+            "about-version"
+        );
+
+    if (!element) {
+        return;
+    }
+
+    try {
+        const response =
+            await fetch(
+                "/health",
+                {
+                    cache: "no-store",
+                }
+            );
+
+        const data =
+            await response.json();
+
+        element.textContent =
+            "v"
+            + (
+                data.version
+                || "unknown"
+            );
+
+    } catch {
+        element.textContent =
+            "Unknown";
+    }
+}
+
+
+async function loadSettings() {
+    const response =
+        await fetch("/api/settings");
+
+    const settings =
+        await response.json();
+
+    document
+        .querySelectorAll("[data-key]")
+        .forEach(element => {
+            const key =
+                element.dataset.key;
+
+            if (
+                settings[key]
+                !== undefined
+            ) {
+                element.value =
+                    settings[key];
+            }
+        });
+}
+
+
+async function syncCatalog() {
+    const message =
+        document.getElementById("sync-message");
+
+    message.textContent =
+        " Syncing...";
+
+    try {
+        const response = await fetch(
+            "/api/catalog/sync",
+            {
+                method: "POST"
+            }
+        );
+
+        const result =
+            await response.json();
+
+        if (result.success) {
+            message.textContent =
+                ` Imported ${result.imported} hacks.`;
+        } else {
+            message.textContent =
+                ` ${result.message}`;
+        }
+
+    } catch (error) {
+        message.textContent =
+            ` Sync failed: ${error}`;
+    }
+}
+
+
+
+function previewAppearance() {
+    const mode =
+        document.getElementById(
+            "ui-mode"
+        );
+
+    const theme =
+        document.getElementById(
+            "ui-theme"
+        );
+
+    if (
+        !mode
+        || !theme
+        || !window.HackDexUI
+    ) {
+        return;
+    }
+
+    window.HackDexUI
+        .applyAppearance(
+            mode.value,
+            theme.value,
+            false,
+        );
+}
+
+
+async function saveSettings() {
+    const payload = {};
+
+    document
+        .querySelectorAll("[data-key]")
+        .forEach(element => {
+            payload[
+                element.dataset.key
+            ] = element.value;
+        });
+
+    const response =
+        await fetch(
+            "/api/settings",
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+            }
+        );
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    if (response.ok) {
+        message.textContent =
+            "Settings saved.";
+
+        if (window.HackDexUI) {
+            window.HackDexUI
+                .applyAppearance(
+                    payload.ui_mode,
+                    payload.ui_theme,
+                    true,
+                );
+        }
+
+    } else {
+        message.textContent =
+            "Unable to save settings.";
+    }
+}
+
+
+applySettingsPageLayout();
+loadSettings();
+
+if (SETTINGS_PAGE === "about") {
+    loadAboutVersion();
+}
+</script>
+
+
+<script>
+let libraryLocations = [];
+
+function escapeLocationHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function stateClass(location) {
+    if (!location.enabled) {
+        return "pill-disabled";
+    }
+
+    if (location.state === "READY") {
+        return "pill-ready";
+    }
+
+    return "pill-warning";
+}
+
+function renderLocationList(kind, elementId) {
+    const container =
+        document.getElementById(elementId);
+
+    const rows = libraryLocations.filter(
+        item => item.kind === kind
+    );
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <div class="empty-location">
+                No ${kind === "hack"
+                    ? "hack"
+                    : "base ROM"} locations configured.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = rows.map(
+        item => `
+        <div class="location-card">
+
+            <div>
+                <div class="location-name">
+                    ${escapeLocationHtml(
+                        item.label
+                        || item.path
+                    )}
+                </div>
+
+                <div class="location-path">
+                    ${escapeLocationHtml(
+                        item.path
+                    )}
+                </div>
+
+                <div class="location-meta">
+
+                    <span class="pill ${stateClass(item)}">
+                        ${escapeLocationHtml(
+                            item.enabled
+                                ? item.state
+                                : "DISABLED"
+                        )}
+                    </span>
+
+                    <span class="pill pill-disabled">
+                        ${escapeLocationHtml(
+                            item.platform
+                        )}
+                    </span>
+
+                </div>
+            </div>
+
+            <div class="location-actions">
+
+                <button
+                    type="button"
+                    onclick="
+                        toggleLocation(
+                            ${item.id},
+                            ${item.enabled ? "false" : "true"}
+                        )
+                    "
+                >
+                    ${item.enabled
+                        ? "Disable"
+                        : "Enable"}
+                </button>
+
+                <button
+                    type="button"
+                    class="danger"
+                    onclick="
+                        removeLocation(
+                            ${item.id},
+                            '${escapeLocationHtml(
+                                item.label
+                                || item.path
+                            )}'
+                        )
+                    "
+                >
+                    Remove
+                </button>
+
+            </div>
+
+        </div>
+        `
+    ).join("");
+}
+
+async function loadLocations() {
+    const response = await fetch(
+        "/api/locations"
+    );
+
+    libraryLocations =
+        await response.json();
+
+    renderLocationList(
+        "hack",
+        "hack-locations"
+    );
+
+    await loadBasePlatforms();
+    await loadBaseSummary();
+}
+
+function openLocationForm(kind) {
+    document.getElementById(
+        "location-kind"
+    ).value = kind;
+
+    document.getElementById(
+        "location-label"
+    ).value = "";
+
+    document.getElementById(
+        "location-path"
+    ).value = "";
+
+    document.getElementById(
+        "location-platform"
+    ).value = "AUTO";
+
+    document.getElementById(
+        "location-message"
+    ).textContent = "";
+
+    document.getElementById(
+        "location-modal-title"
+    ).textContent =
+        kind === "hack"
+        ? "Add Hack Location"
+        : "Add Base ROM Location";
+
+    document.getElementById(
+        "location-modal"
+    ).style.display = "flex";
+}
+
+function closeLocationForm() {
+    document.getElementById(
+        "location-modal"
+    ).style.display = "none";
+}
+
+async function addLocation() {
+    const kind =
+        document.getElementById(
+            "location-kind"
+        ).value;
+
+    const label =
+        document.getElementById(
+            "location-label"
+        ).value.trim();
+
+    const path =
+        document.getElementById(
+            "location-path"
+        ).value.trim();
+
+    const platform =
+        document.getElementById(
+            "location-platform"
+        ).value;
+
+    if (!path) {
+        document.getElementById(
+            "location-message"
+        ).textContent =
+            "A container path is required.";
+        return;
+    }
+
+    const response = await fetch(
+        "/api/locations",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                kind,
+                label: label || null,
+                path,
+                platform,
+            }),
+        }
+    );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+        document.getElementById(
+            "location-message"
+        ).textContent =
+            result.message
+            || "Unable to add location.";
+        return;
+    }
+
+    closeLocationForm();
+    await loadLocations();
+}
+
+async function toggleLocation(
+    id,
+    enabled
+) {
+    await fetch(
+        `/api/locations/${id}/enabled`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify({
+                enabled,
+            }),
+        }
+    );
+
+    await loadLocations();
+}
+
+async function removeLocation(
+    id,
+    label
+) {
+    if (
+        !confirm(
+            `Remove location "${label}"?`
+        )
+    ) {
+        return;
+    }
+
+    const response = await fetch(
+        `/api/locations/${id}`,
+        {
+            method: "DELETE",
+        }
+    );
+
+    const result =
+        await response.json();
+
+    if (!result.success) {
+        alert(
+            result.message
+            || "Unable to remove location."
+        );
+        return;
+    }
+
+    await loadLocations();
+}
+
+async function scanBaseRoms() {
+    const message =
+        document.getElementById(
+            "base-scan-message"
+        );
+
+    message.textContent =
+        "Scanning...";
+
+    const response = await fetch(
+        "/api/base-roms/scan",
+        {
+            method: "POST",
+        }
+    );
+
+    const result =
+        await response.json();
+
+    message.textContent =
+        `Found ${result.discovered || 0} base ROM(s).`;
+
+    await loadBaseSummary();
+}
+
+async function loadBasePlatforms() {
+    const response = await fetch(
+        "/api/base-roms/platforms"
+    );
+
+    if (!response.ok) {
+        return;
+    }
+
+    const data =
+        await response.json();
+
+    const container =
+        document.getElementById(
+            "base-platforms"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const rows =
+        data.platforms || [];
+
+    if (!rows.length) {
+        container.innerHTML = `
+            <div class="empty-location">
+                No HackDex base platforms
+                currently detected.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="
+            margin-bottom:8px;
+            font-weight:700;
+        ">
+            HackDex-required platform folders
+        </div>
+
+        ${rows.map(item => `
+            <div class="location-card">
+                <div>
+                    <div class="location-name">
+                        ${escapeLocationHtml(
+                            item.platform
+                        )}
+                    </div>
+
+                    <div class="location-path">
+                        ${escapeLocationHtml(
+                            item.path
+                        )}
+                    </div>
+                </div>
+
+                <div class="location-meta">
+                    <span class="pill ${
+                        item.state === "READY"
+                        ? "pill-ready"
+                        : "pill-warning"
+                    }">
+                        ${escapeLocationHtml(
+                            item.state
+                        )}
+                    </span>
+                </div>
+            </div>
+        `).join("")}
+    `;
+}
+
+
+async function loadBaseSummary() {
+    const response = await fetch(
+        "/api/base-roms/summary"
+    );
+
+    if (!response.ok) {
+        return;
+    }
+
+    const summary =
+        await response.json();
+
+    const platforms =
+        summary.platforms || {};
+
+    document.getElementById(
+        "base-summary"
+    ).innerHTML = `
+        <strong>Indexed Base ROMs:</strong>
+        ${summary.total || 0}
+        &nbsp; • &nbsp;
+        GB ${platforms.GB || 0}
+        &nbsp; • &nbsp;
+        GBC ${platforms.GBC || 0}
+        &nbsp; • &nbsp;
+        GBA ${platforms.GBA || 0}
+        &nbsp; • &nbsp;
+        NDS ${platforms.NDS || 0}
+    `;
+}
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadLocations
+);
+</script>
+
+
+<style id="about-help-v0362-fix">
+
+/* ============================================================
+   v0.3.62
+   Final About & Help component styles
+   Template-local so these override legacy Settings CSS.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   VERSION
+   ------------------------------------------------------------ */
+
+#about-version.about-version-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    width: fit-content !important;
+    min-width: 0 !important;
+    max-width: fit-content !important;
+
+    flex: 0 0 auto !important;
+
+    padding: 5px 10px !important;
+
+    border-radius: 999px !important;
+
+    background:
+        var(--hd-primary-soft) !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-primary) 35%,
+            var(--hd-border)
+        ) !important;
+
+    color:
+        var(--hd-primary) !important;
+
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+
+    box-shadow: none !important;
+}
+
+
+/*
+ * The row containing the version must not stretch
+ * its value across the remaining width.
+ */
+
+.row:has(#about-version) {
+    align-items: center !important;
+}
+
+.row:has(#about-version) > #about-version {
+    justify-self: start !important;
+}
+
+
+/* ------------------------------------------------------------
+   SAFETY POLICY — LIGHT
+   ------------------------------------------------------------ */
+
+html[data-mode="light"] .safety-policy {
+    gap: 8px !important;
+}
+
+
+html[data-mode="light"] .safety-item {
+    background:
+        var(--hd-surface-2) !important;
+
+    border:
+        1px solid var(--hd-border) !important;
+
+    color:
+        var(--hd-text) !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+html[data-mode="light"] .safety-item strong {
+    color:
+        var(--hd-text) !important;
+}
+
+
+html[data-mode="light"] .safety-item p {
+    color:
+        var(--hd-text-soft) !important;
+}
+
+
+html[data-mode="light"] .safety-check {
+    background:
+        var(--hd-success-soft) !important;
+
+    color:
+        var(--hd-success) !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-success) 30%,
+            var(--hd-border)
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ROMM GUIDANCE — LIGHT
+   ------------------------------------------------------------ */
+
+html[data-mode="light"] .romm-user-note {
+    background:
+        var(--hd-surface-2) !important;
+
+    border:
+        1px solid var(--hd-border) !important;
+
+    color:
+        var(--hd-text) !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+html[data-mode="light"]
+.romm-user-note .mapping-heading,
+
+html[data-mode="light"]
+.romm-user-note strong {
+    color:
+        var(--hd-text) !important;
+}
+
+
+html[data-mode="light"]
+.romm-user-note p {
+    color:
+        var(--hd-text-soft) !important;
+}
+
+
+html[data-mode="light"]
+.romm-instruction-block {
+    background:
+        var(--hd-surface) !important;
+
+    border:
+        1px solid var(--hd-border) !important;
+
+    color:
+        var(--hd-text) !important;
+}
+
+
+html[data-mode="light"]
+.romm-info-callout {
+    background:
+        var(--hd-info-soft) !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-info) 30%,
+            var(--hd-border)
+        ) !important;
+
+    color:
+        var(--hd-text) !important;
+}
+
+
+/*
+ * Code examples stay dark intentionally.
+ */
+
+html[data-mode="light"]
+.romm-user-note pre {
+    background:
+        #101820 !important;
+
+    border:
+        1px solid #334758 !important;
+
+    color:
+        #d4e8fa !important;
+}
+
+
+html[data-mode="light"]
+.romm-user-note pre code {
+    background:
+        transparent !important;
+
+    color:
+        #d4e8fa !important;
+}
+
+
+/* ------------------------------------------------------------
+   SYSTEM MODE WITH LIGHT OS
+   ------------------------------------------------------------ */
+
+@media (prefers-color-scheme: light) {
+
+    html[data-mode="system"]
+    .safety-item {
+        background:
+            var(--hd-surface-2) !important;
+
+        border:
+            1px solid
+            var(--hd-border) !important;
+
+        color:
+            var(--hd-text) !important;
+    }
+
+
+    html[data-mode="system"]
+    .safety-item strong {
+        color:
+            var(--hd-text) !important;
+    }
+
+
+    html[data-mode="system"]
+    .safety-item p {
+        color:
+            var(--hd-text-soft) !important;
+    }
+
+
+    html[data-mode="system"]
+    .romm-user-note {
+        background:
+            var(--hd-surface-2) !important;
+
+        border:
+            1px solid
+            var(--hd-border) !important;
+
+        color:
+            var(--hd-text) !important;
+    }
+
+
+    html[data-mode="system"]
+    .romm-instruction-block {
+        background:
+            var(--hd-surface) !important;
+
+        border:
+            1px solid
+            var(--hd-border) !important;
+    }
+
+}
+
+</style>
+
+
+<script>
+/* v0.4.06.2 settings hub icon refresh */
+document.addEventListener("DOMContentLoaded", () => {
+    const iconMap = {
+        library: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H10l1.5 2H18.5A2.5 2.5 0 0 1 21 9.5v7A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/>
+                <path d="M7 11h10"/>
+                <path d="M7 14h7"/>
+            </svg>
+        `,
+        obtain: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4v10"/>
+                <path d="m8 10 4 4 4-4"/>
+                <path d="M5 18h14"/>
+                <rect x="4" y="17" width="16" height="3" rx="1.5"/>
+            </svg>
+        `,
+        catalog: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <ellipse cx="12" cy="6" rx="6.5" ry="2.5"/>
+                <path d="M5.5 6v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5V6"/>
+                <path d="M5.5 10v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/>
+                <path d="M9 9h6"/>
+            </svg>
+        `,
+        appearance: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 4.5a7.5 7.5 0 1 0 7.5 7.5c0-.5-.04-.98-.14-1.45a2 2 0 0 0-2.43-1.5l-1.08.28a2 2 0 0 1-2.48-1.92V6.8A2.3 2.3 0 0 0 11.1 4.5z"/>
+                <circle cx="7.8" cy="11" r="1"/>
+                <circle cx="10" cy="8.1" r="1"/>
+                <circle cx="13.6" cy="8.2" r="1"/>
+            </svg>
+        `,
+        about: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M12 10.2v5.3"/>
+                <circle cx="12" cy="7.4" r=".8" fill="currentColor" stroke="none"/>
+            </svg>
+        `,
+        logs: `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="4.5" width="17" height="15" rx="2"/>
+                <path d="m7 9 2.5 2.5L7 14"/>
+                <path d="M12 14h5"/>
+            </svg>
+        `
+    };
+
+    document
+        .querySelectorAll(".settings-card[data-settings-target]")
+        .forEach((card) => {
+            const key = card.getAttribute("data-settings-target");
+            const icon = card.querySelector(".settings-card-icon");
+
+            if (!icon || !iconMap[key]) return;
+
+            icon.innerHTML = iconMap[key];
+            icon.setAttribute("aria-hidden", "true");
+        });
+});
+</script>
+
+
+<script>
+/* v0.4.06.5 obtain settings identifiers */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        if (
+            window.location.pathname
+            !== "/settings/download"
+        ) {
+            return;
+        }
+
+        document.body.classList.add(
+            "hd-settings-obtain-page"
+        );
+
+        document
+            .querySelectorAll(
+                ".hd-settings-main > section"
+            )
+            .forEach(
+                section => {
+
+                    const heading =
+                        section.querySelector(
+                            "h2"
+                        );
+
+                    const title =
+                        heading
+                        ?.textContent
+                        ?.trim()
+                        || "";
+
+                    if (
+                        title
+                        === "Download & Packaging"
+                    ) {
+                        section.classList.add(
+                            "hd-obtain-settings-section"
+                        );
+                    }
+                }
+            );
+    }
+);
+</script>
+
+
+<script>
+/* v0.4.06.11 catalog settings identifiers */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        if (
+            window.location.pathname
+            !== "/settings/catalog"
+        ) {
+            return;
+        }
+
+        document.body.classList.add(
+            "hd-settings-catalog-page"
+        );
+
+        document
+            .querySelectorAll(
+                ".hd-settings-main > section"
+            )
+            .forEach(
+                section => {
+
+                    const title =
+                        section.querySelector("h2")
+                        ?.textContent
+                        ?.trim()
+                        || "";
+
+                    if (title === "Catalog Provider") {
+                        section.classList.add(
+                            "hd-catalog-provider-section"
+                        );
+                    }
+
+                    if (title === "Matching") {
+                        section.classList.add(
+                            "hd-catalog-matching-section"
+                        );
+                    }
+
+                    if (
+                        title
+                        === "Install & Update Safety"
+                    ) {
+                        section.classList.add(
+                            "hd-catalog-safety-section"
+                        );
+                    }
+                }
+            );
+    }
+);
+</script>
+
+
+<script>
+/* v0.4.06.12 appearance page identifier */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        if (
+            window.location.pathname
+            !== "/settings/appearance"
+        ) {
+            return;
+        }
+
+        document.body.classList.add(
+            "hd-settings-appearance-page"
+        );
+    }
+);
+</script>
+
+
+<script>
+/* v0.4.06.14 real live-preview cleanup */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        if (
+            window.location.pathname
+            !== "/settings/appearance"
+        ) {
+            return;
+        }
+
+        /*
+         * The enhanced Appearance UI constructs the
+         * preview dynamically. Identify the exact
+         * section by its displayed heading instead
+         * of relying on an inner preview class.
+         */
+        document
+            .querySelectorAll(
+                ".hd-appearance-section"
+            )
+            .forEach(
+                section => {
+
+                    const heading =
+                        section.querySelector(
+                            "h3"
+                        );
+
+                    const title =
+                        heading
+                            ?.textContent
+                            ?.trim()
+                            ?.toLowerCase()
+                        || "";
+
+                    if (
+                        title === "live preview"
+                    ) {
+                        section.classList.add(
+                            "hd-appearance-live-preview-section"
+                        );
+                    }
+                }
+            );
+    }
+);
+</script>
+
+
+<script>
+/* v0.4.06.15 about page identifiers */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        if (
+            window.location.pathname
+            !== "/settings/about"
+        ) {
+            return;
+        }
+
+        document.body.classList.add(
+            "hd-settings-about-page"
+        );
+
+        document
+            .querySelectorAll(
+                ".hd-settings-main > section"
+            )
+            .forEach(
+                section => {
+
+                    const title =
+                        section.querySelector("h2")
+                        ?.textContent
+                        ?.trim()
+                        || "";
+
+                    if (
+                        title
+                        === "About HackDex Manager"
+                    ) {
+                        section.classList.add(
+                            "hd-about-summary-section"
+                        );
+                    }
+
+                    if (
+                        title
+                        === "RomM Users"
+                    ) {
+                        section.classList.add(
+                            "hd-about-romm-section"
+                        );
+                    }
+                }
+            );
+    }
+);
+</script>
+
+</body>
+</html>

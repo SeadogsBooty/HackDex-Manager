@@ -1,0 +1,45 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Runtime data
+data/
+staging/
+logs/
+patch-cache/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Backups
+*.bak
+*.bak.*
+*.backup
+*.old
+*.orig
+*.rej
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Private release material
+private-release-backups/
+release-private/
+*.bak*/
+**/*.bak
+**/*.bak.*
+**/*.bak*/

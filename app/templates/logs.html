@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+    Logs - HackDex Manager
+</title>
+
+<link
+    rel="stylesheet"
+    href="/static/hackdex-ui.css?v={{ app_version }}"
+>
+
+<script
+    src="/static/hackdex-ui.js?v={{ app_version }}"
+></script>
+
+</head>
+
+
+<body class="hd-base-rom-page hd-logs-page">
+
+<main class="hd-base-main">
+
+<a
+    href="/settings"
+    class="hd-logs-back"
+>
+    ← Back to Settings
+</a>
+
+
+<header class="hd-base-header">
+
+    <div>
+
+        <div class="hd-dashboard-eyebrow">
+            SETTINGS · SYSTEM DIAGNOSTICS
+        </div>
+
+        <h1>
+            Diagnostics &amp; Logs
+        </h1>
+
+        <p>
+            Review HackDex Manager activity,
+            warnings, failures, and diagnostic
+            information.
+        </p>
+
+    </div>
+
+
+    <div class="hd-logs-header-meta">
+
+        <span
+            class="hd-logs-level-indicator"
+            id="configured-level"
+        >
+            Logging: —
+        </span>
+
+        <label class="hd-logs-capture-level">
+            <span>Capture</span>
+
+            <select id="capture-level">
+                <option value="DEBUG">Debug</option>
+                <option value="INFO">Info</option>
+                <option value="WARNING">Warning</option>
+                <option value="ERROR">Error</option>
+                <option value="CRITICAL">Critical</option>
+            </select>
+        </label>
+
+        <a
+            class="hd-logs-header-action"
+            href="/api/logs/raw?lines=5000"
+            target="_blank"
+            rel="noopener"
+        >
+            Raw Log
+        </a>
+
+        <a
+            class="hd-logs-header-action"
+            href="/api/logs/raw?lines=20000&download=true"
+        >
+            Download
+        </a>
+
+        <button
+            type="button"
+            class="hd-logs-refresh"
+            id="refresh-logs"
+        >
+            Refresh
+        </button>
+
+    </div>
+
+</header>
+
+
+<div class="hd-logs-toolbar">
+
+    <div class="hd-logs-filter">
+
+        <label for="level-filter">
+            Level
+        </label>
+
+        <select id="level-filter">
+
+            <option value="">
+                All Levels
+            </option>
+
+            <option value="DEBUG">
+                Debug
+            </option>
+
+            <option value="INFO">
+                Info
+            </option>
+
+            <option value="WARNING">
+                Warning
+            </option>
+
+            <option value="ERROR">
+                Error
+            </option>
+
+            <option value="CRITICAL">
+                Critical
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="hd-logs-filter">
+
+        <label for="component-filter">
+            Component
+        </label>
+
+        <select id="component-filter">
+
+            <option value="">
+                All Components
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="hd-logs-filter hd-logs-search-filter">
+
+        <label for="log-search">
+            Search
+        </label>
+
+        <input
+            type="search"
+            id="log-search"
+            placeholder="Search messages or details..."
+        >
+
+    </div>
+
+
+    <div class="hd-logs-filter hd-logs-limit-filter">
+
+        <label for="limit-filter">
+            Show
+        </label>
+
+        <select id="limit-filter">
+
+            <option value="100">
+                100
+            </option>
+
+            <option value="250">
+                250
+            </option>
+
+            <option
+                value="500"
+                selected
+            >
+                500
+            </option>
+
+            <option value="1000">
+                1000
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <label class="hd-logs-auto-refresh">
+
+        <input
+            type="checkbox"
+            id="auto-refresh"
+        >
+
+        <span>
+            Auto refresh
+        </span>
+
+    </label>
+
+</div>
+
+
+<div class="hd-logs-summary">
+
+    <div>
+        <span>
+            DISPLAYED
+        </span>
+
+        <strong id="shown-count">
+            —
+        </strong>
+    </div>
+
+
+    <div>
+        <span>
+            AVAILABLE
+        </span>
+
+        <strong id="available-count">
+            —
+        </strong>
+    </div>
+
+
+    <div>
+        <span>
+            WARNING
+        </span>
+
+        <strong
+            id="warning-count"
+            class="warning"
+        >
+            —
+        </strong>
+    </div>
+
+
+    <div>
+        <span>
+            ERROR
+        </span>
+
+        <strong
+            id="error-count"
+            class="error"
+        >
+            —
+        </strong>
+    </div>
+
+
+    <div>
+        <span>
+            CRITICAL
+        </span>
+
+        <strong
+            id="critical-count"
+            class="critical"
+        >
+            —
+        </strong>
+    </div>
+
+</div>
+
+
+<div class="hd-logs-list-wrap">
+
+    <div class="hd-logs-list-header">
+
+        <div>
+
+            <div class="hd-panel-kicker">
+                APPLICATION LOG
+            </div>
+
+            <h2>
+                Recent Events
+            </h2>
+
+            <p id="log-file-meta">
+                Loading log information…
+            </p>
+
+        </div>
+
+
+        <span class="hd-base-result-count">
+            Newest first
+        </span>
+
+    </div>
+
+
+    <div
+        class="hd-logs-list hd-logs-console"
+        id="logs-list"
+    >
+
+        <div class="hd-logs-loading">
+            Loading logs…
+        </div>
+
+    </div>
+
+</div>
+
+
+</main>
+
+
+<script>
+
+let autoRefreshTimer = null;
+
+let searchTimer = null;
+
+
+function formatBytes(
+    value
+) {
+
+    const bytes =
+        Number(
+            value || 0
+        );
+
+    if (!bytes) {
+        return "0 B";
+    }
+
+    const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB",
+    ];
+
+    let size = bytes;
+
+    let index = 0;
+
+    while (
+        size >= 1024
+        && index < units.length - 1
+    ) {
+        size /= 1024;
+        index += 1;
+    }
+
+    return (
+        `${size.toFixed(
+            index ? 1 : 0
+        )} ${units[index]}`
+    );
+}
+
+
+function buildEntry(
+    entry
+) {
+
+    const row =
+        document.createElement(
+            "article"
+        );
+
+    row.className =
+        "hd-log-entry "
+        + String(
+            entry.level || "INFO"
+        ).toLowerCase();
+
+
+    const head =
+        document.createElement(
+            "div"
+        );
+
+    head.className =
+        "hd-log-entry-head";
+
+
+    const level =
+        document.createElement(
+            "span"
+        );
+
+    level.className =
+        "hd-log-level";
+
+    level.textContent =
+        entry.level || "INFO";
+
+
+    const timestamp =
+        document.createElement(
+            "time"
+        );
+
+    timestamp.textContent =
+        entry.timestamp || "—";
+
+
+    const component =
+        document.createElement(
+            "span"
+        );
+
+    component.className =
+        "hd-log-component";
+
+    component.textContent =
+        entry.component || "hackdex";
+
+
+    head.append(
+        level,
+        timestamp,
+        component,
+    );
+
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+    message.className =
+        "hd-log-message";
+
+    message.textContent =
+        entry.message || "";
+
+
+    row.append(
+        head,
+        message,
+    );
+
+
+    if (
+        entry.details
+        && entry.details.trim()
+    ) {
+
+        const details =
+            document.createElement(
+                "details"
+            );
+
+        details.className =
+            "hd-log-details";
+
+
+        const summary =
+            document.createElement(
+                "summary"
+            );
+
+        summary.textContent =
+            "View details";
+
+
+        const pre =
+            document.createElement(
+                "pre"
+            );
+
+        pre.textContent =
+            entry.details;
+
+
+        details.append(
+            summary,
+            pre,
+        );
+
+        row.append(
+            details
+        );
+    }
+
+
+    return row;
+}
+
+
+function updateComponents(
+    components
+) {
+
+    const select =
+        document.getElementById(
+            "component-filter"
+        );
+
+    const current =
+        select.value;
+
+
+    select.innerHTML = "";
+
+
+    const all =
+        document.createElement(
+            "option"
+        );
+
+    all.value = "";
+    all.textContent =
+        "All Components";
+
+    select.append(
+        all
+    );
+
+
+    for (
+        const component
+        of components || []
+    ) {
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            component;
+
+        option.textContent =
+            component;
+
+        select.append(
+            option
+        );
+    }
+
+
+    if (
+        [
+            ...select.options
+        ].some(
+            option =>
+                option.value
+                === current
+        )
+    ) {
+        select.value =
+            current;
+    }
+}
+
+
+async function loadLogs() {
+
+    const host =
+        document.getElementById(
+            "logs-list"
+        );
+
+
+    const params =
+        new URLSearchParams();
+
+
+    const level =
+        document.getElementById(
+            "level-filter"
+        ).value;
+
+
+    const component =
+        document.getElementById(
+            "component-filter"
+        ).value;
+
+
+    const query =
+        document.getElementById(
+            "log-search"
+        ).value.trim();
+
+
+    const limit =
+        document.getElementById(
+            "limit-filter"
+        ).value;
+
+
+    if (level) {
+        params.set(
+            "level",
+            level
+        );
+    }
+
+
+    if (component) {
+        params.set(
+            "component",
+            component
+        );
+    }
+
+
+    if (query) {
+        params.set(
+            "q",
+            query
+        );
+    }
+
+
+    params.set(
+        "limit",
+        limit
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/logs?"
+                + params.toString()
+            );
+
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const runtimeLevel =
+            data.runtime_level
+            || data.configured_level
+            || "INFO";
+
+        document.getElementById(
+            "configured-level"
+        ).textContent =
+            "Logging: "
+            + runtimeLevel;
+
+        const captureLevel =
+            document.getElementById(
+                "capture-level"
+            );
+
+        if (captureLevel) {
+            captureLevel.value =
+                runtimeLevel;
+        }
+
+
+        document.getElementById(
+            "shown-count"
+        ).textContent =
+            data.shown ?? 0;
+
+
+        document.getElementById(
+            "available-count"
+        ).textContent =
+            data.available ?? 0;
+
+
+        document.getElementById(
+            "warning-count"
+        ).textContent =
+            data.level_counts?.WARNING
+            ?? 0;
+
+
+        document.getElementById(
+            "error-count"
+        ).textContent =
+            data.level_counts?.ERROR
+            ?? 0;
+
+
+        document.getElementById(
+            "critical-count"
+        ).textContent =
+            data.level_counts?.CRITICAL
+            ?? 0;
+
+
+        document.getElementById(
+            "log-file-meta"
+        ).textContent =
+            (
+                data.configured_file
+                || data.log_file
+                || "HackDex log"
+            )
+            + " · "
+            + formatBytes(
+                data.size_bytes
+            );
+
+
+        updateComponents(
+            data.components
+        );
+
+
+        host.innerHTML = "";
+
+
+        if (
+            !data.entries
+            || !data.entries.length
+        ) {
+
+            const empty =
+                document.createElement(
+                    "div"
+                );
+
+            empty.className =
+                "hd-logs-empty";
+
+            empty.textContent =
+                "No log entries match the current filters.";
+
+            host.append(
+                empty
+            );
+
+            return;
+        }
+
+
+        for (
+            const entry
+            of data.entries
+        ) {
+
+            host.append(
+                buildEntry(
+                    entry
+                )
+            );
+        }
+
+    }
+
+    catch (error) {
+
+        host.innerHTML = "";
+
+        const failure =
+            document.createElement(
+                "div"
+            );
+
+        failure.className =
+            "hd-logs-error";
+
+        failure.textContent =
+            "Unable to load logs: "
+            + error.message;
+
+        host.append(
+            failure
+        );
+    }
+}
+
+
+function scheduleSearch() {
+
+    clearTimeout(
+        searchTimer
+    );
+
+    searchTimer =
+        setTimeout(
+            loadLogs,
+            250
+        );
+}
+
+
+
+async function changeCaptureLevel(
+    level
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/logs/level",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                    },
+
+                    body:
+                        JSON.stringify(
+                            {
+                                level:
+                                    level,
+                            }
+                        ),
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok
+            || !data.success
+        ) {
+            throw new Error(
+                data.message
+                || `HTTP ${response.status}`
+            );
+        }
+
+
+        document.getElementById(
+            "configured-level"
+        ).textContent =
+            "Logging: "
+            + data.level;
+
+
+        await loadLogs();
+
+    }
+
+    catch (error) {
+
+        alert(
+            "Unable to change logging level: "
+            + error.message
+        );
+
+        await loadLogs();
+    }
+}
+
+
+document.getElementById(
+    "capture-level"
+).addEventListener(
+    "change",
+    event => {
+
+        changeCaptureLevel(
+            event.target.value
+        );
+    }
+);
+
+
+document.getElementById(
+    "refresh-logs"
+).addEventListener(
+    "click",
+    loadLogs
+);
+
+
+document.getElementById(
+    "level-filter"
+).addEventListener(
+    "change",
+    loadLogs
+);
+
+
+document.getElementById(
+    "component-filter"
+).addEventListener(
+    "change",
+    loadLogs
+);
+
+
+document.getElementById(
+    "limit-filter"
+).addEventListener(
+    "change",
+    loadLogs
+);
+
+
+document.getElementById(
+    "log-search"
+).addEventListener(
+    "input",
+    scheduleSearch
+);
+
+
+document.getElementById(
+    "auto-refresh"
+).addEventListener(
+    "change",
+    event => {
+
+        if (
+            autoRefreshTimer
+        ) {
+            clearInterval(
+                autoRefreshTimer
+            );
+
+            autoRefreshTimer =
+                null;
+        }
+
+
+        if (
+            event.target.checked
+        ) {
+
+            autoRefreshTimer =
+                setInterval(
+                    loadLogs,
+                    5000
+                );
+        }
+    }
+);
+
+
+loadLogs();
+
+</script>
+
+</body>
+</html>
