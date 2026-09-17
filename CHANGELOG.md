@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.9.3 — 2026-09-17
+
+### Fixed
+
+- Fixed valid Base ROMs remaining `UNVERIFIED` after discovery, which caused Download, Update, and Reinstall actions to appear unavailable.
+- Base ROM inventory is now automatically verified against the HackDex Base-ROM registry during startup without restoring the expensive all-hack readiness sweep.
+- Per-hack readiness now refreshes Base ROM verification once before reporting a required Base ROM as missing.
+- Manual Base ROM scans now complete with registry verification automatically.
+- Preserved lazy/on-demand hack readiness introduced in the previous release work.
+
 ## v0.9.2 — 2026-09-17
 
 - Added on-demand per-hack patch readiness instead of requiring a full catalog readiness sweep.

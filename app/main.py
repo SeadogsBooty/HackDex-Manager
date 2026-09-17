@@ -555,6 +555,87 @@ def start_background_scan():
     thread.start()
 
 
+def refresh_base_rom_verification(
+    *,
+    scan=False,
+):
+    """
+    Ensure discovered Base ROMs are compared against the
+    current HackDex Base-ROM registry.
+
+    Normal startup and per-hack readiness verification do
+    not scan the filesystem. This preserves clean first-run
+    state and avoids restoring the expensive startup work
+    removed in v0.9.2.
+
+    Explicit Base-ROM scans may request scan=True so newly
+    discovered inventory is verified immediately.
+    """
+    data = load_registry()
+
+    if data is None:
+        base_rom_logger.info(
+            "Base ROM registry is not cached; syncing before verification."
+        )
+
+        sync_result = sync_registry()
+
+        if not sync_result.get("success"):
+            return {
+                "success": False,
+                "stage": "registry",
+                "result": sync_result,
+            }
+
+    scan_result = None
+
+    if scan:
+        scan_result = scan_base_roms()
+
+    verify_result = verify_base_roms()
+
+    result = {
+        "success": bool(
+            verify_result.get("success")
+        ),
+        "verification": verify_result,
+    }
+
+    if scan:
+        result["scan"] = scan_result
+
+    return result
+
+
+def run_base_rom_bootstrap():
+    base_rom_logger.info(
+        "Base ROM startup verification started."
+    )
+
+    try:
+        result = refresh_base_rom_verification()
+
+        base_rom_logger.info(
+            "Base ROM startup verification completed result=%s",
+            result,
+        )
+
+    except Exception as exc:
+        base_rom_logger.exception(
+            "Base ROM startup verification failed: %s",
+            exc,
+        )
+
+
+def start_background_base_rom_bootstrap():
+    thread = threading.Thread(
+        target=run_base_rom_bootstrap,
+        daemon=True,
+    )
+
+    thread.start()
+
+
 def run_catalog_bootstrap():
     """
     Refresh the built-in HackDex catalog independently
@@ -749,6 +830,7 @@ def startup():
 
     start_background_catalog_bootstrap()
     start_background_scan()
+    start_background_base_rom_bootstrap()
 
 
 @app.on_event("shutdown")
@@ -902,6 +984,30 @@ def api_check_readiness(
     result = check_hack_readiness(
         hack_slug
     )
+
+    # v0.9.3:
+    # A Base ROM may already be discovered and hashed while
+    # still carrying the pre-verification UNVERIFIED state.
+    # Refresh Base-ROM verification once before reporting it
+    # as missing, then retry readiness for this hack.
+    if (
+        result.get("status")
+        == "BASE_MISSING"
+    ):
+        try:
+            refresh_base_rom_verification()
+
+            result = check_hack_readiness(
+                hack_slug
+            )
+
+        except Exception as exc:
+            base_rom_logger.warning(
+                "On-demand Base ROM verification failed "
+                "for hack=%s error=%s",
+                hack_slug,
+                exc,
+            )
 
     if (
         result.get("status")
@@ -1253,8 +1359,10 @@ def api_base_rom_verification():
 def api_base_rom_scan():
     return _run_logged_operation(
         base_rom_logger,
-        "base_rom_scan",
-        scan_base_roms,
+        "base_rom_scan_and_verify",
+        lambda: refresh_base_rom_verification(
+            scan=True,
+        ),
     )
 
 
