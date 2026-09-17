@@ -1,0 +1,2461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>
+        HackDex Manager Setup
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/hackdex-ui.css?v={{ app_version }}"
+    >
+
+    <script
+        src="/static/hackdex-ui.js?v={{ app_version }}"
+    ></script>
+
+    <style>
+        body.hd-setup-page {
+            min-height: 100vh;
+            margin: 0;
+            background:
+                var(--hd-bg);
+            color:
+                var(--hd-text);
+        }
+
+        .hd-setup-shell {
+            width:
+                min(
+                    1040px,
+                    calc(100% - 40px)
+                );
+
+            margin:
+                0 auto;
+
+            padding:
+                48px 0 80px;
+        }
+
+        .hd-setup-hero {
+            margin-bottom: 28px;
+        }
+
+        .hd-setup-eyebrow {
+            color:
+                var(--hd-primary);
+
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .hd-setup-hero h1 {
+            margin:
+                8px 0 10px;
+
+            color:
+                var(--hd-text);
+
+            font-size:
+                clamp(
+                    30px,
+                    5vw,
+                    44px
+                );
+
+            line-height: 1.08;
+        }
+
+        .hd-setup-hero p {
+            max-width: 760px;
+            margin: 0;
+
+            color:
+                var(--hd-text-soft);
+
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .hd-setup-safe-note {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+
+            margin-top: 14px;
+            padding:
+                8px 11px;
+
+            border:
+                1px solid
+                color-mix(
+                    in srgb,
+                    var(--hd-success) 30%,
+                    var(--hd-border)
+                );
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            background:
+                var(--hd-success-soft);
+
+            color:
+                var(--hd-success);
+
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .hd-setup-steps {
+            display: grid;
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 8px;
+
+            margin:
+                26px 0 30px;
+        }
+
+        .hd-setup-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            min-width: 0;
+
+            padding:
+                11px 13px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface);
+        }
+
+        .hd-setup-step-number {
+            display: grid;
+            place-items: center;
+
+            width: 28px;
+            height: 28px;
+            flex: 0 0 28px;
+
+            border-radius: 50%;
+
+            background:
+                var(--hd-primary-soft);
+
+            color:
+                var(--hd-primary);
+
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .hd-setup-step-label {
+            overflow: hidden;
+
+            color:
+                var(--hd-text-soft);
+
+            font-size: 12px;
+            font-weight: 750;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hd-setup-card {
+            margin:
+                16px 0;
+
+            padding:
+                26px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius-lg);
+
+            background:
+                var(--hd-surface);
+
+            box-shadow:
+                var(--hd-shadow-soft);
+        }
+
+        .hd-setup-card-head {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+
+            margin-bottom: 20px;
+        }
+
+        .hd-setup-card-index {
+            display: grid;
+            place-items: center;
+
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+
+            border-radius:
+                11px;
+
+            background:
+                var(--hd-primary-soft);
+
+            color:
+                var(--hd-primary);
+
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .hd-setup-card h2 {
+            margin:
+                0 0 5px;
+
+            color:
+                var(--hd-text);
+
+            font-size: 20px;
+        }
+
+        .hd-setup-card p {
+            margin:
+                0;
+
+            color:
+                var(--hd-text-soft);
+
+            line-height: 1.55;
+        }
+
+        .hd-setup-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(
+                        215px,
+                        1fr
+                    )
+                );
+
+            gap: 12px;
+        }
+
+        .hd-setup-status-card {
+            padding:
+                16px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+        }
+
+        .hd-setup-status-title {
+            margin-bottom: 5px;
+
+            color:
+                var(--hd-text);
+
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .hd-setup-path {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color:
+                var(--hd-text-muted);
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        .hd-setup-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .hd-setup-state.ready {
+            color:
+                var(--hd-success);
+        }
+
+        .hd-setup-state.warn {
+            color:
+                var(--hd-warning);
+        }
+
+        .hd-setup-state.bad {
+            color:
+                var(--hd-danger);
+        }
+
+        .hd-setup-section-title {
+            margin:
+                24px 0 10px;
+
+            color:
+                var(--hd-text);
+
+            font-size: 13px;
+            font-weight: 850;
+            letter-spacing: .02em;
+        }
+
+        .hd-setup-location-list {
+            overflow: hidden;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+        }
+
+        .hd-setup-location {
+            display: grid;
+            grid-template-columns:
+                75px
+                minmax(0, 1fr)
+                auto;
+
+            gap: 14px;
+            align-items: center;
+
+            padding:
+                12px 14px;
+
+            border-bottom:
+                1px solid
+                var(--hd-border);
+        }
+
+        .hd-setup-location:last-child {
+            border-bottom: 0;
+        }
+
+        .hd-setup-platform {
+            color:
+                var(--hd-text);
+
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .hd-setup-detect-box {
+            margin-top: 22px;
+            padding: 18px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+        }
+
+        .hd-setup-detect-title {
+            margin-bottom: 5px;
+
+            color:
+                var(--hd-text);
+
+            font-size: 14px;
+            font-weight: 850;
+        }
+
+        .hd-setup-detect-subtitle {
+            color:
+                var(--hd-text-muted);
+
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .hd-setup-input-row {
+            display: grid;
+            grid-template-columns:
+                minmax(0, 1fr)
+                auto;
+
+            gap: 10px;
+
+            margin-top: 14px;
+        }
+
+        .hd-setup-input-row input {
+            min-width: 0;
+            width: 100%;
+            box-sizing: border-box;
+
+            padding:
+                10px 12px;
+
+            border:
+                1px solid
+                var(--hd-border-strong);
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            outline: none;
+
+            background:
+                var(--hd-surface);
+
+            color:
+                var(--hd-text);
+
+            font: inherit;
+        }
+
+        .hd-setup-input-row input:focus {
+            border-color:
+                var(--hd-primary);
+
+            box-shadow:
+                var(--hd-focus);
+        }
+
+        .hd-setup-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+
+            min-height: 38px;
+
+            padding:
+                9px 15px;
+
+            border:
+                1px solid
+                var(--hd-primary);
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            cursor: pointer;
+
+            background:
+                var(--hd-primary);
+
+            color: #fff;
+
+            font: inherit;
+            font-size: 13px;
+            font-weight: 800;
+
+            transition:
+                transform .15s ease,
+                background .15s ease,
+                border-color .15s ease;
+        }
+
+        .hd-setup-button:hover:not(:disabled) {
+            background:
+                var(--hd-primary-hover);
+
+            border-color:
+                var(--hd-primary-hover);
+
+            transform:
+                translateY(-1px);
+        }
+
+        .hd-setup-button.secondary {
+            background:
+                var(--hd-surface);
+
+            border-color:
+                var(--hd-border-strong);
+
+            color:
+                var(--hd-text);
+        }
+
+        .hd-setup-button.secondary:hover:not(:disabled) {
+            background:
+                var(--hd-surface-3);
+
+            border-color:
+                var(--hd-primary);
+        }
+
+        .hd-setup-button:disabled {
+            cursor: not-allowed;
+            opacity: .45;
+            transform: none;
+        }
+
+        .hd-setup-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+
+            margin-top: 16px;
+        }
+
+        .hd-setup-message {
+            margin-top: 14px;
+            padding:
+                11px 13px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            background:
+                var(--hd-surface-3);
+
+            color:
+                var(--hd-text-soft);
+
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .hd-setup-message.warning {
+            border-color:
+                color-mix(
+                    in srgb,
+                    var(--hd-warning) 35%,
+                    var(--hd-border)
+                );
+
+            background:
+                var(--hd-warning-soft);
+
+            color:
+                var(--hd-warning);
+        }
+
+        .hd-setup-message.success {
+            border-color:
+                color-mix(
+                    in srgb,
+                    var(--hd-success) 35%,
+                    var(--hd-border)
+                );
+
+            background:
+                var(--hd-success-soft);
+
+            color:
+                var(--hd-success);
+        }
+
+        .hd-setup-progress {
+            margin-top: 18px;
+            padding: 16px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+
+            color:
+                var(--hd-text-soft);
+
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Consolas,
+                monospace;
+
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .hd-setup-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: center;
+
+            margin-top: 20px;
+
+            color:
+                var(--hd-text-muted);
+
+            font-size: 12px;
+        }
+
+        .hd-setup-footer a {
+            color:
+                var(--hd-primary);
+
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .hd-setup-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 760px) {
+            .hd-setup-shell {
+                width:
+                    min(
+                        100% - 24px,
+                        1040px
+                    );
+
+                padding-top: 28px;
+            }
+
+            .hd-setup-steps {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .hd-setup-card {
+                padding: 20px;
+            }
+
+            .hd-setup-input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .hd-setup-location {
+                grid-template-columns:
+                    60px
+                    minmax(0, 1fr);
+            }
+
+            .hd-setup-location
+            .hd-setup-state {
+                grid-column: 2;
+            }
+        }
+        /* 7E-8 compact setup layout */
+
+        /*
+         * Shared HackDex shell may give the main content
+         * area a very large available width. Keep setup
+         * deliberately focused and readable.
+         */
+        body.hd-setup-page .hd-setup-shell,
+        body.hd-shell-active .hd-setup-shell {
+            width:
+                min(
+                    980px,
+                    calc(100% - 44px)
+                ) !important;
+
+            max-width:
+                980px !important;
+
+            margin-left:
+                auto !important;
+
+            margin-right:
+                auto !important;
+
+            padding-top:
+                30px !important;
+        }
+
+        .hd-setup-hero {
+            margin-bottom:
+                22px;
+        }
+
+        .hd-setup-hero h1 {
+            font-size:
+                clamp(
+                    28px,
+                    4vw,
+                    38px
+                );
+
+            margin-top:
+                6px;
+        }
+
+        .hd-setup-card {
+            padding:
+                22px;
+
+            margin:
+                14px 0;
+        }
+
+        .hd-setup-card-head {
+            margin-bottom:
+                16px;
+        }
+
+        /*
+         * Storage cards should not stretch endlessly.
+         */
+        .hd-setup-grid {
+            grid-template-columns:
+                repeat(
+                    3,
+                    minmax(
+                        0,
+                        1fr
+                    )
+                );
+
+            gap:
+                10px;
+
+            max-width:
+                820px;
+        }
+
+        .hd-setup-status-card {
+            padding:
+                14px;
+        }
+
+        /*
+         * Keep configured location rows compact.
+         */
+        #configured-section {
+            max-width:
+                820px;
+        }
+
+        #configured-locations {
+            max-width:
+                820px;
+        }
+
+        .hd-setup-location {
+            grid-template-columns:
+                64px
+                minmax(
+                    220px,
+                    1fr
+                )
+                auto;
+
+            min-height:
+                20px;
+
+            padding:
+                9px 12px;
+        }
+
+        /*
+         * The detection panel should read like a form,
+         * not span the entire application canvas.
+         */
+        .hd-setup-detect-box {
+            max-width:
+                820px;
+
+            padding:
+                16px;
+
+            margin-top:
+                18px;
+        }
+
+        .hd-setup-input-row {
+            grid-template-columns:
+                minmax(
+                    300px,
+                    620px
+                )
+                auto;
+
+            justify-content:
+                start;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+
+            margin-top:
+                12px;
+        }
+
+        .hd-setup-input-row input {
+            width:
+                100%;
+
+            max-width:
+                620px;
+        }
+
+        #detected-locations {
+            max-width:
+                720px;
+        }
+
+        /*
+         * Catalog status is a small status card, not a
+         * full-width dashboard row.
+         */
+        #catalog-status {
+            max-width:
+                420px;
+        }
+
+        /*
+         * Keep final actions natural-sized.
+         */
+        .hd-setup-actions {
+            justify-content:
+                flex-start;
+        }
+
+        .hd-setup-button {
+            width:
+                auto !important;
+        }
+
+        .hd-setup-progress {
+            max-width:
+                720px;
+        }
+
+        @media (max-width: 850px) {
+            body.hd-setup-page .hd-setup-shell,
+            body.hd-shell-active .hd-setup-shell {
+                width:
+                    calc(100% - 24px)
+                    !important;
+            }
+
+            .hd-setup-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .hd-setup-input-row {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .hd-setup-input-row input {
+                max-width:
+                    none;
+            }
+
+            .hd-setup-location {
+                grid-template-columns:
+                    54px
+                    minmax(
+                        0,
+                        1fr
+                    );
+            }
+
+            .hd-setup-location
+            .hd-setup-state {
+                grid-column:
+                    2;
+            }
+        }
+
+
+        /* 7E-10 final onboarding UX */
+
+        /*
+         * All three Step 2 configuration surfaces use
+         * exactly the same footprint.
+         */
+        #configured-section,
+        #configured-locations,
+        .hd-setup-detect-box,
+        .hd-setup-manual-box {
+            width:
+                min(
+                    760px,
+                    100%
+                ) !important;
+
+            max-width:
+                760px !important;
+
+            box-sizing:
+                border-box;
+        }
+
+        .hd-setup-detect-box,
+        .hd-setup-manual-box {
+            padding:
+                16px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+        }
+
+        .hd-setup-manual-box {
+            margin-top:
+                12px;
+        }
+
+        .hd-setup-manual-grid {
+            display:
+                grid;
+
+            grid-template-columns:
+                130px
+                minmax(260px, 1fr)
+                minmax(160px, 220px);
+
+            gap:
+                10px;
+
+            margin-top:
+                14px;
+
+            align-items:
+                end;
+        }
+
+        .hd-setup-manual-grid label {
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            gap:
+                6px;
+
+            min-width:
+                0;
+
+            color:
+                var(--hd-text-soft);
+
+            font-size:
+                11px;
+
+            font-weight:
+                750;
+        }
+
+        .hd-setup-manual-grid input,
+        .hd-setup-manual-grid select {
+            width:
+                100%;
+
+            min-width:
+                0;
+
+            box-sizing:
+                border-box;
+
+            padding:
+                9px 10px;
+
+            border:
+                1px solid
+                var(--hd-border-strong);
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            outline:
+                none;
+
+            background:
+                var(--hd-surface);
+
+            color:
+                var(--hd-text);
+
+            font:
+                inherit;
+        }
+
+        .hd-setup-manual-grid input:focus,
+        .hd-setup-manual-grid select:focus {
+            border-color:
+                var(--hd-primary);
+
+            box-shadow:
+                var(--hd-focus);
+        }
+
+        /*
+         * Intentional loading states replace empty boxes
+         * while /api/setup/status is being retrieved.
+         */
+        .hd-setup-loading-card,
+        .hd-setup-loading-row {
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                9px;
+
+            color:
+                var(--hd-text-muted);
+
+            font-size:
+                12px;
+        }
+
+        .hd-setup-loading-card {
+            min-height:
+                48px;
+
+            padding:
+                14px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius:
+                var(--hd-radius);
+
+            background:
+                var(--hd-surface-2);
+        }
+
+        .hd-setup-loading-row {
+            padding:
+                13px;
+        }
+
+        .hd-setup-spinner {
+            width:
+                13px;
+
+            height:
+                13px;
+
+            flex:
+                0 0 13px;
+
+            border:
+                2px solid
+                var(--hd-border-strong);
+
+            border-top-color:
+                var(--hd-primary);
+
+            border-radius:
+                50%;
+
+            animation:
+                hd-setup-spin
+                .75s
+                linear
+                infinite;
+        }
+
+        @keyframes hd-setup-spin {
+            to {
+                transform:
+                    rotate(360deg);
+            }
+        }
+
+        /*
+         * Fresh-install sidebar stays visible for
+         * orientation but cannot leave onboarding.
+         */
+        #hd-sidebar a.hd-setup-nav-locked {
+            opacity:
+                .42 !important;
+
+            cursor:
+                not-allowed !important;
+
+            pointer-events:
+                auto !important;
+        }
+
+        #hd-sidebar a.hd-setup-nav-locked:hover {
+            background:
+                transparent !important;
+
+            color:
+                inherit !important;
+        }
+
+        .hd-setup-lock-notice {
+            margin:
+                0 0 14px;
+
+            padding:
+                10px 12px;
+
+            border:
+                1px solid
+                color-mix(
+                    in srgb,
+                    var(--hd-info) 35%,
+                    var(--hd-border)
+                );
+
+            border-radius:
+                var(--hd-radius-sm);
+
+            background:
+                var(--hd-info-soft);
+
+            color:
+                var(--hd-info);
+
+            font-size:
+                12px;
+
+            font-weight:
+                700;
+        }
+
+        @media (max-width: 800px) {
+            .hd-setup-manual-grid {
+                grid-template-columns:
+                    1fr;
+            }
+        }
+
+
+    </style>
+</head>
+
+<body class="hd-setup-page">
+
+<main class="hd-setup-shell">
+
+    <header class="hd-setup-hero">
+
+        <div class="hd-setup-eyebrow">
+            FIRST-RUN CONFIGURATION
+        </div>
+
+        <h1>
+            Welcome to HackDex Manager
+        </h1>
+
+        <p>
+            Verify your container storage,
+            connect your ROM hack libraries,
+            synchronize HackDex, and scan your
+            collection.
+        </p>
+
+        <div class="hd-setup-safe-note">
+            ✓ Library scans do not modify your
+            existing ROM files.
+        </div>
+
+    </header>
+
+
+
+    <section class="hd-setup-card">
+
+        <div class="hd-setup-card-head">
+
+            <div class="hd-setup-card-index">
+                1
+            </div>
+
+            <div>
+                <h2>
+                    Verify storage
+                </h2>
+
+                <p>
+                    These are container-visible
+                    paths. Host paths are configured
+                    in Docker Compose, Komodo, or
+                    your container manager.
+                </p>
+            </div>
+
+        </div>
+
+        <div
+            id="storage-status"
+            class="hd-setup-grid"
+        >
+            <div class="hd-setup-loading-card">
+                <span class="hd-setup-spinner"></span>
+                Loading storage configuration…
+            </div>
+        </div>
+
+    </section>
+
+
+    <section class="hd-setup-card">
+
+        <div class="hd-setup-card-head">
+
+            <div class="hd-setup-card-index">
+                2
+            </div>
+
+            <div>
+                <h2>
+                    Configure your ROM hack library
+                </h2>
+
+                <p>
+                    Use your current configured
+                    locations, or detect a different
+                    container-visible parent.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div
+            id="configured-section"
+        >
+            <div class="hd-setup-section-title">
+                Current configuration
+            </div>
+
+            <div
+                id="configured-locations"
+                class="hd-setup-location-list"
+            >
+                <div class="hd-setup-loading-row">
+                    <span class="hd-setup-spinner"></span>
+                    Loading configured locations…
+                </div>
+            </div>
+        </div>
+
+
+        <div class="hd-setup-detect-box">
+
+            <div class="hd-setup-detect-title">
+                Configure a different parent
+            </div>
+
+            <div class="hd-setup-detect-subtitle">
+                New deployments are recommended
+                to mount one writable parent at
+                <code>/hacks</code>.
+                HackDex Manager supports both
+                <code>gba</code> and
+                <code>gba-hacks</code>-style
+                platform folders.
+            </div>
+
+            <div class="hd-setup-input-row">
+
+                <input
+                    id="hack-parent"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+
+                <button
+                    type="button"
+                    class="
+                        hd-setup-button
+                        secondary
+                    "
+                    onclick="detectHackParent()"
+                >
+                    Detect
+                </button>
+
+            </div>
+
+            <div
+                id="detection-message"
+                class="hd-setup-message"
+                hidden
+            ></div>
+
+            <div
+                id="detected-locations"
+                class="hd-setup-location-list"
+                style="margin-top:14px"
+                hidden
+            ></div>
+
+            <div class="hd-setup-actions">
+
+                <button
+                    type="button"
+                    id="apply-parent"
+                    class="hd-setup-button"
+                    onclick="applyHackParent()"
+                    disabled
+                >
+                    Use Detected Locations
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="hd-setup-manual-box">
+
+            <div class="hd-setup-detect-title">
+                Add a location manually
+            </div>
+
+            <div class="hd-setup-detect-subtitle">
+                Use this when your ROM hacks are not
+                arranged beneath one common parent.
+                Enter paths as they appear inside the
+                HackDex Manager container.
+            </div>
+
+            <div class="hd-setup-manual-grid">
+
+                <label>
+                    <span>Platform</span>
+
+                    <select id="manual-platform">
+                        <option value="AUTO">
+                            Auto detect
+                        </option>
+                        <option value="GB">
+                            GB
+                        </option>
+                        <option value="GBC">
+                            GBC
+                        </option>
+                        <option value="GBA">
+                            GBA
+                        </option>
+                        <option value="NDS">
+                            NDS
+                        </option>
+                    </select>
+                </label>
+
+                <label class="hd-setup-manual-path">
+                    <span>Container path</span>
+
+                    <input
+                        id="manual-path"
+                        placeholder="/hacks/gba"
+                        autocomplete="off"
+                        spellcheck="false"
+                    >
+                </label>
+
+                <label>
+                    <span>Label (optional)</span>
+
+                    <input
+                        id="manual-label"
+                        placeholder="GBA Hacks"
+                        autocomplete="off"
+                    >
+                </label>
+
+            </div>
+
+            <div class="hd-setup-actions">
+
+                <button
+                    type="button"
+                    class="hd-setup-button secondary"
+                    onclick="addManualLocation()"
+                >
+                    Add Location
+                </button>
+
+            </div>
+
+            <div
+                id="manual-message"
+                class="hd-setup-message"
+                hidden
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <section class="hd-setup-card">
+
+        <div class="hd-setup-card-head">
+
+            <div class="hd-setup-card-index">
+                3
+            </div>
+
+            <div>
+                <h2>
+                    HackDex catalog
+                </h2>
+
+                <p>
+                    The normal HackDex provider is
+                    built in. A standard installation
+                    requires no provider URL or API
+                    configuration.
+                </p>
+            </div>
+
+        </div>
+
+        <div
+            id="catalog-status"
+            class="hd-setup-grid"
+        >
+            <div class="hd-setup-loading-card">
+                <span class="hd-setup-spinner"></span>
+                Loading HackDex catalog status…
+            </div>
+        </div>
+
+    </section>
+
+
+    <section class="hd-setup-card">
+
+        <div class="hd-setup-card-head">
+
+            <div class="hd-setup-card-index">
+                4
+            </div>
+
+            <div>
+                <h2>
+                    Scan and finish
+                </h2>
+
+                <p>
+                    Synchronize the catalog, scan
+                    your Base ROMs and configured
+                    ROM hack libraries, then match
+                    your local games.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="hd-setup-actions">
+
+            <button
+                type="button"
+                id="finish-button"
+                class="hd-setup-button"
+                onclick="finishSetup()"
+            >
+                Scan Libraries &amp; Finish Setup
+            </button>
+
+        </div>
+
+        <div
+            id="setup-progress"
+            class="hd-setup-progress"
+            hidden
+        ></div>
+
+    </section>
+
+
+    <footer class="hd-setup-footer">
+
+        <span>
+            Settings can be changed later at any time.
+        </span>
+
+        <a href="/">
+            Return to HackDex Manager
+        </a>
+
+    </footer>
+
+</main>
+
+
+<script>
+let setupStatus = null;
+let hackDiscovery = null;
+
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function stateClass(state) {
+    if (state === "READY") {
+        return "ready";
+    }
+
+    if (
+        state === "READ_ONLY"
+        || state === "NOT_FOUND"
+    ) {
+        return "warn";
+    }
+
+    return "bad";
+}
+
+
+function stateLabel(state) {
+    const labels = {
+        READY:
+            "Ready",
+
+        READ_ONLY:
+            "Read only",
+
+        NOT_FOUND:
+            "Not found",
+
+        NOT_READABLE:
+            "Not readable",
+    };
+
+    return labels[state]
+        || state
+        || "Unknown";
+}
+
+
+function commonConfiguredParent(rows) {
+    if (!rows || !rows.length) {
+        return null;
+    }
+
+    const parents =
+        rows.map(row => {
+            const path =
+                String(row.path || "");
+
+            const index =
+                path.lastIndexOf("/");
+
+            if (index <= 0) {
+                return "/";
+            }
+
+            return path.slice(
+                0,
+                index
+            );
+        });
+
+    const first = parents[0];
+
+    if (
+        first
+        && parents.every(
+            item => item === first
+        )
+    ) {
+        return first;
+    }
+
+    return null;
+}
+
+
+function renderLocationRows(
+    element,
+    rows
+) {
+    element.innerHTML =
+        rows.map(row => `
+            <div class="hd-setup-location">
+
+                <div class="hd-setup-platform">
+                    ${escapeHtml(
+                        row.platform
+                    )}
+                </div>
+
+                <span class="hd-setup-path">
+                    ${escapeHtml(
+                        row.path
+                    )}
+                </span>
+
+                <span
+                    class="
+                        hd-setup-state
+                        ${stateClass(
+                            row.state
+                        )}
+                    "
+                >
+                    ${
+                        row.state === "READY"
+                        ? "✓"
+                        : "!"
+                    }
+
+                    ${escapeHtml(
+                        stateLabel(
+                            row.state
+                        )
+                    )}
+                </span>
+
+            </div>
+        `).join("");
+}
+
+
+function renderConfiguredLocations(rows) {
+    const section =
+        document.getElementById(
+            "configured-section"
+        );
+
+    const container =
+        document.getElementById(
+            "configured-locations"
+        );
+
+    if (!rows || !rows.length) {
+        section.hidden = true;
+        container.innerHTML = "";
+        return;
+    }
+
+    section.hidden = false;
+
+    renderLocationRows(
+        container,
+        rows
+    );
+}
+
+
+function storageState(
+    item,
+    requireWrite
+) {
+    if (
+        !item.exists
+        || !item.directory
+    ) {
+        return {
+            state: "bad",
+            icon: "✕",
+            text: "Not mounted",
+        };
+    }
+
+    if (!item.readable) {
+        return {
+            state: "bad",
+            icon: "✕",
+            text: "Not readable",
+        };
+    }
+
+    if (
+        requireWrite
+        && !item.writable
+    ) {
+        return {
+            state: "bad",
+            icon: "✕",
+            text: "Not writable",
+        };
+    }
+
+    return {
+        state: "ready",
+        icon: "✓",
+        text:
+            requireWrite
+            ? "Writable"
+            : "Mounted and readable",
+    };
+}
+
+
+function storageCard(
+    title,
+    item,
+    requireWrite
+) {
+    const status =
+        storageState(
+            item,
+            requireWrite
+        );
+
+    return `
+        <div class="hd-setup-status-card">
+
+            <div class="hd-setup-status-title">
+                ${escapeHtml(title)}
+            </div>
+
+            <span class="hd-setup-path">
+                ${escapeHtml(item.path)}
+            </span>
+
+            <span
+                class="
+                    hd-setup-state
+                    ${status.state}
+                "
+            >
+                ${status.icon}
+                ${escapeHtml(status.text)}
+            </span>
+
+        </div>
+    `;
+}
+
+
+function lockSetupNavigation() {
+    const sidebar =
+        document.getElementById(
+            "hd-sidebar"
+        );
+
+    if (!sidebar) {
+        return;
+    }
+
+    sidebar
+        .querySelectorAll("a[href]")
+        .forEach(link => {
+            link.classList.add(
+                "hd-setup-nav-locked"
+            );
+
+            link.setAttribute(
+                "aria-disabled",
+                "true"
+            );
+
+            link.title =
+                "Finish setup to unlock HackDex Manager.";
+
+            if (
+                link.dataset
+                    .setupLockBound
+                === "true"
+            ) {
+                return;
+            }
+
+            link.dataset
+                .setupLockBound =
+                "true";
+
+            link.addEventListener(
+                "click",
+                event => {
+                    if (
+                        link.classList.contains(
+                            "hd-setup-nav-locked"
+                        )
+                    ) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                }
+            );
+        });
+}
+
+
+function unlockSetupNavigation() {
+    const sidebar =
+        document.getElementById(
+            "hd-sidebar"
+        );
+
+    if (!sidebar) {
+        return;
+    }
+
+    sidebar
+        .querySelectorAll(
+            ".hd-setup-nav-locked"
+        )
+        .forEach(link => {
+            link.classList.remove(
+                "hd-setup-nav-locked"
+            );
+
+            link.removeAttribute(
+                "aria-disabled"
+            );
+
+            link.removeAttribute(
+                "title"
+            );
+        });
+}
+
+
+function showSetupLoadError(
+    message
+) {
+    const safe =
+        escapeHtml(
+            message
+            || "Unable to load setup status."
+        );
+
+    document.getElementById(
+        "storage-status"
+    ).innerHTML = `
+        <div class="hd-setup-message warning">
+            ${safe}
+        </div>
+    `;
+
+    document.getElementById(
+        "catalog-status"
+    ).innerHTML = `
+        <div class="hd-setup-message warning">
+            ${safe}
+        </div>
+    `;
+
+    const section =
+        document.getElementById(
+            "configured-section"
+        );
+
+    section.hidden = false;
+
+    document.getElementById(
+        "configured-locations"
+    ).innerHTML = `
+        <div class="hd-setup-loading-row">
+            ${safe}
+        </div>
+    `;
+}
+
+
+async function loadSetupStatus() {
+    try {
+        const response = await fetch(
+            "/api/setup/status",
+            {
+                cache: "no-store",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Setup status returned HTTP "
+                + response.status
+            );
+        }
+
+        setupStatus =
+            await response.json();
+
+        if (
+            setupStatus.setup_completed
+        ) {
+            unlockSetupNavigation();
+
+        } else {
+            lockSetupNavigation();
+        }
+
+        document.getElementById(
+            "storage-status"
+        ).innerHTML =
+            storageCard(
+                "Base ROM library",
+                setupStatus.rom,
+                false
+            )
+            + storageCard(
+                "Application data",
+                setupStatus.data,
+                true
+            )
+            + storageCard(
+                "Staging",
+                setupStatus.staging,
+                true
+            );
+
+        const configured =
+            setupStatus.hack_locations
+            || [];
+
+        renderConfiguredLocations(
+            configured
+        );
+
+        const inferred =
+            commonConfiguredParent(
+                configured
+            );
+
+        document.getElementById(
+            "hack-parent"
+        ).value =
+            inferred
+            || setupStatus.hack_parent
+            || "/hacks";
+
+        const catalog =
+            setupStatus.catalog || {};
+
+        const total =
+            Number(
+                catalog.total || 0
+            );
+
+        document.getElementById(
+            "catalog-status"
+        ).innerHTML = `
+            <div class="hd-setup-status-card">
+
+                <div class="hd-setup-status-title">
+                    Live catalog
+                </div>
+
+                <span class="hd-setup-path">
+                    HackDex
+                </span>
+
+                <span
+                    class="
+                        hd-setup-state
+                        ${
+                            total > 0
+                            ? "ready"
+                            : "warn"
+                        }
+                    "
+                >
+                    ${
+                        total > 0
+                        ? "✓"
+                        : "!"
+                    }
+
+                    ${
+                        total > 0
+                        ? `${total} hacks available`
+                        : "Waiting for synchronization"
+                    }
+                </span>
+
+            </div>
+        `;
+
+    } catch (error) {
+        showSetupLoadError(
+            String(error)
+        );
+    }
+}
+
+
+async function detectHackParent() {
+    const path =
+        document.getElementById(
+            "hack-parent"
+        ).value.trim();
+
+    const message =
+        document.getElementById(
+            "detection-message"
+        );
+
+    const detected =
+        document.getElementById(
+            "detected-locations"
+        );
+
+    const apply =
+        document.getElementById(
+            "apply-parent"
+        );
+
+    apply.disabled = true;
+
+    message.hidden = false;
+    message.className =
+        "hd-setup-message";
+
+    message.textContent =
+        "Checking "
+        + path
+        + "...";
+
+    detected.hidden = true;
+    detected.innerHTML = "";
+
+    try {
+        const response = await fetch(
+            "/api/setup/hack-parent",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+
+                body: JSON.stringify({
+                    path,
+                    apply: false,
+                }),
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                data.message
+                || "Unable to inspect this path.";
+
+            return;
+        }
+
+        hackDiscovery =
+            data.result;
+
+        const rows =
+            hackDiscovery.locations
+            || [];
+
+        renderLocationRows(
+            detected,
+            rows
+        );
+
+        detected.hidden = false;
+
+        const usable =
+            rows.filter(
+                row =>
+                    row.state
+                    === "READY"
+            );
+
+        if (!hackDiscovery.exists) {
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                path
+                + " is not mounted in this container. "
+                + "Add the host-to-container mount "
+                + "in Docker or Komodo, then Detect again.";
+
+            return;
+        }
+
+        if (!hackDiscovery.is_dir) {
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                path
+                + " exists but is not a directory.";
+
+            return;
+        }
+
+        if (!usable.length) {
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                "The parent is visible, but no writable "
+                + "GB, GBC, GBA, or NDS hack directories "
+                + "were detected.";
+
+            return;
+        }
+
+        message.className =
+            "hd-setup-message success";
+
+        message.textContent =
+            usable.length
+            + " writable hack "
+            + (
+                usable.length === 1
+                ? "location was"
+                : "locations were"
+            )
+            + " detected.";
+
+        apply.disabled = false;
+
+    } catch (error) {
+        message.className =
+            "hd-setup-message warning";
+
+        message.textContent =
+            "Detection failed: "
+            + error;
+    }
+}
+
+
+async function applyHackParent() {
+    const path =
+        document.getElementById(
+            "hack-parent"
+        ).value.trim();
+
+    const message =
+        document.getElementById(
+            "detection-message"
+        );
+
+    const apply =
+        document.getElementById(
+            "apply-parent"
+        );
+
+    apply.disabled = true;
+
+    try {
+        const response = await fetch(
+            "/api/setup/hack-parent",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+
+                body: JSON.stringify({
+                    path,
+                    apply: true,
+                }),
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            message.hidden = false;
+
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                data.message
+                || "Unable to configure this parent.";
+
+            return;
+        }
+
+        message.hidden = false;
+
+        message.className =
+            "hd-setup-message success";
+
+        message.textContent =
+            "Detected locations were added "
+            + "to HackDex Manager.";
+
+        await loadSetupStatus();
+
+        await detectHackParent();
+
+    } catch (error) {
+        message.hidden = false;
+
+        message.className =
+            "hd-setup-message warning";
+
+        message.textContent =
+            "Configuration failed: "
+            + error;
+    }
+}
+
+
+async function addManualLocation() {
+    const platform =
+        document.getElementById(
+            "manual-platform"
+        ).value;
+
+    const path =
+        document.getElementById(
+            "manual-path"
+        ).value.trim();
+
+    const label =
+        document.getElementById(
+            "manual-label"
+        ).value.trim();
+
+    const message =
+        document.getElementById(
+            "manual-message"
+        );
+
+    message.hidden = false;
+
+    if (!path) {
+        message.className =
+            "hd-setup-message warning";
+
+        message.textContent =
+            "Enter a container-visible library path.";
+
+        return;
+    }
+
+    message.className =
+        "hd-setup-message";
+
+    message.textContent =
+        "Adding "
+        + path
+        + "...";
+
+    try {
+        const response = await fetch(
+            "/api/locations",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+
+                body: JSON.stringify({
+                    kind: "hack",
+                    path,
+                    platform,
+                    label:
+                        label || null,
+                }),
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            message.className =
+                "hd-setup-message warning";
+
+            message.textContent =
+                data.message
+                || "Unable to add this location.";
+
+            return;
+        }
+
+        message.className =
+            "hd-setup-message success";
+
+        message.textContent =
+            "Hack library location added.";
+
+        document.getElementById(
+            "manual-path"
+        ).value = "";
+
+        document.getElementById(
+            "manual-label"
+        ).value = "";
+
+        await loadSetupStatus();
+
+    } catch (error) {
+        message.className =
+            "hd-setup-message warning";
+
+        message.textContent =
+            "Unable to add location: "
+            + error;
+    }
+}
+
+
+
+async function finishSetup() {
+    const button =
+        document.getElementById(
+            "finish-button"
+        );
+
+    const progress =
+        document.getElementById(
+            "setup-progress"
+        );
+
+    button.disabled = true;
+    progress.hidden = false;
+
+    progress.textContent =
+        "Synchronizing HackDex catalog...\n"
+        + "Scanning Base ROMs...\n"
+        + "Scanning ROM hack libraries...\n"
+        + "Matching local games...\n\n"
+        + "Please keep this page open.";
+
+    try {
+        const response = await fetch(
+            "/api/setup/initialize",
+            {
+                method: "POST",
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            progress.textContent =
+                "Setup could not complete:\n\n"
+                + (
+                    data.message
+                    || "Unknown error."
+                );
+
+            button.disabled = false;
+            return;
+        }
+
+        const romResult =
+            data.roms || {};
+
+        const baseResult =
+            data.base_roms || {};
+
+        unlockSetupNavigation();
+
+        progress.textContent =
+            "Setup complete.\n\n"
+            + "Local hacks found: "
+            + (
+                romResult.discovered
+                || 0
+            )
+            + "\n"
+            + "Base ROMs found: "
+            + (
+                baseResult
+                    .official_bases_found
+                ?? baseResult.discovered
+                ?? 0
+            )
+            + "\n\n"
+            + "Opening HackDex Manager...";
+
+        setTimeout(
+            () => {
+                window.location.href = "/";
+            },
+            1000
+        );
+
+    } catch (error) {
+        progress.textContent =
+            "Setup failed:\n\n"
+            + error;
+
+        button.disabled = false;
+    }
+}
+
+
+loadSetupStatus();
+</script>
+
+</body>
+</html>

@@ -43,3 +43,6 @@ release-private/
 **/*.bak
 **/*.bak.*
 **/*.bak*/
+
+# Local Docker Compose override
+compose.override.yaml

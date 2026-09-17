@@ -36,3 +36,6 @@ Thumbs.db
 **/*.bak
 **/*.bak.*
 **/*.bak*
+
+# Local Docker Compose override
+compose.override.yaml

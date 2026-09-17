@@ -1,12 +1,26 @@
 from datetime import datetime
 
 from database import SessionLocal
-from models import Setting
+from models import (
+    BaseRom,
+    LibraryLocation,
+    Rom,
+    Setting,
+)
 
 
 DEFAULT_SETTINGS = {
 
     "base_rom_root": "/roms",
+
+    # Recommended container-visible parent for
+    # user-managed ROM hack libraries.
+    "hack_parent_root": "/hacks",
+
+    # New installations remain incomplete until
+    # the first-run guide finishes. Existing
+    # installations are migrated automatically.
+    "setup_completed": "false",
     "obtain_output_format": "7z",
     "obtain_filename_style": "name_version",
     "obtain_pokemon_prefix": "always",
@@ -67,6 +81,85 @@ OBSOLETE_SETTINGS = {
     "staging_root",
     "verify_base_rom_hashes",
 }
+
+
+
+def ensure_setup_state():
+    """
+    Initialize first-run state without forcing existing
+    HackDex Manager installations back through onboarding.
+
+    This runs before ensure_defaults().
+
+    Existing installations are identified only from their
+    own local database state. No deployment-specific data
+    becomes part of application defaults or the image.
+    """
+    db = SessionLocal()
+
+    try:
+        existing = db.get(
+            Setting,
+            "setup_completed",
+        )
+
+        if existing is not None:
+            return (
+                str(existing.value)
+                .lower()
+                == "true"
+            )
+
+        has_existing_state = any([
+            db.query(Rom).count() > 0,
+            db.query(BaseRom).count() > 0,
+            (
+                db.query(LibraryLocation)
+                .filter(
+                    LibraryLocation.kind
+                    == "hack"
+                )
+                .count()
+                > 0
+            ),
+        ])
+
+        row = Setting(
+            key="setup_completed",
+            value=(
+                "true"
+                if has_existing_state
+                else "false"
+            ),
+        )
+
+        db.add(row)
+        db.commit()
+
+        return has_existing_state
+
+    finally:
+        db.close()
+
+
+def setup_is_complete():
+    db = SessionLocal()
+
+    try:
+        row = db.get(
+            Setting,
+            "setup_completed",
+        )
+
+        return bool(
+            row
+            and str(row.value).lower()
+            == "true"
+        )
+
+    finally:
+        db.close()
+
 
 
 def ensure_defaults():

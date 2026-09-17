@@ -5,9 +5,9 @@ services:
     # --------------------------------------------------------
     # Image
     #
-    # During development this image is built locally.
-    # The v1 public release will default to the published
-    # HackDex Manager image.
+    # Source deployments can build locally.
+    # Container-registry deployments can set HACKDEX_IMAGE
+    # to the desired published image.
     # --------------------------------------------------------
 
     image: ${HACKDEX_IMAGE:-hackdex-manager:local}
@@ -16,7 +16,6 @@ services:
       context: .
       dockerfile: Dockerfile
 
-
     restart:
       unless-stopped
 
@@ -24,8 +23,8 @@ services:
     # --------------------------------------------------------
     # Runtime user/group
     #
-    # Change these when the mounted host directories are owned
-    # by another UID/GID.
+    # Set these to a UID/GID that can write to the mounted
+    # data, staging, and hack-library directories.
     # --------------------------------------------------------
 
     user:
@@ -34,26 +33,16 @@ services:
 
     environment:
 
-      # Application timezone
       TZ: ${TZ:-UTC}
 
       # DEBUG / INFO / WARNING / ERROR / CRITICAL
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
-      # Internal container ROM path.
-      # Do not replace this with the host path.
+      # Container-visible clean ROM root.
       ROM_PATH: /roms
 
 
     ports:
-
-      # Host port can be configured through .env:
-      #
-      #   HACKDEX_PORT=8080
-      #
-      # or replaced directly here:
-      #
-      #   - "8081:8080"
 
       - "${HACKDEX_PORT:-8080}:8080"
 
@@ -61,7 +50,7 @@ services:
     volumes:
 
       # ------------------------------------------------------
-      # Persistent HackDex Manager data
+      # Persistent application state
       # ------------------------------------------------------
 
       - ${HACKDEX_DATA_PATH:-./data}:/data
@@ -70,28 +59,31 @@ services:
 
 
       # ------------------------------------------------------
-      # General ROM source
+      # Clean/general ROM library
       #
-      # Read-only by design.
+      # Read-only by design. HackDex Manager scans this
+      # location for supported Base ROMs but does not modify
+      # the mounted game files.
       # ------------------------------------------------------
 
       - ${ROM_PATH:-./roms}:/roms:ro
 
 
       # ------------------------------------------------------
-      # Platform hack libraries
+      # ROM hack library
       #
-      # These can be set in .env OR replaced with literal
-      # host paths directly in this file.
+      # Recommended layout inside this parent:
+      #
+      #   /hacks/gb
+      #   /hacks/gbc
+      #   /hacks/gba
+      #   /hacks/nds
+      #
+      # The Setup Guide can also configure custom individual
+      # container-visible locations.
       # ------------------------------------------------------
 
-      - ${GBA_HACK_PATH:-./roms/gba-hacks}:/hack-library/gba:rw
-
-      - ${GB_HACK_PATH:-./roms/gb-hacks}:/hack-library/gb:rw
-
-      - ${GBC_HACK_PATH:-./roms/gbc-hacks}:/hack-library/gbc:rw
-
-      - ${NDS_HACK_PATH:-./roms/nds-hacks}:/hack-library/nds:rw
+      - ${HACKDEX_HACKS_PATH:-./hacks}:/hacks:rw
 
 
     security_opt:
@@ -100,3 +92,19 @@ services:
 
     cap_drop:
       - ALL
+
+
+    healthcheck:
+
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5)"
+        ]
+
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s

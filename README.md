@@ -38,7 +38,7 @@ You are responsible for supplying and managing your own game files.
 
 Clone the repository and enter the project directory:
 
-    git clone https://github.com/SeadogsBooty/HackDex-Manager.git
+    git clone <repository-url>
     cd hackdex-manager
 
 Create your local environment configuration:
@@ -58,11 +58,7 @@ At minimum, review:
     HACKDEX_STAGING_PATH=./staging
 
     ROM_PATH=./roms
-
-    GBA_HACK_PATH=./roms/gba-hacks
-    GB_HACK_PATH=./roms/gb-hacks
-    GBC_HACK_PATH=./roms/gbc-hacks
-    NDS_HACK_PATH=./roms/nds-hacks
+    HACKDEX_HACKS_PATH=./hacks
 
 Start HackDex Manager:
 
@@ -92,7 +88,7 @@ And:
       - /srv/hackdex/data:/data
       - /srv/hackdex/staging:/staging
       - /srv/roms:/roms:ro
-      - /srv/roms/gba-hacks:/hack-library/gba:rw
+      - /srv/hacks:/hacks:rw
 
 See [ENVIRONMENT.md](ENVIRONMENT.md) for the complete configuration reference.
 
@@ -141,7 +137,40 @@ Your general ROM source is mounted at `/roms`.
 
 The default Docker configuration mounts `/roms` read-only.
 
-Platform-specific hack libraries are mounted separately.
+ROM hacks are normally mounted beneath one writable
+container-visible parent at `/hacks`.
+
+The recommended structure is:
+
+    /hacks/gb
+    /hacks/gbc
+    /hacks/gba
+    /hacks/nds
+
+The first-run Setup Guide can detect that structure
+automatically. It also supports traditional `*-hacks`
+directory names and individually configured custom
+container-visible paths.
+
+## First-Run Setup
+
+A brand-new HackDex Manager installation starts with an
+empty local application database.
+
+On first launch, HackDex Manager opens the Setup Guide.
+The guide:
+
+- verifies `/data`, `/staging`, and the clean `/roms` mount
+- detects or manually configures the user's ROM-hack libraries
+- synchronizes the live HackDex catalog
+- scans the user's own Base ROM and ROM-hack libraries
+- matches local games against the catalog
+- unlocks the normal application interface when setup completes
+
+No local ROM records, Base ROM records, match history, or
+scan results are bundled with the application image.
+
+The general `/roms` mount is read-only by default.
 
 ## HackDex Provider Configuration
 

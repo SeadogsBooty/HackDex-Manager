@@ -21,11 +21,8 @@ You only need to configure values that differ from the defaults.
 | `HACKDEX_DATA_PATH` | `./data` | No | Persistent HackDex Manager application data directory. |
 | `HACKDEX_STAGING_PATH` | `./staging` | No | Temporary working/staging directory. |
 | `ROM_PATH` | `./roms` | No | Host ROM source directory mounted read-only inside the container. |
-| `GBA_HACK_PATH` | `./roms/gba-hacks` | No | Host directory for Game Boy Advance ROM hacks. |
-| `GB_HACK_PATH` | `./roms/gb-hacks` | No | Host directory for Game Boy ROM hacks. |
-| `GBC_HACK_PATH` | `./roms/gbc-hacks` | No | Host directory for Game Boy Color ROM hacks. |
-| `NDS_HACK_PATH` | `./roms/nds-hacks` | No | Host directory for Nintendo DS ROM hacks. |
-| `HACKDEX_IMAGE` | `hackdex-manager:local` | No | Docker image name/tag. Published images are available as `ghcr.io/seadogsbooty/hackdex-manager:<version>`. |
+| `HACKDEX_HACKS_PATH` | `./hacks` | No | Host parent directory for writable ROM-hack libraries. Mounted inside the container at `/hacks`. |
+| `HACKDEX_IMAGE` | `hackdex-manager:local` | No | Docker image name/tag. Set this to the image supplied by your registry or repository when using a published build. |
 
 ---
 
@@ -78,10 +75,7 @@ Using `.env`:
     HACKDEX_DATA_PATH=/srv/hackdex/data
     HACKDEX_STAGING_PATH=/srv/hackdex/staging
     ROM_PATH=/srv/roms
-    GBA_HACK_PATH=/srv/roms/gba-hacks
-    GB_HACK_PATH=/srv/roms/gb-hacks
-    GBC_HACK_PATH=/srv/roms/gbc-hacks
-    NDS_HACK_PATH=/srv/roms/nds-hacks
+    HACKDEX_HACKS_PATH=/srv/hacks
 
 Or directly in `compose.yaml`:
 
@@ -89,10 +83,7 @@ Or directly in `compose.yaml`:
       - /srv/hackdex/data:/data
       - /srv/hackdex/staging:/staging
       - /srv/roms:/roms:ro
-      - /srv/roms/gba-hacks:/hack-library/gba:rw
-      - /srv/roms/gb-hacks:/hack-library/gb:rw
-      - /srv/roms/gbc-hacks:/hack-library/gbc:rw
-      - /srv/roms/nds-hacks:/hack-library/nds:rw
+      - /srv/hacks:/hacks:rw
 
 Use whatever paths are appropriate for your own environment.
 
@@ -145,7 +136,4 @@ Never use a private Supabase service-role key or administrative credential here.
     HACKDEX_STAGING_PATH=./staging
 
     ROM_PATH=./roms
-    GBA_HACK_PATH=./roms/gba-hacks
-    GB_HACK_PATH=./roms/gb-hacks
-    GBC_HACK_PATH=./roms/gbc-hacks
-    NDS_HACK_PATH=./roms/nds-hacks
+    HACKDEX_HACKS_PATH=./hacks

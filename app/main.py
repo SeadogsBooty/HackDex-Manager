@@ -24,6 +24,7 @@ from patch_readiness import (
     check_hack_readiness,
     readiness_details,
     readiness_summary,
+    reconcile_readiness,
 )
 
 from base_rom_registry import (
@@ -41,13 +42,14 @@ from base_rom_scanner import (
     scan_base_roms,
 )
 from registry_base_scanner import (
-    scan_base_roms as scan_base_roms,
     load_registry,
 )
 
 from location_store import (
     add_location,
+    configure_hack_parent,
     delete_location,
+    discover_hack_parent,
     ensure_default_locations,
     list_locations,
     set_enabled,
@@ -80,7 +82,9 @@ from scanner import scan_roms
 from library_health import audit_library_health
 from settings_store import (
     ensure_defaults,
+    ensure_setup_state,
     get_settings,
+    setup_is_complete,
     update_settings,
 )
 
@@ -491,6 +495,11 @@ Base.metadata.create_all(
 
 ensure_default_locations()
 
+# Must run before ensure_defaults() so an existing
+# installation can be migrated to setup_completed=true
+# instead of receiving the fresh-install default.
+ensure_setup_state()
+
 ensure_defaults()
 
 
@@ -546,6 +555,123 @@ def start_background_scan():
     thread.start()
 
 
+def run_catalog_bootstrap():
+    """
+    Refresh the built-in HackDex catalog independently
+    of ROM and Base ROM scanning.
+
+    Provider failure must never prevent HackDex Manager
+    from starting.
+    """
+    catalog_logger.info(
+        "HackDex catalog startup synchronization started."
+    )
+
+    try:
+        result = sync_catalog()
+
+    except Exception as exc:
+        catalog_logger.exception(
+            "HackDex catalog startup synchronization "
+            "failed: %s",
+            exc,
+        )
+        return
+
+    if result.get("success"):
+        catalog_logger.info(
+            "HackDex catalog startup synchronization "
+            "completed imported=%s source=%s",
+            result.get("imported"),
+            result.get("source"),
+        )
+
+        try:
+            matching = run_matching()
+
+            catalog_logger.info(
+                "Post-catalog matching completed "
+                "result=%s",
+                matching,
+            )
+
+        except Exception as exc:
+            catalog_logger.exception(
+                "Post-catalog matching failed: %s",
+                exc,
+            )
+
+        try:
+            readiness = (
+                reconcile_readiness(
+                    initialize=False,
+                )
+            )
+
+            catalog_logger.info(
+                "Post-catalog readiness reconciliation "
+                "completed result=%s",
+                readiness,
+            )
+
+        except Exception as exc:
+            catalog_logger.exception(
+                "Post-catalog readiness reconciliation "
+                "failed: %s",
+                exc,
+            )
+
+    else:
+        catalog_logger.warning(
+            "HackDex catalog startup synchronization "
+            "did not complete message=%s",
+            result.get("message"),
+        )
+
+
+
+def run_initial_readiness():
+    catalog_logger.info(
+        "Initial readiness build started."
+    )
+
+    try:
+        result = reconcile_readiness(
+            initialize=True,
+        )
+
+        catalog_logger.info(
+            "Initial readiness build "
+            "completed result=%s",
+            result,
+        )
+
+    except Exception as exc:
+        catalog_logger.exception(
+            "Initial readiness build failed: %s",
+            exc,
+        )
+
+
+def start_background_initial_readiness():
+    thread = threading.Thread(
+        target=run_initial_readiness,
+        daemon=True,
+    )
+
+    thread.start()
+
+
+
+def start_background_catalog_bootstrap():
+    thread = threading.Thread(
+        target=run_catalog_bootstrap,
+        daemon=True,
+    )
+
+    thread.start()
+
+
 scheduler = BackgroundScheduler()
 
 scheduler.add_job(
@@ -557,6 +683,51 @@ scheduler.add_job(
 )
 
 scheduler.start()
+
+
+# 7E-10 setup completion gate
+#
+# Fresh installations remain in onboarding until the
+# user successfully finishes setup. APIs required by
+# onboarding, health checks, and static assets remain
+# accessible.
+#
+SETUP_PROTECTED_PAGES = {
+    "/",
+    "/base-roms",
+    "/review",
+    "/library-health",
+    "/logs",
+    "/settings",
+}
+
+
+@app.middleware("http")
+async def require_completed_setup(
+    request: Request,
+    call_next,
+):
+    path = request.url.path
+
+    protected = (
+        path in SETUP_PROTECTED_PAGES
+        or path.startswith(
+            "/settings/"
+        )
+    )
+
+    if (
+        request.method == "GET"
+        and protected
+        and not setup_is_complete()
+    ):
+        return RedirectResponse(
+            url="/setup",
+            status_code=303,
+        )
+
+    return await call_next(request)
+
 
 
 @app.on_event("startup")
@@ -576,6 +747,7 @@ def startup():
         "configured for 6 hours."
     )
 
+    start_background_catalog_bootstrap()
     start_background_scan()
 
 
@@ -602,6 +774,11 @@ class LocationCreate(BaseModel):
 
 class LocationEnabled(BaseModel):
     enabled: bool
+
+
+class HackParentSetup(BaseModel):
+    path: str
+    apply: bool = False
 
 
 
@@ -1315,6 +1492,16 @@ def api_catalog_sync():
             )
         )
 
+        result["readiness"] = (
+            _run_logged_operation(
+                catalog_logger,
+                "post_catalog_readiness",
+                lambda: reconcile_readiness(
+                    initialize=False,
+                ),
+            )
+        )
+
     return result
 
 
@@ -1580,8 +1767,241 @@ async def api_update_settings(
     return result
 
 
+@app.get(
+    "/setup",
+    response_class=HTMLResponse,
+)
+def setup_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="setup.html",
+        context={},
+    )
+
+
+@app.get("/api/setup/status")
+def api_setup_status():
+    settings = get_settings()
+
+    rom_root = settings.get(
+        "base_rom_root",
+        "/roms",
+    )
+
+    def directory_state(path):
+        import os
+        from pathlib import Path
+
+        target = Path(path)
+
+        return {
+            "path":
+                str(target),
+
+            "exists":
+                target.exists(),
+
+            "directory":
+                target.is_dir()
+                if target.exists()
+                else False,
+
+            "readable":
+                (
+                    target.is_dir()
+                    and os.access(
+                        target,
+                        os.R_OK | os.X_OK,
+                    )
+                ),
+
+            "writable":
+                (
+                    target.is_dir()
+                    and os.access(
+                        target,
+                        os.W_OK | os.X_OK,
+                    )
+                ),
+        }
+
+    return {
+        "setup_completed":
+            setup_is_complete(),
+
+        "rom":
+            directory_state(
+                rom_root
+            ),
+
+        "data":
+            directory_state(
+                "/data"
+            ),
+
+        "staging":
+            directory_state(
+                "/staging"
+            ),
+
+        "hack_parent":
+            settings.get(
+                "hack_parent_root",
+                "/hacks",
+            ),
+
+        "hack_locations":
+            list_locations(
+                kind="hack"
+            ),
+
+        "base_platforms":
+            get_base_platform_status(),
+
+        "catalog":
+            get_catalog_stats(),
+    }
+
+
+@app.post("/api/setup/hack-parent")
+def api_setup_hack_parent(
+    payload: HackParentSetup,
+):
+    try:
+        if payload.apply:
+            result = (
+                configure_hack_parent(
+                    payload.path
+                )
+            )
+
+            update_settings({
+                "hack_parent_root":
+                    payload.path,
+            })
+
+            return {
+                "success": True,
+                "result": result,
+            }
+
+        return {
+            "success": True,
+            "result":
+                discover_hack_parent(
+                    payload.path
+                ),
+        }
+
+    except ValueError as exc:
+        return {
+            "success": False,
+            "message": str(exc),
+        }
+
+
+@app.post("/api/setup/initialize")
+def api_setup_initialize():
+    result = {
+        "success": False,
+    }
+
+    catalog_result = (
+        _run_logged_operation(
+            catalog_logger,
+            "setup_catalog_sync",
+            sync_catalog,
+        )
+    )
+
+    result["catalog"] = (
+        catalog_result
+    )
+
+    if not catalog_result.get(
+        "success"
+    ):
+        result["message"] = (
+            "HackDex catalog synchronization "
+            "did not complete."
+        )
+        return result
+
+    locations = list_locations(
+        kind="hack"
+    )
+
+    ready_locations = [
+        row
+        for row in locations
+        if (
+            row.get("enabled")
+            and row.get("state")
+            == "READY"
+        )
+    ]
+
+    if not ready_locations:
+        result["message"] = (
+            "At least one readable hack "
+            "library location is required."
+        )
+        return result
+
+    result["base_roms"] = (
+        _run_logged_operation(
+            base_rom_logger,
+            "setup_base_rom_scan",
+            scan_base_roms,
+        )
+    )
+
+    result["roms"] = (
+        _run_logged_operation(
+            scan_logger,
+            "setup_rom_scan",
+            scan_roms,
+        )
+    )
+
+    result["matching"] = (
+        _run_logged_operation(
+            matcher_logger,
+            "setup_matching",
+            run_matching,
+        )
+    )
+
+    update_settings({
+        "setup_completed":
+            "true",
+    })
+
+    # Do not launch a full first-run readiness sweep here.
+    #
+    # A fresh catalog can contain hundreds of patches.
+    # Downloading/inspecting all of them immediately can
+    # overwhelm the provider and trigger rate limiting.
+    #
+    # Readiness is reconciled incrementally after normal
+    # catalog activity and on established installations.
+    result["success"] = True
+    result["message"] = (
+        "HackDex Manager setup completed."
+    )
+
+    return result
+
+
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
+
+    if not setup_is_complete():
+        return RedirectResponse(
+            url="/setup",
+            status_code=303,
+        )
+
     return templates.TemplateResponse(
         request=request,
         name="index.html",

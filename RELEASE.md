@@ -110,7 +110,7 @@ Stable releases should use immutable version tags.
 
 Example:
 
-    ghcr.io/seadogsbooty/hackdex-manager:v1.0.0
+    <registry>/<owner>/hackdex-manager:<version>
 
 Stable convenience tags may also include:
 

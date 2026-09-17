@@ -243,6 +243,18 @@ def required_base_keys(db):
         if value in BASE_RULES:
             keys.add(value)
 
+    #
+    # Filesystem discovery must not depend on a
+    # successful HackDex catalog synchronization.
+    #
+    # On a brand-new database the Hack table can be
+    # empty while /roms is already mounted correctly.
+    # In that case scan the built-in canonical base
+    # families so clean ROM discovery still works.
+    #
+    if not keys:
+        keys.update(BASE_RULES.keys())
+
     return sorted(keys)
 
 

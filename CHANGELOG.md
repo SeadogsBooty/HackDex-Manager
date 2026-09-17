@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.9.1 — 2026-09-17
+
+### Added
+
+- First-run Setup Guide for clean deployments.
+- Automatic and manual ROM-hack library configuration.
+- Recommended writable `/hacks` parent-library model.
+- Fresh-install navigation gating until setup completes.
+- Incremental patch-readiness reconciliation after catalog updates.
+
+### Fixed
+
+- Base ROM discovery now works before the HackDex catalog has populated a new database.
+- Fresh installations automatically bootstrap the live HackDex catalog.
+- Catalog updates now reconcile matching and only missing or stale readiness records.
+- Hack-library parent discovery prefers explicit `*-hacks` folders when clean ROM and hack folders share a parent.
+- Existing installations are migrated without being forced back through first-run setup.
+
+### Deployment
+
+- New installations start with empty local application state.
+- The general `/roms` mount remains read-only by default.
+- The recommended writable ROM-hack mount is `/hacks`.
+- No user library records, scan history, Base ROM records, or matching state are bundled with the container image.
+
+
 All notable changes to HackDex Manager will be documented in this file.
 
 The project follows semantic versioning for public releases.

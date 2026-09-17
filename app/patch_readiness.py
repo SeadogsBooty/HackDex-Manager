@@ -1341,6 +1341,246 @@ def readiness_summary():
 
 
 
+
+def reconcile_readiness(
+    initialize=False,
+):
+    """
+    Reconcile readiness records against the current
+    approved HackDex catalog.
+
+    Normal startup uses initialize=False:
+      * existing installations repair only missing or
+        stale rows;
+      * a brand-new database with zero readiness rows
+        defers the expensive initial readiness build
+        until first-run setup has scanned Base ROMs.
+
+    First-run setup may use initialize=True to create
+    the initial readiness inventory.
+    """
+    db = SessionLocal()
+
+    try:
+        hacks = (
+            db.query(Hack)
+            .filter(
+                Hack.approved.is_(True),
+                Hack.is_archive.is_(False),
+                Hack.current_patch.isnot(None),
+            )
+            .order_by(Hack.slug)
+            .all()
+        )
+
+        rows = (
+            db.query(PatchReadiness)
+            .all()
+        )
+
+        existing_count = len(rows)
+
+        hack_by_slug = {
+            hack.slug: hack
+            for hack in hacks
+        }
+
+        row_by_slug = {
+            row.hack_slug: row
+            for row in rows
+        }
+
+        stale_removed = 0
+
+        #
+        # Remove readiness belonging to hacks which are
+        # no longer active/current in the catalog.
+        #
+        for row in rows:
+            if row.hack_slug not in hack_by_slug:
+                db.delete(row)
+                stale_removed += 1
+
+        db.commit()
+
+        #
+        # A fresh installation deliberately defers the
+        # initial full readiness build until onboarding
+        # has verified/scanned the user's Base ROMs.
+        #
+        if (
+            existing_count == 0
+            and not initialize
+        ):
+            return {
+                "success": True,
+                "initialized": False,
+                "deferred": True,
+                "catalog_hacks": len(hacks),
+                "checked": 0,
+                "missing": len(hacks),
+                "stale": 0,
+                "removed": stale_removed,
+                "failures": [],
+            }
+
+        targets = []
+        missing = 0
+        stale = 0
+
+        for hack in hacks:
+            row = row_by_slug.get(
+                hack.slug
+            )
+
+            if row is None:
+                missing += 1
+                targets.append(
+                    hack.slug
+                )
+                continue
+
+            expected_identity = (
+                _patch_identity(hack)
+            )
+
+            identity_changed = (
+                row.patch_identity
+                != expected_identity
+            )
+
+            patch_changed = (
+                str(row.patch_id)
+                != str(hack.current_patch)
+            )
+
+            format_changed = (
+                str(
+                    row.patch_format
+                    or ""
+                ).lower()
+                != str(
+                    hack.current_patch_format
+                    or ""
+                ).lower()
+            )
+
+            #
+            # For non-BPS formats the declared HackDex
+            # base is the readiness source directly.
+            # BPS is intentionally excluded because its
+            # checksum may resolve to a different official
+            # base than Hack.base_rom declares.
+            #
+            base_changed = False
+
+            fmt = str(
+                hack.current_patch_format
+                or ""
+            ).lower()
+
+            if (
+                fmt != "bps"
+                and row.base_rom_id is not None
+            ):
+                base = db.get(
+                    BaseRom,
+                    row.base_rom_id,
+                )
+
+                if (
+                    base is not None
+                    and base.detected_key
+                    != hack.base_rom
+                ):
+                    base_changed = True
+
+            if (
+                patch_changed
+                or identity_changed
+                or format_changed
+                or base_changed
+            ):
+                stale += 1
+                targets.append(
+                    hack.slug
+                )
+
+    finally:
+        db.close()
+
+    counts = {}
+    failures = []
+
+    for slug in targets:
+        try:
+            result = (
+                check_hack_readiness(
+                    slug
+                )
+            )
+
+            status = result.get(
+                "status",
+                "UNKNOWN",
+            )
+
+            counts[status] = (
+                counts.get(
+                    status,
+                    0,
+                )
+                + 1
+            )
+
+        except Exception as exc:
+            counts["ERROR"] = (
+                counts.get(
+                    "ERROR",
+                    0,
+                )
+                + 1
+            )
+
+            failures.append({
+                "hack": slug,
+                "error": str(exc),
+            })
+
+    return {
+        "success":
+            not failures,
+
+        "initialized":
+            True,
+
+        "deferred":
+            False,
+
+        "catalog_hacks":
+            len(hacks),
+
+        "checked":
+            len(targets),
+
+        "missing":
+            missing,
+
+        "stale":
+            stale,
+
+        "removed":
+            stale_removed,
+
+        "counts":
+            counts,
+
+        "failures":
+            failures,
+    }
+
+
+
 def check_all_readiness():
     db = SessionLocal()
 

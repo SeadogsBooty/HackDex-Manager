@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 from database import SessionLocal
@@ -28,6 +29,255 @@ DEFAULT_HACK_LOCATIONS = [
 ]
 
 
+
+HACK_PARENT_CANDIDATES = {
+    # Prefer explicitly named hack folders when both
+    # a normal ROM directory and hack directory exist
+    # under the same parent. Fall back to the concise
+    # platform folder used by the recommended /hacks
+    # deployment layout.
+    "GB": (
+        "gb-hacks",
+        "gb",
+    ),
+    "GBC": (
+        "gbc-hacks",
+        "gbc",
+    ),
+    "GBA": (
+        "gba-hacks",
+        "gba",
+    ),
+    "NDS": (
+        "nds-hacks",
+        "nds",
+    ),
+}
+
+
+def discover_hack_parent(
+    parent_path,
+):
+    """
+    Inspect a container-visible parent directory without
+    modifying it.
+
+    Both concise platform folders (gba) and traditional
+    Batocera-style hack folders (gba-hacks) are supported.
+    """
+    parent_path = str(
+        parent_path
+    ).strip()
+
+    if not parent_path.startswith("/"):
+        raise ValueError(
+            "Hack parent must be an absolute "
+            "container path."
+        )
+
+    parent = Path(parent_path)
+
+    result = {
+        "parent":
+            parent_path,
+
+        "exists":
+            parent.exists(),
+
+        "is_dir":
+            parent.is_dir()
+            if parent.exists()
+            else False,
+
+        "readable":
+            False,
+
+        "writable":
+            False,
+
+        "locations":
+            [],
+    }
+
+    if (
+        result["exists"]
+        and result["is_dir"]
+    ):
+        result["readable"] = os.access(
+            parent,
+            os.R_OK | os.X_OK,
+        )
+
+        result["writable"] = os.access(
+            parent,
+            os.W_OK | os.X_OK,
+        )
+
+    #
+    # Always return the four expected platform
+    # locations. This gives the setup UI useful
+    # feedback even when the parent itself is not
+    # mounted yet.
+    #
+    for platform, candidates in (
+        HACK_PARENT_CANDIDATES.items()
+    ):
+        selected = None
+
+        for dirname in candidates:
+            candidate = (
+                parent
+                / dirname
+            )
+
+            if (
+                candidate.exists()
+                and candidate.is_dir()
+            ):
+                selected = candidate
+                break
+
+        if selected is None:
+            result["locations"].append({
+                "platform":
+                    platform,
+
+                "path":
+                    str(
+                        parent
+                        / candidates[0]
+                    ),
+
+                "exists":
+                    False,
+
+                "readable":
+                    False,
+
+                "writable":
+                    False,
+
+                "state":
+                    "NOT_FOUND",
+            })
+
+            continue
+
+        readable = os.access(
+            selected,
+            os.R_OK | os.X_OK,
+        )
+
+        writable = os.access(
+            selected,
+            os.W_OK | os.X_OK,
+        )
+
+        if (
+            readable
+            and writable
+        ):
+            state = "READY"
+
+        elif readable:
+            state = "READ_ONLY"
+
+        else:
+            state = "NOT_READABLE"
+
+        result["locations"].append({
+            "platform":
+                platform,
+
+            "path":
+                str(selected),
+
+            "exists":
+                True,
+
+            "readable":
+                readable,
+
+            "writable":
+                writable,
+
+            "state":
+                state,
+        })
+
+    return result
+
+
+def configure_hack_parent(
+    parent_path,
+):
+    discovery = discover_hack_parent(
+        parent_path
+    )
+
+    added = []
+    skipped = []
+
+    for item in discovery["locations"]:
+
+        if (
+            item["state"]
+            != "READY"
+        ):
+            skipped.append(item)
+            continue
+
+        db = SessionLocal()
+
+        try:
+            existing = (
+                db.query(
+                    LibraryLocation
+                )
+                .filter(
+                    LibraryLocation.kind
+                    == "hack",
+
+                    LibraryLocation.path
+                    == item["path"],
+                )
+                .first()
+            )
+
+        finally:
+            db.close()
+
+        if existing is not None:
+            skipped.append({
+                **item,
+                "reason":
+                    "ALREADY_CONFIGURED",
+            })
+            continue
+
+        added.append(
+            add_location(
+                kind="hack",
+                path=item["path"],
+                platform=
+                    item["platform"],
+                label=(
+                    item["platform"]
+                    + " Hacks"
+                ),
+            )
+        )
+
+    return {
+        **discovery,
+        "added":
+            added,
+        "skipped":
+            skipped,
+    }
+
+
+
 VALID_KINDS = {
     "hack",
     "base",
@@ -43,30 +293,25 @@ VALID_PLATFORMS = {
 
 
 def ensure_default_locations():
+    """
+    Preserve compatibility with existing installations
+    without inventing hack-library locations for a new
+    database.
+
+    Existing LibraryLocation rows remain untouched.
+    New users configure their actual container-visible
+    hack locations during first-run setup.
+    """
     db = SessionLocal()
 
     try:
-        count = (
+        return (
             db.query(LibraryLocation)
             .filter(
                 LibraryLocation.kind == "hack"
             )
             .count()
         )
-
-        if count == 0:
-            for item in DEFAULT_HACK_LOCATIONS:
-                db.add(
-                    LibraryLocation(
-                        kind="hack",
-                        label=item["label"],
-                        path=item["path"],
-                        platform=item["platform"],
-                        enabled=True,
-                    )
-                )
-
-        db.commit()
 
     finally:
         db.close()
