@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.2 — 2026-09-17
+
+- Added on-demand per-hack patch readiness instead of requiring a full catalog readiness sweep.
+- Added live Library filter counts and a Not Checked Patch Readiness state/count.
+- Fixed Base ROM inventory so locally discovered Base ROMs remain visible when the HackDex registry cache is unavailable.
+- Added lazy Base ROM registry synchronization and exposed local Base ROM SHA-1 values to the UI.
+- Corrected Hack Updated to use the current HackDex patch creation date.
+
 ## v0.9.1 — 2026-09-17
 
 ### Added

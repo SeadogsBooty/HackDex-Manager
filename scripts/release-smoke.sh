@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-IMAGE="${1:-hackdex-manager:0.9.1-final-local}"
+IMAGE="${1:-hackdex-manager:local}"
+
+EXPECTED_VERSION="$(
+    python3 -c \
+    'import sys; sys.path.insert(0, "app"); from version import APP_VERSION; print(APP_VERSION)'
+)"
 PORT="${HACKDEX_SMOKE_PORT:-18113}"
 NAME="hackdex-manager-release-smoke"
 ROOT="/tmp/hackdex-manager-release-smoke"
@@ -118,8 +123,8 @@ echo "===== VERIFY APPLICATION VERSION ====="
 sudo docker exec \
     "$NAME" \
     python -c \
-    'from version import APP_VERSION; print("APP_VERSION:", APP_VERSION); assert APP_VERSION == "0.9.1"' \
-    || fail "Application version is not 0.9.1."
+    "from version import APP_VERSION; print('APP_VERSION:', APP_VERSION); assert APP_VERSION == '$EXPECTED_VERSION'" \
+    || fail "Application version is not $EXPECTED_VERSION."
 
 
 echo

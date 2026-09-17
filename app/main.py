@@ -1192,6 +1192,22 @@ def api_readiness_details():
 def api_base_rom_catalog():
     data = load_registry()
 
+    # v0.9.2 lazy Base ROM registry sync:
+    # a fresh installation may already have locally
+    # discovered Base ROMs before the registry cache exists.
+    # Try to populate the registry, but never hide local
+    # inventory merely because the remote sync fails.
+    if data is None:
+        try:
+            sync_registry()
+            data = load_registry()
+
+        except Exception as exc:
+            base_rom_logger.warning(
+                "Base ROM registry lazy sync failed: %s",
+                exc,
+            )
+
     if isinstance(data, dict):
         rows = data.get("roms") or []
     elif isinstance(data, list):

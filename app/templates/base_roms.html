@@ -1041,9 +1041,109 @@ async function loadBaseInventory() {
             );
 
 
+        /*
+         * v0.9.2 local inventory fallback
+         *
+         * Local Base ROM discovery is authoritative for
+         * what exists on this installation. The HackDex
+         * registry enriches that inventory, but an absent
+         * or temporarily unavailable registry must never
+         * make locally discovered Base ROMs disappear.
+         */
+        const representedKeys =
+            new Set(
+                baseRows.map(
+                    row => row.id
+                )
+            );
+
+        for (const item of local) {
+            const id =
+                localKey(item);
+
+            if (
+                !id
+                || representedKeys.has(id)
+            ) {
+                continue;
+            }
+
+            baseRows.push({
+                id,
+                name:
+                    item.filename
+                    || String(id)
+                        .replace(
+                            /^poke_/,
+                            ""
+                        )
+                        .replaceAll(
+                            "_",
+                            " "
+                        ),
+                platform:
+                    item.platform
+                    || "",
+                region:
+                    null,
+                registry: {
+                    id,
+                    name:
+                        item.filename
+                        || id,
+                    platform:
+                        item.platform
+                        || "",
+                    region:
+                        null,
+                    crc32:
+                        item.crc32
+                        || null,
+                    sha1:
+                        item.sha1
+                        || null,
+                    category:
+                        null,
+                },
+                localOnly:
+                    true,
+                local:
+                    item,
+                owned:
+                    true,
+            });
+
+            representedKeys.add(id);
+        }
+
+        baseRows.sort(
+            (a, b) =>
+                String(
+                    a.platform || ""
+                ).localeCompare(
+                    String(
+                        b.platform || ""
+                    )
+                )
+                || String(
+                    a.name || ""
+                ).localeCompare(
+                    String(
+                        b.name || ""
+                    )
+                )
+        );
+
         const owned =
             baseRows.filter(
                 row => row.owned
+            ).length;
+
+        const registryOwned =
+            baseRows.filter(
+                row =>
+                    row.registry
+                    && row.owned
             ).length;
 
         const platforms =
@@ -1062,7 +1162,7 @@ async function loadBaseInventory() {
                 "base-total"
             )
             .textContent =
-                baseRows.length;
+                registry.length;
 
         document
             .getElementById(
@@ -1076,8 +1176,11 @@ async function loadBaseInventory() {
                 "base-missing"
             )
             .textContent =
-                baseRows.length
-                - owned;
+                Math.max(
+                    registry.length
+                    - registryOwned,
+                    0,
+                );
 
         document
             .getElementById(

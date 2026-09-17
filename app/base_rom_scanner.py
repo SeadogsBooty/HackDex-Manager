@@ -1073,6 +1073,8 @@ def list_base_roms():
                     row.size,
                 "sha256":
                     row.sha256,
+                "sha1":
+                    row.sha1,
                 "crc32":
                     row.crc32,
                 "detected_key":

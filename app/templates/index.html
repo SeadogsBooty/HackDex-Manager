@@ -1083,6 +1083,11 @@ input {
             data-library-status=""
         >
             All
+
+            <span
+                class="readiness-count"
+                id="count-library-all"
+            ></span>
         </button>
 
         <button
@@ -1090,6 +1095,11 @@ input {
             data-library-status="OWNED"
         >
             Owned
+
+            <span
+                class="readiness-count"
+                id="count-library-owned"
+            ></span>
         </button>
 
         <button
@@ -1097,6 +1107,11 @@ input {
             data-library-status="MISSING"
         >
             Missing
+
+            <span
+                class="readiness-count"
+                id="count-library-missing"
+            ></span>
         </button>
 
         <button
@@ -1104,6 +1119,11 @@ input {
             data-library-status="UPDATE_AVAILABLE"
         >
             Updates
+
+            <span
+                class="readiness-count"
+                id="count-library-updates"
+            ></span>
         </button>
 
         <button
@@ -1111,6 +1131,11 @@ input {
             data-library-status="NEEDS_REVIEW"
         >
             Needs Review
+
+            <span
+                class="readiness-count"
+                id="count-library-review"
+            ></span>
         </button>
 
         <button
@@ -1118,6 +1143,11 @@ input {
             data-library-status="LOCAL"
         >
             Local
+
+            <span
+                class="readiness-count"
+                id="count-library-local"
+            ></span>
         </button>
     </div>
 </div>
@@ -1139,6 +1169,17 @@ input {
             <span
                 class="readiness-count"
                 id="count-readiness-all"
+            ></span>
+        </button>
+
+        <button
+            class="tab"
+            data-readiness="NOT_CHECKED"
+        >
+            Not Checked
+            <span
+                class="readiness-count"
+                id="count-readiness-unchecked"
             ></span>
         </button>
 
@@ -1342,6 +1383,7 @@ function updateMarkup(item) {
 
 
 const PROBLEM_READINESS_STATUSES = new Set([
+    "CHECK_FAILED",
     "PATCH_INVALID",
     "SOURCE_NOT_IN_REGISTRY",
     "SOURCE_AMBIGUOUS",
@@ -1382,6 +1424,15 @@ function readinessLabel(status) {
     const labels = {
         READY:
             "READY",
+
+        NOT_CHECKED:
+            "NOT CHECKED",
+
+        CHECKING:
+            "CHECKING…",
+
+        CHECK_FAILED:
+            "CHECK FAILED",
 
         BASE_MISSING:
             "MISSING BASE ROM",
@@ -1467,10 +1518,124 @@ function readinessFor(item) {
     return (
         readiness[item.slug]
         || {
-            status: "UNKNOWN",
+            status: "NOT_CHECKED",
             obtain_enabled: false,
         }
     );
+}
+
+
+async function checkReadinessOnDemand(
+    slug,
+) {
+    const item =
+        catalog.find(
+            entry =>
+                entry.slug === slug
+        );
+
+    if (!item) {
+        return;
+    }
+
+    readiness[slug] = {
+        status: "CHECKING",
+        obtain_enabled: false,
+    };
+
+    refreshFilterCounts();
+    render();
+
+    openDetails(
+        slug,
+        true,
+    );
+
+    try {
+        const response =
+            await fetch(
+                "/api/readiness/"
+                + encodeURIComponent(
+                    slug
+                ),
+                {
+                    method:
+                        "POST",
+                },
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Readiness check returned "
+                + response.status
+            );
+        }
+
+        const directResult =
+            await response.json();
+
+        const detailsResponse =
+            await fetch(
+                "/api/readiness/details",
+                {
+                    cache:
+                        "no-store",
+                },
+            );
+
+        if (detailsResponse.ok) {
+            const details =
+                await detailsResponse
+                    .json();
+
+            readiness =
+                details.items
+                || {};
+
+            readinessCounts =
+                details.counts
+                || {};
+        }
+
+        else {
+            readiness[slug] = {
+                ...directResult,
+                obtain_enabled:
+                    directResult.status
+                    === "READY",
+            };
+        }
+
+    } catch (error) {
+        readiness[slug] = {
+            status:
+                "CHECK_FAILED",
+            obtain_enabled:
+                false,
+            detail:
+                error?.message
+                || String(error),
+        };
+    }
+
+    refreshFilterCounts();
+    render();
+
+    const backdrop =
+        document.getElementById(
+            "modal-backdrop"
+        );
+
+    if (
+        backdrop
+        && backdrop.style.display
+            !== "none"
+    ) {
+        openDetails(
+            slug,
+            true,
+        );
+    }
 }
 
 
@@ -2952,7 +3117,8 @@ function richReleaseMarkup(item) {
 
     const hackUpdated =
         formatHackDexDate(
-            item.updated_at
+            item.current_patch_created_at
+            || item.updated_at
         );
 
     const patchPublished =
@@ -3336,7 +3502,10 @@ function richCommunityMarkup(item) {
 }
 
 
-function openDetails(slug) {
+function openDetails(
+    slug,
+    skipReadinessCheck = false,
+) {
     const item =
         catalog.find(
             entry =>
@@ -3347,10 +3516,26 @@ function openDetails(slug) {
         return;
     }
 
+    const existingReadiness =
+        readiness[item.slug];
+
+    const shouldCheckReadiness =
+        !skipReadinessCheck
+        && (
+            !existingReadiness
+            || [
+                "UNKNOWN",
+                "NOT_CHECKED",
+                "CHECK_FAILED",
+            ].includes(
+                existingReadiness.status
+            )
+        );
+
     const ready =
         readinessFor(item);
 
-    
+
     const isUpdate =
         item.library_status
         === "UPDATE_AVAILABLE";
@@ -3367,7 +3552,7 @@ const enabled =
     modal.innerHTML = `
         <div class="hd-detail-view">
 
-            
+
             <section class="hd-detail-media">
 
                 ${richGalleryMarkup(item)}
@@ -3599,7 +3784,7 @@ const enabled =
                 </section>
 
 
-                
+
                 ${richReleaseMarkup(item)}
 
                 ${richCommunityMarkup(item)}
@@ -3771,6 +3956,12 @@ const enabled =
         )
         .style
         .display = "flex";
+
+    if (shouldCheckReadiness) {
+        void checkReadinessOnDemand(
+            slug
+        );
+    }
 }
 
 
@@ -4662,66 +4853,248 @@ async function installStaged(
 
 
 
-function setReadinessCounts() {
-    const ready =
-        readinessCounts.READY
-        || 0;
-
-    const missing =
-        readinessCounts.BASE_MISSING
-        || 0;
-
-    const problems =
-        Object.entries(
-            readinessCounts
-        )
-        .filter(
-            ([status]) =>
-                isProblemReadiness(
-                    status
+function catalogSearchPlatformItems() {
+    const search =
+        String(
+            document
+                .getElementById(
+                    "search"
                 )
+                ?.value
+            || ""
         )
-        .reduce(
-            (
-                total,
-                [, count],
-            ) =>
-                total
-                + Number(
-                    count || 0
-                ),
-            0,
+        .trim()
+        .toLowerCase();
+
+    const platform =
+        document
+            .getElementById(
+                "platform"
+            )
+            ?.value
+        || "";
+
+    return catalog.filter(
+        item => {
+            if (
+                platform
+                && item.platform
+                    !== platform
+            ) {
+                return false;
+            }
+
+            if (search) {
+                const haystack = [
+                    item.title,
+                    item.author,
+                    item.base_rom,
+                    item.latest_version,
+                    item.slug,
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
+
+                if (
+                    !haystack.includes(
+                        search
+                    )
+                ) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    );
+}
+
+
+function itemMatchesLibraryFilter(
+    item,
+    status,
+) {
+    if (!status) {
+        return true;
+    }
+
+    if (status === "LOCAL") {
+        return Boolean(
+            item.local_filename
         );
+    }
 
-    document
-        .getElementById(
-            "count-readiness-all"
-        )
-        .textContent =
-            `(${Object.keys(
-                readiness
-            ).length})`;
+    return (
+        item.library_status
+        === status
+    );
+}
 
-    document
-        .getElementById(
-            "count-readiness-ready"
-        )
-        .textContent =
-            `(${ready})`;
 
-    document
-        .getElementById(
-            "count-readiness-missing"
-        )
-        .textContent =
-            `(${missing})`;
+function setLibraryCounts() {
+    const items =
+        catalogSearchPlatformItems();
 
-    document
-        .getElementById(
-            "count-readiness-problem"
+    const values = {
+        all:
+            items.length,
+
+        owned:
+            items.filter(
+                item =>
+                    item.library_status
+                    === "OWNED"
+            ).length,
+
+        missing:
+            items.filter(
+                item =>
+                    item.library_status
+                    === "MISSING"
+            ).length,
+
+        updates:
+            items.filter(
+                item =>
+                    item.library_status
+                    === "UPDATE_AVAILABLE"
+            ).length,
+
+        review:
+            items.filter(
+                item =>
+                    item.library_status
+                    === "NEEDS_REVIEW"
+            ).length,
+
+        local:
+            items.filter(
+                item =>
+                    Boolean(
+                        item.local_filename
+                    )
+            ).length,
+    };
+
+    for (
+        const [
+            name,
+            value,
+        ]
+        of Object.entries(
+            values
         )
-        .textContent =
-            `(${problems})`;
+    ) {
+        const element =
+            document.getElementById(
+                "count-library-"
+                + name
+            );
+
+        if (element) {
+            element.textContent =
+                `(${value})`;
+        }
+    }
+}
+
+
+function setReadinessCounts() {
+    const items =
+        catalogSearchPlatformItems()
+            .filter(
+                item =>
+                    itemMatchesLibraryFilter(
+                        item,
+                        activeLibraryStatus,
+                    )
+            );
+
+    let ready = 0;
+    let missing = 0;
+    let unchecked = 0;
+    let problems = 0;
+
+    for (const item of items) {
+        const state =
+            readinessFor(
+                item
+            ).status;
+
+        if (state === "READY") {
+            ready += 1;
+        }
+
+        else if (
+            state
+            === "BASE_MISSING"
+        ) {
+            missing += 1;
+        }
+
+        else if (
+            state
+            === "NOT_CHECKED"
+            || state
+                === "UNKNOWN"
+            || state
+                === "CHECKING"
+        ) {
+            unchecked += 1;
+        }
+
+        else if (
+            isProblemReadiness(
+                state
+            )
+        ) {
+            problems += 1;
+        }
+    }
+
+    const values = {
+        "count-readiness-all":
+            items.length,
+
+        "count-readiness-unchecked":
+            unchecked,
+
+        "count-readiness-ready":
+            ready,
+
+        "count-readiness-missing":
+            missing,
+
+        "count-readiness-problem":
+            problems,
+    };
+
+    for (
+        const [
+            id,
+            value,
+        ]
+        of Object.entries(
+            values
+        )
+    ) {
+        const element =
+            document.getElementById(
+                id
+            );
+
+        if (element) {
+            element.textContent =
+                `(${value})`;
+        }
+    }
+}
+
+
+function refreshFilterCounts() {
+    setLibraryCounts();
+    setReadinessCounts();
 }
 
 
@@ -5145,7 +5518,7 @@ async function load() {
         ).textContent =
             status.tracked;
 
-    setReadinessCounts();
+    refreshFilterCounts();
 
     renderDashboardSummary(
         stats,
@@ -5159,6 +5532,8 @@ async function load() {
                 false,
         }
     );
+
+    refreshFilterCounts();
 
     return {
         catalog:
@@ -5352,6 +5727,49 @@ document
             }
         );
     });
+
+
+function scheduleFilterCountRefresh() {
+    setTimeout(
+        refreshFilterCounts,
+        0,
+    );
+}
+
+
+document
+    .getElementById(
+        "search"
+    )
+    ?.addEventListener(
+        "input",
+        scheduleFilterCountRefresh,
+    );
+
+
+document
+    .getElementById(
+        "platform"
+    )
+    ?.addEventListener(
+        "change",
+        scheduleFilterCountRefresh,
+    );
+
+
+document
+    .querySelectorAll(
+        "[data-library-status], "
+        + "[data-readiness]"
+    )
+    .forEach(
+        button => {
+            button.addEventListener(
+                "click",
+                scheduleFilterCountRefresh,
+            );
+        }
+    );
 
 
 document.addEventListener(
