@@ -35490,3 +35490,165 @@ body.hd-shell-active
             1fr !important;
     }
 }
+
+
+/* =========================================================
+   v0.9.9 — unified homepage-style summary controls
+   ========================================================= */
+
+/*
+ * Older Base ROM / Review / Health rules use selectors such
+ * as section.hd-base-stats, so the v0.9.8 generic selector
+ * did not win the cascade everywhere.
+ *
+ * These selectors intentionally match/exceed that specificity
+ * and give all primary summary controls the homepage footprint.
+ */
+section.hd-base-stats,
+section.hd-base-stats.hd-review-summary-unified,
+section.hd-base-stats.hd-health-stats {
+    display: grid !important;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(0, 172px)
+        ) !important;
+    grid-auto-columns: 172px !important;
+    justify-content: start !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+section.hd-base-stats > .hd-base-stat,
+section.hd-base-stats.hd-review-summary-unified
+> .hd-base-stat,
+section.hd-base-stats.hd-health-stats
+> .hd-base-stat {
+    width: 172px !important;
+    max-width: 172px !important;
+    min-width: 0 !important;
+    min-height: 72px !important;
+    height: auto !important;
+    padding: 11px 13px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    text-align: left !important;
+}
+
+/*
+ * Review uses actual <button> elements. Normalize native
+ * button appearance so these match the homepage buttons.
+ */
+section.hd-review-summary-unified
+> button.hd-base-stat {
+    appearance: none;
+    font: inherit;
+}
+
+/*
+ * Retain the existing semantic accent strip but make the
+ * selected state consistent with the homepage interaction.
+ */
+section.hd-base-stats
+> .hd-base-stat.active,
+section.hd-base-stats
+> .hd-base-stat.is-active {
+    border-color:
+        var(--hd-primary) !important;
+
+    box-shadow:
+        0 0 0 1px
+        var(--hd-primary) !important;
+}
+
+
+/* =========================================================
+   v0.9.9 — install/download progress light-mode contrast
+   ========================================================= */
+
+html[data-mode="light"]
+.install-progress,
+html[data-mode="light"]
+.install-progress-header,
+html[data-mode="light"]
+.install-progress-header > div,
+html[data-mode="light"]
+.install-progress-status,
+html[data-mode="light"]
+.install-progress-detail {
+    color:
+        var(--hd-text) !important;
+}
+
+html[data-mode="light"]
+.install-progress-status {
+    opacity: 1 !important;
+}
+
+html[data-mode="light"]
+.install-progress-detail {
+    opacity: 0.82 !important;
+}
+
+/*
+ * System appearance while the OS/browser is light needs the
+ * same treatment. Dark mode is intentionally untouched.
+ */
+@media (prefers-color-scheme: light) {
+    html:not([data-mode="dark"])
+    .install-progress,
+    html:not([data-mode="dark"])
+    .install-progress-header,
+    html:not([data-mode="dark"])
+    .install-progress-header > div,
+    html:not([data-mode="dark"])
+    .install-progress-status,
+    html:not([data-mode="dark"])
+    .install-progress-detail {
+        color:
+            var(--hd-text) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .install-progress-status {
+        opacity: 1 !important;
+    }
+
+    html:not([data-mode="dark"])
+    .install-progress-detail {
+        opacity: 0.82 !important;
+    }
+}
+
+
+@media (max-width: 760px) {
+    section.hd-base-stats,
+    section.hd-base-stats.hd-review-summary-unified,
+    section.hd-base-stats.hd-health-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+    }
+
+    section.hd-base-stats > .hd-base-stat,
+    section.hd-base-stats.hd-review-summary-unified
+    > .hd-base-stat,
+    section.hd-base-stats.hd-health-stats
+    > .hd-base-stat {
+        width: 100% !important;
+        max-width: none !important;
+    }
+}
+
+
+@media (max-width: 430px) {
+    section.hd-base-stats,
+    section.hd-base-stats.hd-review-summary-unified,
+    section.hd-base-stats.hd-health-stats {
+        grid-template-columns:
+            1fr !important;
+    }
+}

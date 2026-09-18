@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.9.9 — 2026-09-18
+
+### UI
+
+- Base ROMs, Needs Review, and Library Health top summary controls now use the same compact proportions as the Library homepage controls.
+- Higher-specificity legacy Base ROM grid rules no longer force summary cards to stretch across the full page.
+- Existing summary-card filtering behavior remains unchanged.
+- Fixed unreadable light-mode text while Download, Update, Reinstall, or Install to Library is in progress.
+- Dark-mode progress styling remains unchanged.
+
+### Staging
+
+- New ROM operations now use `/staging/<platform>/<game-slug>/`.
+- Platform folders use simple lowercase names such as `gb`, `gbc`, `gba`, and `nds`.
+- Platform directories are created lazily only when an operation for that platform occurs.
+- Successful operations continue to retain only `manifest.json` within the game staging directory.
+- No timestamp, UUID, or `items` filesystem directory is introduced.
+- v0.9.8 `/staging/<game-slug>/` transactions remain readable.
+- Earlier `/staging/hackdex-manager/...` and `/staging/obtain/...` transactions remain readable.
+
+
 ## v0.9.8 — 2026-09-18
 
 ### Improved

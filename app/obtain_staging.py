@@ -1066,15 +1066,15 @@ def _ensure_rom_hashes(
 
 def _prepare_transaction_dir(
     hack_slug,
+    platform,
 ):
     """
-    Create the flat active staging workspace:
+    Create the active staging workspace lazily:
 
-        /staging/<game-slug>/
+        /staging/<platform>/<game-slug>/
 
-    A new operation for the same hack replaces stale
-    working material instead of creating another UUID
-    directory.
+    Platform directories are created only when an
+    operation for that platform actually occurs.
     """
     slug = str(
         hack_slug
@@ -1090,8 +1090,25 @@ def _prepare_transaction_dir(
             "Invalid hack slug for staging."
         )
 
+    platform_name = str(
+        platform
+        or ""
+    ).strip().lower()
+
+    if platform_name not in {
+        "gb",
+        "gbc",
+        "gba",
+        "nds",
+    }:
+        raise RuntimeError(
+            "Unsupported staging platform: "
+            + platform_name
+        )
+
     transaction = (
         STAGING_ROOT
+        / platform_name
         / slug
     )
 
@@ -1100,7 +1117,6 @@ def _prepare_transaction_dir(
             shutil.rmtree(
                 transaction
             )
-
         else:
             transaction.unlink()
 
@@ -1110,7 +1126,6 @@ def _prepare_transaction_dir(
     )
 
     return transaction
-
 
 
 def stage_obtain(
@@ -1302,7 +1317,8 @@ def stage_obtain(
 
         transaction = (
             _prepare_transaction_dir(
-                hack.slug
+                hack.slug,
+                platform,
             )
         )
 
@@ -1474,6 +1490,14 @@ def stage_obtain(
         manifest = {
             "transaction_id":
                 transaction_id,
+
+            "staging": {
+                "platform":
+                    platform.lower(),
+
+                "path":
+                    str(transaction),
+            },
 
             "status":
                 "STAGED_VERIFIED",

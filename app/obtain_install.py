@@ -158,34 +158,33 @@ def _safe_transaction(
             "Invalid hack slug."
         )
 
-    #
-    # v0.9.8 flat layout:
-    #
-    # /staging/<slug>/manifest.json
-    #
-    direct = (
-        STAGING_ROOT
-        / slug
-    )
-
-    direct_manifest = (
-        direct
-        / "manifest.json"
-    )
-
-    if (
-        direct.is_dir()
-        and direct_manifest.is_file()
+    def matching_manifest(
+        transaction,
     ):
+        transaction = Path(
+            transaction
+        )
+
+        manifest_path = (
+            transaction
+            / "manifest.json"
+        )
+
+        if (
+            not transaction.is_dir()
+            or not manifest_path.is_file()
+        ):
+            return None
+
         try:
             manifest = json.loads(
-                direct_manifest.read_text(
+                manifest_path.read_text(
                     encoding="utf-8"
                 )
             )
 
         except Exception:
-            manifest = {}
+            return None
 
         if (
             str(
@@ -194,12 +193,45 @@ def _safe_transaction(
                 )
                 or ""
             )
-            == str(transaction_id)
+            != str(transaction_id)
         ):
-            return direct.resolve()
+            return None
+
+        return transaction.resolve()
 
     #
-    # Backward compatibility:
+    # v0.9.9:
+    # /staging/<platform>/<slug>/
+    #
+    for platform_name in (
+        "gb",
+        "gbc",
+        "gba",
+        "nds",
+    ):
+        matched = matching_manifest(
+            STAGING_ROOT
+            / platform_name
+            / slug
+        )
+
+        if matched is not None:
+            return matched
+
+    #
+    # v0.9.8:
+    # /staging/<slug>/
+    #
+    matched = matching_manifest(
+        STAGING_ROOT
+        / slug
+    )
+
+    if matched is not None:
+        return matched
+
+    #
+    # v0.9.7 and earlier:
     #
     # /staging/hackdex-manager/<slug>/<transaction>
     # /staging/obtain/<slug>/<transaction>
@@ -211,15 +243,8 @@ def _safe_transaction(
             / transaction_id
         )
 
-        root = (
-            legacy_root
-            .resolve()
-        )
-
-        resolved = (
-            transaction
-            .resolve()
-        )
+        root = legacy_root.resolve()
+        resolved = transaction.resolve()
 
         if (
             resolved == root
@@ -234,6 +259,7 @@ def _safe_transaction(
         "Staging transaction does not exist "
         "or no longer matches this operation."
     )
+
 
 def _write_manifest(
     manifest_path,
