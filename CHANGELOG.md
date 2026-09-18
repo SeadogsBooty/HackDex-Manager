@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.9.7 — 2026-09-18
+
+### Fixed
+
+- Fixed Update failing when an installed hack ROM lives in a configured writable hack library rather than the read-only Base ROM tree.
+- Fixed Install to Library using obsolete hardcoded `/hack-library/*` destinations. Installs now use the enabled configured library location for the hack platform.
+- New staging transactions now use `/staging/hackdex-manager`; legacy `/staging/obtain` transactions remain readable for backward compatibility.
+- Removed Appearance and About & Help from the global sidebar; both remain available inside Settings.
+- Made the HackDex Manager sidebar brand a home link to the Library.
+- Removed the `Romhack Library Manager` sidebar subtitle.
+
+
 ## v0.9.6 — 2026-09-17
 
 ### Performance

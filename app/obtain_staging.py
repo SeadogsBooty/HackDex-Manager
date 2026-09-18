@@ -17,6 +17,7 @@ from database import SessionLocal
 from models import (
     BaseRom,
     Hack,
+    LibraryLocation,
     PatchReadiness,
     Rom,
 )
@@ -29,6 +30,10 @@ from settings_store import get_settings
 
 
 STAGING_ROOT = Path(
+    "/staging/hackdex-manager"
+)
+
+LEGACY_STAGING_ROOT = Path(
     "/staging/obtain"
 )
 
@@ -116,6 +121,91 @@ def _source_path(row):
         pass
 
     return path
+
+
+def _rom_source_path(
+    db,
+    row,
+):
+    """
+    Resolve a scanned/installed hack ROM without applying
+    the Base-ROM-only /roms restriction.
+
+    Absolute ROM paths must remain inside an enabled
+    configured hack-library location. Legacy relative paths
+    are resolved beneath the read-only /roms inventory.
+    """
+    raw = str(
+        row.path
+        or ""
+    ).strip()
+
+    if not raw:
+        raise RuntimeError(
+            "Existing ROM has no recorded source path."
+        )
+
+    path = Path(
+        raw
+    )
+
+    if path.is_absolute():
+        candidates = [
+            path
+        ]
+
+    else:
+        candidates = [
+            Path("/roms")
+            / path
+        ]
+
+    library_rows = (
+        db.query(
+            LibraryLocation
+        )
+        .filter(
+            LibraryLocation.kind
+            == "hack",
+
+            LibraryLocation.enabled
+            .is_(True),
+        )
+        .all()
+    )
+
+    allowed_roots = [
+        Path(item.path)
+        for item in library_rows
+        if item.path
+    ]
+
+    #
+    # Relative paths from older scanner versions may
+    # legitimately resolve beneath /roms.
+    #
+    allowed_roots.append(
+        Path("/roms")
+    )
+
+    for candidate in candidates:
+        resolved = candidate.resolve()
+
+        for root in allowed_roots:
+            resolved_root = root.resolve()
+
+            if (
+                resolved == resolved_root
+                or resolved_root
+                in resolved.parents
+            ):
+                return candidate
+
+    raise RuntimeError(
+        "Existing ROM source is outside configured "
+        "hack-library locations."
+    )
+
 
 
 def _member_hint(row):
@@ -944,8 +1034,9 @@ def _ensure_rom_hashes(
     ):
         return rom
 
-    source = _source_path(
-        rom
+    source = _rom_source_path(
+        db,
+        rom,
     )
 
     if not source.exists():

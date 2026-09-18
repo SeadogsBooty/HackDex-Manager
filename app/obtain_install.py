@@ -5,26 +5,111 @@ import shutil
 
 from pathlib import Path
 
+from database import SessionLocal
+from models import LibraryLocation
+
 
 STAGING_ROOT = Path(
+    "/staging/hackdex-manager"
+)
+
+LEGACY_STAGING_ROOT = Path(
     "/staging/obtain"
 )
 
 
-INSTALL_ROOTS = {
-    "GBA": Path(
-        "/hack-library/gba"
-    ),
-    "GB": Path(
-        "/hack-library/gb"
-    ),
-    "GBC": Path(
-        "/hack-library/gbc"
-    ),
-    "NDS": Path(
-        "/hack-library/nds"
-    ),
-}
+def _configured_install_root(
+    platform,
+):
+    """
+    Resolve the actual enabled HackDex library location
+    for the requested platform.
+
+    Installation destinations come exclusively from
+    LibraryLocation configuration; no synthetic
+    /hack-library path is invented.
+    """
+    platform = str(
+        platform
+        or ""
+    ).upper()
+
+    db = SessionLocal()
+
+    try:
+        rows = (
+            db.query(
+                LibraryLocation
+            )
+            .filter(
+                LibraryLocation.kind
+                == "hack",
+
+                LibraryLocation.enabled
+                .is_(True),
+            )
+            .order_by(
+                LibraryLocation.id
+            )
+            .all()
+        )
+
+        exact = [
+            row
+            for row in rows
+            if str(
+                row.platform
+                or ""
+            ).upper()
+            == platform
+        ]
+
+        automatic = [
+            row
+            for row in rows
+            if str(
+                row.platform
+                or ""
+            ).upper()
+            == "AUTO"
+        ]
+
+        candidates = (
+            exact
+            or automatic
+        )
+
+        for row in candidates:
+            root = Path(
+                row.path
+            )
+
+            if (
+                root.exists()
+                and root.is_dir()
+                and os.access(
+                    root,
+                    os.W_OK,
+                )
+            ):
+                return root
+
+        if candidates:
+            raise RuntimeError(
+                "Configured "
+                + platform
+                + " hack library is not writable."
+            )
+
+        raise RuntimeError(
+            "No enabled hack library location is "
+            "configured for platform "
+            + platform
+            + "."
+        )
+
+    finally:
+        db.close()
 
 
 def _sha256_file(path):
@@ -60,30 +145,39 @@ def _safe_transaction(
             "Missing transaction ID."
         )
 
-    transaction = (
-        STAGING_ROOT
-        / hack_slug
-        / transaction_id
-    )
-
-    root = STAGING_ROOT.resolve()
-    resolved = transaction.resolve()
-
-    if (
-        resolved == root
-        or root not in resolved.parents
+    for staging_root in (
+        STAGING_ROOT,
+        LEGACY_STAGING_ROOT,
     ):
-        raise RuntimeError(
-            "Invalid staging transaction path."
+        transaction = (
+            staging_root
+            / hack_slug
+            / transaction_id
         )
 
-    if not resolved.is_dir():
-        raise RuntimeError(
-            "Staging transaction does not exist."
+        root = (
+            staging_root
+            .resolve()
         )
 
-    return resolved
+        resolved = (
+            transaction
+            .resolve()
+        )
 
+        if (
+            resolved == root
+            or root
+            not in resolved.parents
+        ):
+            continue
+
+        if resolved.is_dir():
+            return resolved
+
+    raise RuntimeError(
+        "Staging transaction does not exist."
+    )
 
 def _write_manifest(
     manifest_path,
@@ -218,16 +312,10 @@ def install_staged(
         ).upper()
 
         destination_root = (
-            INSTALL_ROOTS.get(
+            _configured_install_root(
                 platform
             )
         )
-
-        if destination_root is None:
-            raise RuntimeError(
-                "Unsupported install platform: "
-                + platform
-            )
 
         artifact = (
             manifest.get("artifact")

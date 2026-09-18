@@ -283,9 +283,19 @@
                 class="hd-sidebar"
                 id="hd-sidebar"
             >
-                <div class="hd-sidebar-brand">
+                <a
+                    class="
+                        hd-sidebar-brand
+                        hd-sidebar-brand-link
+                    "
+                    href="/"
+                    title="HackDex Manager Home"
+                >
 
-                    <div class="hd-brand-mark" aria-hidden="true">
+                    <div
+                        class="hd-brand-mark"
+                        aria-hidden="true"
+                    >
                         <svg
                             class="hd-pokeball"
                             viewBox="0 0 64 64"
@@ -327,17 +337,11 @@
                         </svg>
                     </div>
 
-                    <div>
-                        <div class="hd-brand-name">
-                            HackDex Manager
-                        </div>
-
-                        <div class="hd-brand-subtitle">
-                            Romhack Library Manager
-                        </div>
+                    <div class="hd-brand-name">
+                        HackDex Manager
                     </div>
 
-                </div>
+                </a>
 
                 <nav class="hd-sidebar-nav">
 
@@ -389,37 +393,6 @@
                         page,
                     )}
 
-                    <a
-                        class="hd-nav-link"
-                        href="/settings/appearance"
-                    >
-                        <span
-                            class="hd-nav-icon"
-                            aria-hidden="true"
-                        >
-                            ◐
-                        </span>
-
-                        <span>
-                            Appearance
-                        </span>
-                    </a>
-
-                    <a
-                        class="hd-nav-link"
-                        href="/settings/about"
-                    >
-                        <span
-                            class="hd-nav-icon"
-                            aria-hidden="true"
-                        >
-                            i
-                        </span>
-
-                        <span>
-                            About & Help
-                        </span>
-                    </a>
 
                 </nav>
 
@@ -1894,6 +1867,3 @@
     }
 
 })();
-
-
-
