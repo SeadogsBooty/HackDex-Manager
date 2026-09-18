@@ -697,6 +697,156 @@ def _required_base_info(base_key):
     }
 
 
+def check_hack_catalog_readiness(
+    hack_slug,
+):
+    """
+    Fast catalog-level readiness.
+
+    This path is intentionally metadata-only and is safe
+    to run across the entire HackDex catalog at startup.
+
+    Exact BPS source validation, patch integrity checks,
+    and xdelta/BPS preflight remain the responsibility of
+    check_hack_readiness() when an obtain operation is
+    actually requested.
+    """
+    db = SessionLocal()
+
+    try:
+        hack = (
+            db.query(Hack)
+            .filter(
+                Hack.slug == hack_slug
+            )
+            .first()
+        )
+
+        if hack is None:
+            return {
+                "status": "HACK_NOT_FOUND",
+            }
+
+        if not hack.current_patch:
+            _save_result(
+                db,
+                hack,
+                None,
+                "NO_PATCH",
+                "No current HackDex patch.",
+            )
+
+            return {
+                "hack": hack.slug,
+                "status": "NO_PATCH",
+            }
+
+        if (
+            hack.current_patch_published
+            is not True
+            or hack.current_patch_archived
+            is True
+        ):
+            _save_result(
+                db,
+                hack,
+                None,
+                "PATCH_UNAVAILABLE",
+                "Current patch is not published and active.",
+            )
+
+            return {
+                "hack": hack.slug,
+                "status": "PATCH_UNAVAILABLE",
+            }
+
+        fmt = str(
+            hack.current_patch_format
+            or ""
+        ).lower()
+
+        if fmt not in {
+            "bps",
+            "xdelta",
+        }:
+            _save_result(
+                db,
+                hack,
+                None,
+                "UNSUPPORTED_FORMAT",
+                (
+                    "Unsupported patch format: "
+                    + fmt
+                ),
+            )
+
+            return {
+                "hack": hack.slug,
+                "status": "UNSUPPORTED_FORMAT",
+            }
+
+        #
+        # Catalog readiness uses HackDex's declared Base
+        # ROM association. Deep BPS inspection may later
+        # correct that association when the user actually
+        # requests the ROM.
+        #
+        base = _verified_base(
+            db,
+            hack.base_rom,
+        )
+
+        if base is None:
+            detail = (
+                "No verified base ROM for "
+                + str(hack.base_rom)
+            )
+
+            _save_result(
+                db,
+                hack,
+                None,
+                "BASE_MISSING",
+                detail,
+                base_key=hack.base_rom,
+            )
+
+            return {
+                "hack": hack.slug,
+                "status": "BASE_MISSING",
+                "base_key": hack.base_rom,
+                "detail": detail,
+            }
+
+        detail = (
+            "Catalog requirements are satisfied. "
+            "Exact patch/source compatibility will be "
+            "verified before installation."
+        )
+
+        _save_result(
+            db,
+            hack,
+            base,
+            "READY",
+            detail,
+            base_key=hack.base_rom,
+        )
+
+        return {
+            "hack": hack.slug,
+            "patch_id": hack.current_patch,
+            "format": fmt,
+            "base_rom": hack.base_rom,
+            "status": "READY",
+            "detail": detail,
+        }
+
+    finally:
+        db.close()
+
+
+
 def check_hack_readiness(
     hack_slug,
 ):
@@ -1565,7 +1715,7 @@ def reconcile_readiness(
     for slug in targets:
         try:
             result = (
-                check_hack_readiness(
+                check_hack_catalog_readiness(
                     slug
                 )
             )

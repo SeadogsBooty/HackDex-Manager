@@ -925,6 +925,53 @@ def _package_output(
     }
 
 
+def _ensure_rom_hashes(
+    db,
+    rom,
+):
+    """
+    Populate ROM hashes lazily when an integrity-sensitive
+    operation actually requires them.
+
+    Normal library inventory remains metadata-only.
+    """
+    if rom is None:
+        return None
+
+    if (
+        rom.sha1
+        and rom.sha256
+    ):
+        return rom
+
+    source = _source_path(
+        rom
+    )
+
+    if not source.exists():
+        raise RuntimeError(
+            "Existing ROM is no longer present: "
+            + str(source)
+        )
+
+    hashes = _hash_file(
+        source
+    )
+
+    rom.sha1 = hashes["sha1"]
+    rom.sha256 = hashes["sha256"]
+    rom.size = source.stat().st_size
+
+    db.commit()
+
+    db.refresh(
+        rom
+    )
+
+    return rom
+
+
+
 def stage_obtain(
     hack_slug,
     output_format=None,
@@ -1413,9 +1460,20 @@ def stage_obtain(
 
                 "existing_sha256":
                     (
-                        existing_rom.sha256
-                        if existing_rom
-                        else None
+                        _ensure_rom_hashes(
+                            db,
+                            existing_rom,
+                        ).sha256
+                        if (
+                            existing_rom
+                            and existing_rom.status
+                                == "UPDATE_AVAILABLE"
+                        )
+                        else (
+                            existing_rom.sha256
+                            if existing_rom
+                            else None
+                        )
                     ),
             },
 

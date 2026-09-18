@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.9.6 — 2026-09-17
+
+### Performance
+
+- Normal ROM inventory discovery does not read or hash every ROM/archive; SHA-1/SHA-256 values are generated lazily when an integrity-sensitive operation requires them.
+- Update staging hashes and persists the exact installed ROM before recording the expected SHA-256 used by update-source verification.
+- Full-catalog readiness is now a fast metadata/database operation and no longer downloads every HackDex patch during startup or setup.
+- BPS source inspection, patch integrity validation, and xdelta/BPS preflight remain mandatory when a user actually requests Download, Update, or Reinstall.
+- Catalog readiness uses the HackDex-declared Base ROM for its immediate availability state; deep obtain preflight can refine the exact required source before installation.
+- ROM inventory scanning now loads the existing ROM index in one database query instead of issuing one query for every discovered file.
+- ROM directory traversal now uses `os.walk()`/`scandir` behavior for substantially cheaper network-mounted filesystem enumeration.
+- Existing ROMs continue to reuse their stored hashes; only newly discovered paths are hashed.
+
+
 ## v0.9.5 — 2026-09-17
 
 ### Fixed
