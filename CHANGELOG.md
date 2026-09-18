@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.9.5 — 2026-09-17
+
+### Fixed
+
+- First-run setup now remains on a visible catalog-preparation stage until the automatic readiness job has evaluated the complete HackDex catalog.
+- Setup displays real readiness progress instead of immediately opening a Library whose actions are still unavailable.
+- The Library automatically refreshes readiness while a startup or catalog refresh is still running; opening Details is no longer required to update Download, Reinstall, or Update actions.
+- Existing ready ROM-hack library locations automatically satisfy Setup Step 2 with no additional detection or apply clicks.
+- Alternate location detection is presented only when needed or explicitly requested.
+- The detected-location apply action is hidden until successful detection and is now labeled `Use These Locations`.
+- Applying detected locations completes the selection flow instead of immediately running detection again.
+
+
 ## v0.9.4 — 2026-09-17
 
 ### Fixed

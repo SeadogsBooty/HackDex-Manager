@@ -1294,10 +1294,32 @@
                     Loading configured locations…
                 </div>
             </div>
+
+            <div
+                id="configured-summary"
+                class="hd-setup-message success"
+                hidden
+            ></div>
+
+            <div class="hd-setup-actions">
+                <button
+                    type="button"
+                    id="change-locations-button"
+                    class="hd-setup-button secondary"
+                    onclick="showAlternativeLocationSetup()"
+                    hidden
+                >
+                    Change / Detect Different Locations
+                </button>
+            </div>
         </div>
 
 
-        <div class="hd-setup-detect-box">
+        <div
+            id="detect-parent-box"
+            class="hd-setup-detect-box"
+            hidden
+        >
 
             <div class="hd-setup-detect-title">
                 Configure a different parent
@@ -1329,7 +1351,7 @@
                     "
                     onclick="detectHackParent()"
                 >
-                    Detect
+                    Detect Locations
                 </button>
 
             </div>
@@ -1355,8 +1377,9 @@
                     class="hd-setup-button"
                     onclick="applyHackParent()"
                     disabled
+                    hidden
                 >
-                    Use Detected Locations
+                    Use These Locations
                 </button>
 
             </div>
@@ -1364,7 +1387,11 @@
         </div>
 
 
-        <div class="hd-setup-manual-box">
+        <div
+            id="manual-location-box"
+            class="hd-setup-manual-box"
+            hidden
+        >
 
             <div class="hd-setup-detect-title">
                 Add a location manually
@@ -1968,6 +1995,70 @@ async function loadSetupStatus() {
             configured
         );
 
+        const readyConfigured =
+            configured.filter(
+                row =>
+                    row.enabled
+                    && row.state === "READY"
+            );
+
+        const configuredSummary =
+            document.getElementById(
+                "configured-summary"
+            );
+
+        const changeLocationsButton =
+            document.getElementById(
+                "change-locations-button"
+            );
+
+        const detectParentBox =
+            document.getElementById(
+                "detect-parent-box"
+            );
+
+        const manualLocationBox =
+            document.getElementById(
+                "manual-location-box"
+            );
+
+        if (readyConfigured.length) {
+            configuredSummary.hidden = false;
+            configuredSummary.className =
+                "hd-setup-message success";
+
+            configuredSummary.textContent =
+                readyConfigured.length
+                + " hack library "
+                + (
+                    readyConfigured.length === 1
+                    ? "location is"
+                    : "locations are"
+                )
+                + " configured and ready. "
+                + "No additional action is required.";
+
+            changeLocationsButton.hidden = false;
+
+            detectParentBox.hidden = true;
+            manualLocationBox.hidden = true;
+
+        } else {
+            configuredSummary.hidden = false;
+            configuredSummary.className =
+                "hd-setup-message warning";
+
+            configuredSummary.textContent =
+                "No ready hack library locations "
+                + "are configured yet. Detect locations "
+                + "below or add one manually.";
+
+            changeLocationsButton.hidden = true;
+
+            detectParentBox.hidden = false;
+            manualLocationBox.hidden = false;
+        }
+
         const inferred =
             commonConfiguredParent(
                 configured
@@ -2035,6 +2126,36 @@ async function loadSetupStatus() {
 }
 
 
+function showAlternativeLocationSetup() {
+    document.getElementById(
+        "detect-parent-box"
+    ).hidden = false;
+
+    document.getElementById(
+        "manual-location-box"
+    ).hidden = false;
+
+    document.getElementById(
+        "change-locations-button"
+    ).hidden = true;
+
+    const summary =
+        document.getElementById(
+            "configured-summary"
+        );
+
+    if (!summary.hidden) {
+        summary.textContent =
+            "Your current locations remain active "
+            + "until you choose and apply replacements.";
+    }
+
+    document.getElementById(
+        "hack-parent"
+    ).focus();
+}
+
+
 async function detectHackParent() {
     const path =
         document.getElementById(
@@ -2057,6 +2178,7 @@ async function detectHackParent() {
         );
 
     apply.disabled = true;
+    apply.hidden = true;
 
     message.hidden = false;
     message.className =
@@ -2172,6 +2294,7 @@ async function detectHackParent() {
             )
             + " detected.";
 
+        apply.hidden = false;
         apply.disabled = false;
 
     } catch (error) {
@@ -2246,9 +2369,15 @@ async function applyHackParent() {
             "Detected locations were added "
             + "to HackDex Manager.";
 
-        await loadSetupStatus();
+        hackDiscovery = null;
 
-        await detectHackParent();
+        document.getElementById(
+            "detected-locations"
+        ).hidden = true;
+
+        apply.hidden = true;
+
+        await loadSetupStatus();
 
     } catch (error) {
         message.hidden = false;
@@ -2367,6 +2496,99 @@ async function addManualLocation() {
 
 
 
+function sleepSetup(milliseconds) {
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                milliseconds
+            )
+    );
+}
+
+
+async function waitForCatalogReadiness(
+    expectedTotal,
+    progress
+) {
+    const deadline =
+        Date.now()
+        + (
+            15
+            * 60
+            * 1000
+        );
+
+    let lastChecked = -1;
+
+    while (Date.now() < deadline) {
+        const response = await fetch(
+            "/api/readiness/details",
+            {
+                cache: "no-store",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Readiness status returned HTTP "
+                + response.status
+            );
+        }
+
+        const data =
+            await response.json();
+
+        const items =
+            data.items || {};
+
+        const checked =
+            Object.keys(
+                items
+            ).length;
+
+        const notChecked =
+            Number(
+                (
+                    data.counts
+                    || {}
+                ).NOT_CHECKED
+                || 0
+            );
+
+        if (checked !== lastChecked) {
+            progress.textContent =
+                "Core setup complete.\n\n"
+                + "Preparing HackDex catalog...\n"
+                + checked
+                + " / "
+                + expectedTotal
+                + " hacks evaluated.\n\n"
+                + "Please keep this page open.";
+
+            lastChecked = checked;
+        }
+
+        if (
+            expectedTotal > 0
+            && checked >= expectedTotal
+            && notChecked === 0
+        ) {
+            return data;
+        }
+
+        await sleepSetup(
+            1000
+        );
+    }
+
+    throw new Error(
+        "Timed out waiting for HackDex catalog "
+        + "readiness to finish."
+    );
+}
+
+
 async function finishSetup() {
     const button =
         document.getElementById(
@@ -2417,6 +2639,34 @@ async function finishSetup() {
         const baseResult =
             data.base_roms || {};
 
+        const catalogTotal =
+            Number(
+                (
+                    data.catalog
+                    || {}
+                ).imported
+                || (
+                    setupStatus
+                    && setupStatus.catalog
+                    ? setupStatus.catalog.total
+                    : 0
+                )
+                || 0
+            );
+
+        progress.textContent =
+            "Core setup complete.\n\n"
+            + "Preparing HackDex catalog...\n"
+            + "0 / "
+            + catalogTotal
+            + " hacks evaluated.\n\n"
+            + "Please keep this page open.";
+
+        await waitForCatalogReadiness(
+            catalogTotal,
+            progress
+        );
+
         unlockSetupNavigation();
 
         progress.textContent =
@@ -2434,6 +2684,11 @@ async function finishSetup() {
                 ?? baseResult.discovered
                 ?? 0
             )
+            + "\n"
+            + "Catalog readiness: "
+            + catalogTotal
+            + " / "
+            + catalogTotal
             + "\n\n"
             + "Opening HackDex Manager...";
 
@@ -2441,7 +2696,7 @@ async function finishSetup() {
             () => {
                 window.location.href = "/";
             },
-            1000
+            600
         );
 
     } catch (error) {

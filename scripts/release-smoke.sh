@@ -255,6 +255,61 @@ echo "Setup Guide structure: PASS"
 
 
 echo
+echo "===== VERIFY v0.9.5 READINESS-AWARE UI ====="
+
+sudo docker exec "$CONTAINER_NAME" python - <<'PYUI'
+from pathlib import Path
+
+setup = Path(
+    "/app/templates/setup.html"
+).read_text(
+    encoding="utf-8"
+)
+
+index = Path(
+    "/app/templates/index.html"
+).read_text(
+    encoding="utf-8"
+)
+
+required_setup = [
+    "waitForCatalogReadiness",
+    "Preparing HackDex catalog",
+    "showAlternativeLocationSetup",
+    "configured-summary",
+    "change-locations-button",
+    "Use These Locations",
+]
+
+required_index = [
+    "readinessPendingCount",
+    "pollReadinessAutomatically",
+    "startReadinessAutoRefresh",
+]
+
+for marker in required_setup:
+    assert marker in setup, (
+        "Missing setup UI marker: "
+        + marker
+    )
+
+for marker in required_index:
+    assert marker in index, (
+        "Missing Library readiness marker: "
+        + marker
+    )
+
+assert (
+    'id="apply-parent"' in setup
+), "Detected-location apply button missing."
+
+print(
+    "v0.9.5 readiness-aware UI structure: PASS"
+)
+PYUI
+
+echo
+
 echo "===== CONFIGURE TEST HACK LIBRARY ====="
 
 RESPONSE="$(

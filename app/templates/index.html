@@ -1525,6 +1525,118 @@ function readinessFor(item) {
 }
 
 
+let readinessAutoRefreshTimer = null;
+let readinessAutoRefreshDeadline = 0;
+
+
+function readinessPendingCount() {
+    return catalog.filter(
+        item => {
+            const current =
+                readiness[item.slug];
+
+            return (
+                !current
+                || current.status
+                    === "NOT_CHECKED"
+                || current.status
+                    === "CHECKING"
+            );
+        }
+    ).length;
+}
+
+
+function stopReadinessAutoRefresh() {
+    if (readinessAutoRefreshTimer) {
+        clearTimeout(
+            readinessAutoRefreshTimer
+        );
+
+        readinessAutoRefreshTimer = null;
+    }
+}
+
+
+async function pollReadinessAutomatically() {
+    try {
+        const response = await fetch(
+            "/api/readiness/details",
+            {
+                cache: "no-store",
+            }
+        );
+
+        if (response.ok) {
+            const data =
+                await response.json();
+
+            readiness =
+                data.items || {};
+
+            readinessCounts =
+                data.counts || {};
+
+            refreshFilterCounts();
+            render();
+        }
+
+    } catch (error) {
+        console.warn(
+            "Automatic readiness refresh failed:",
+            error
+        );
+    }
+
+    const pending =
+        readinessPendingCount();
+
+    if (
+        pending === 0
+        || Date.now()
+            >= readinessAutoRefreshDeadline
+    ) {
+        stopReadinessAutoRefresh();
+        return;
+    }
+
+    readinessAutoRefreshTimer =
+        setTimeout(
+            pollReadinessAutomatically,
+            1500
+        );
+}
+
+
+function startReadinessAutoRefresh() {
+    if (
+        !catalog.length
+        || readinessPendingCount() === 0
+    ) {
+        stopReadinessAutoRefresh();
+        return;
+    }
+
+    if (readinessAutoRefreshTimer) {
+        return;
+    }
+
+    readinessAutoRefreshDeadline =
+        Date.now()
+        + (
+            15
+            * 60
+            * 1000
+        );
+
+    readinessAutoRefreshTimer =
+        setTimeout(
+            pollReadinessAutomatically,
+            500
+        );
+}
+
+
 async function checkReadinessOnDemand(
     slug,
 ) {
@@ -5481,6 +5593,14 @@ async function load() {
     readinessCounts =
         readinessData.counts
         || {};
+
+    //
+    // v0.9.5:
+    // Startup/catalog readiness may still be building in
+    // the background. Keep the Library synchronized until
+    // every catalog hack has an evaluated readiness row.
+    //
+    startReadinessAutoRefresh();
 
     document
         .getElementById(
