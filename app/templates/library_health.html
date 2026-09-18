@@ -76,27 +76,72 @@
 
 <section class="hd-base-stats hd-health-stats">
 
-    <div class="hd-base-stat warning">
+    <div
+        class="
+            hd-base-stat
+            warning
+            hd-summary-filter-card
+            is-active
+        "
+        data-health-summary="attention"
+        role="button"
+        tabindex="0"
+    >
         <strong id="stat-attention">—</strong>
         <span>Attention Required</span>
     </div>
 
-    <div class="hd-base-stat error">
+    <div
+        class="
+            hd-base-stat
+            error
+            hd-summary-filter-card
+        "
+        data-health-summary="error"
+        role="button"
+        tabindex="0"
+    >
         <strong id="stat-errors">—</strong>
         <span>Errors</span>
     </div>
 
-    <div class="hd-base-stat warning">
+    <div
+        class="
+            hd-base-stat
+            warning
+            hd-summary-filter-card
+        "
+        data-health-summary="warning"
+        role="button"
+        tabindex="0"
+    >
         <strong id="stat-warnings">—</strong>
         <span>Warnings</span>
     </div>
 
-    <div class="hd-base-stat info">
+    <div
+        class="
+            hd-base-stat
+            info
+            hd-summary-filter-card
+        "
+        data-health-summary="info"
+        role="button"
+        tabindex="0"
+    >
         <strong id="stat-info">—</strong>
         <span>Informational</span>
     </div>
 
-    <div class="hd-base-stat">
+    <div
+        class="
+            hd-base-stat
+            hd-summary-filter-card
+        "
+        data-health-summary="all"
+        role="button"
+        tabindex="0"
+    >
         <strong id="stat-roms">—</strong>
         <span>Local ROM Records</span>
     </div>
@@ -1483,6 +1528,108 @@ document
 
 
 loadHealth();
+
+
+/*
+ * v0.9.8 Library Health summary filters.
+ */
+function setHealthSummaryFilter(value) {
+    activeFilter = value;
+
+    document
+        .querySelectorAll(
+            "#health-tabs [data-filter]"
+        )
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.filter
+                    === value,
+            );
+        });
+
+    document
+        .querySelectorAll(
+            "[data-health-summary]"
+        )
+        .forEach(card => {
+            card.classList.toggle(
+                "is-active",
+                card.dataset.healthSummary
+                    === value,
+            );
+        });
+
+    renderFindings();
+}
+
+
+document
+    .querySelectorAll(
+        "[data-health-summary]"
+    )
+    .forEach(card => {
+
+        const activate = () => {
+            setHealthSummaryFilter(
+                card.dataset.healthSummary
+            );
+        };
+
+        card.addEventListener(
+            "click",
+            activate,
+        );
+
+        card.addEventListener(
+            "keydown",
+            event => {
+                if (
+                    event.key === "Enter"
+                    || event.key === " "
+                ) {
+                    event.preventDefault();
+                    activate();
+                }
+            },
+        );
+    });
+
+
+document
+    .getElementById(
+        "health-tabs"
+    )
+    .addEventListener(
+        "click",
+        event => {
+            const button =
+                event.target.closest(
+                    "[data-filter]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            window.setTimeout(
+                () => {
+                    document
+                        .querySelectorAll(
+                            "[data-health-summary]"
+                        )
+                        .forEach(card => {
+                            card.classList.toggle(
+                                "is-active",
+                                card.dataset.healthSummary
+                                    === activeFilter,
+                            );
+                        });
+                },
+                0,
+            );
+        },
+    );
 
 </script>
 

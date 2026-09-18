@@ -30,11 +30,12 @@ from settings_store import get_settings
 
 
 STAGING_ROOT = Path(
-    "/staging/hackdex-manager"
+    "/staging"
 )
 
-LEGACY_STAGING_ROOT = Path(
-    "/staging/obtain"
+LEGACY_STAGING_ROOTS = (
+    Path("/staging/hackdex-manager"),
+    Path("/staging/obtain"),
 )
 
 STAGING_ROOT.mkdir(
@@ -1063,6 +1064,55 @@ def _ensure_rom_hashes(
 
 
 
+def _prepare_transaction_dir(
+    hack_slug,
+):
+    """
+    Create the flat active staging workspace:
+
+        /staging/<game-slug>/
+
+    A new operation for the same hack replaces stale
+    working material instead of creating another UUID
+    directory.
+    """
+    slug = str(
+        hack_slug
+        or ""
+    ).strip()
+
+    if (
+        not slug
+        or Path(slug).name != slug
+        or slug in {".", ".."}
+    ):
+        raise RuntimeError(
+            "Invalid hack slug for staging."
+        )
+
+    transaction = (
+        STAGING_ROOT
+        / slug
+    )
+
+    if transaction.exists():
+        if transaction.is_dir():
+            shutil.rmtree(
+                transaction
+            )
+
+        else:
+            transaction.unlink()
+
+    transaction.mkdir(
+        parents=True,
+        exist_ok=False,
+    )
+
+    return transaction
+
+
+
 def stage_obtain(
     hack_slug,
     output_format=None,
@@ -1251,14 +1301,9 @@ def stage_obtain(
         )
 
         transaction = (
-            STAGING_ROOT
-            / hack.slug
-            / transaction_id
-        )
-
-        transaction.mkdir(
-            parents=True,
-            exist_ok=False,
+            _prepare_transaction_dir(
+                hack.slug
+            )
         )
 
         base_path = (

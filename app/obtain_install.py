@@ -10,11 +10,12 @@ from models import LibraryLocation
 
 
 STAGING_ROOT = Path(
-    "/staging/hackdex-manager"
+    "/staging"
 )
 
-LEGACY_STAGING_ROOT = Path(
-    "/staging/obtain"
+LEGACY_STAGING_ROOTS = (
+    Path("/staging/hackdex-manager"),
+    Path("/staging/obtain"),
 )
 
 
@@ -145,18 +146,73 @@ def _safe_transaction(
             "Missing transaction ID."
         )
 
-    for staging_root in (
-        STAGING_ROOT,
-        LEGACY_STAGING_ROOT,
+    slug = str(
+        hack_slug
+    ).strip()
+
+    if (
+        Path(slug).name != slug
+        or slug in {".", ".."}
     ):
+        raise RuntimeError(
+            "Invalid hack slug."
+        )
+
+    #
+    # v0.9.8 flat layout:
+    #
+    # /staging/<slug>/manifest.json
+    #
+    direct = (
+        STAGING_ROOT
+        / slug
+    )
+
+    direct_manifest = (
+        direct
+        / "manifest.json"
+    )
+
+    if (
+        direct.is_dir()
+        and direct_manifest.is_file()
+    ):
+        try:
+            manifest = json.loads(
+                direct_manifest.read_text(
+                    encoding="utf-8"
+                )
+            )
+
+        except Exception:
+            manifest = {}
+
+        if (
+            str(
+                manifest.get(
+                    "transaction_id"
+                )
+                or ""
+            )
+            == str(transaction_id)
+        ):
+            return direct.resolve()
+
+    #
+    # Backward compatibility:
+    #
+    # /staging/hackdex-manager/<slug>/<transaction>
+    # /staging/obtain/<slug>/<transaction>
+    #
+    for legacy_root in LEGACY_STAGING_ROOTS:
         transaction = (
-            staging_root
-            / hack_slug
+            legacy_root
+            / slug
             / transaction_id
         )
 
         root = (
-            staging_root
+            legacy_root
             .resolve()
         )
 
@@ -167,8 +223,7 @@ def _safe_transaction(
 
         if (
             resolved == root
-            or root
-            not in resolved.parents
+            or root not in resolved.parents
         ):
             continue
 
@@ -176,7 +231,8 @@ def _safe_transaction(
             return resolved
 
     raise RuntimeError(
-        "Staging transaction does not exist."
+        "Staging transaction does not exist "
+        "or no longer matches this operation."
     )
 
 def _write_manifest(
@@ -192,6 +248,80 @@ def _write_manifest(
         + "\n",
         encoding="utf-8",
     )
+
+
+def _cleanup_completed_transaction(
+    transaction,
+    manifest_path,
+    manifest,
+):
+    """
+    Successful installs retain only manifest.json.
+
+    Base copies, patch files, patched raw ROMs, packages,
+    rollback files and other staging material are removed.
+    """
+    transaction = Path(
+        transaction
+    )
+
+    manifest_path = Path(
+        manifest_path
+    )
+
+    removed = []
+
+    for item in list(
+        transaction.iterdir()
+    ):
+        if item == manifest_path:
+            continue
+
+        removed.append(
+            item.name
+        )
+
+        if item.is_dir():
+            shutil.rmtree(
+                item
+            )
+
+        else:
+            item.unlink(
+                missing_ok=True
+            )
+
+    manifest[
+        "staging_cleanup"
+    ] = {
+        "completed":
+            True,
+
+        "removed":
+            sorted(
+                removed
+            ),
+
+        "retained": [
+            "manifest.json",
+        ],
+    }
+
+    _write_manifest(
+        manifest_path,
+        manifest,
+    )
+
+    return {
+        "completed":
+            True,
+
+        "removed":
+            sorted(
+                removed
+            ),
+    }
+
 
 
 def _failure(
@@ -851,6 +981,7 @@ def install_staged(
         ] = update_result
 
         manifest_warning = None
+        cleanup_result = None
 
         try:
             _write_manifest(
@@ -871,6 +1002,23 @@ def install_staged(
                 "manifest update failed: "
                 + str(exc)
             )
+
+        if manifest_warning is None:
+            try:
+                cleanup_result = (
+                    _cleanup_completed_transaction(
+                        transaction,
+                        manifest_path,
+                        manifest,
+                    )
+                )
+
+            except Exception as exc:
+                manifest_warning = (
+                    "Install succeeded but "
+                    "staging cleanup failed: "
+                    + str(exc)
+                )
 
         return {
             "success": True,
@@ -919,6 +1067,9 @@ def install_staged(
                     )
                     else None
                 ),
+            "staging_cleanup":
+                cleanup_result,
+
             "manifest_warning":
                 manifest_warning,
         }

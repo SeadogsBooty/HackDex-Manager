@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.9.8 — 2026-09-18
+
+### Improved
+
+- Base ROM summary cards now act as interactive shortcuts for the existing ownership and platform filters.
+- Library Health summary cards now directly filter Attention, Errors, Warnings, Informational findings, or all local ROM records.
+- Summary/filter cards across Library, Base ROMs, Needs Review, and Library Health are now compact instead of stretching across the entire page.
+- Active summary filters have a consistent selected state and keyboard accessibility.
+
+### Staging
+
+- New ROM operations now use the flat `/staging/<game-slug>/` layout.
+- Timestamp/UUID filesystem subdirectories are no longer created.
+- Active Base ROM copies, patches, patched ROMs and packaged artifacts live directly in the game staging directory.
+- A successful install/update/reinstall removes temporary staging payloads and retains only `manifest.json`.
+- Repeated operations for the same hack reuse its game staging directory instead of accumulating duplicate transaction folders.
+- Logical transaction IDs remain in the manifest/API for stale-request protection.
+- Existing `/staging/hackdex-manager/<slug>/<transaction>` and `/staging/obtain/<slug>/<transaction>` transactions remain readable for backward compatibility.
+
+### Testing
+
+- Corrected the stale release-smoke container variable used by the readiness-aware UI assertion.
+
+
 ## v0.9.7 — 2026-09-18
 
 ### Fixed

@@ -61,22 +61,60 @@
 
     <section class="hd-base-stats">
 
-        <article class="hd-base-stat owned">
+        <article
+            class="
+                hd-base-stat
+                owned
+                hd-summary-filter-card
+            "
+            data-base-summary="owned"
+            role="button"
+            tabindex="0"
+            aria-label="Show owned Base ROMs"
+        >
             <strong id="base-owned">—</strong>
             <span>Owned</span>
         </article>
 
-        <article class="hd-base-stat missing">
+        <article
+            class="
+                hd-base-stat
+                missing
+                hd-summary-filter-card
+            "
+            data-base-summary="missing"
+            role="button"
+            tabindex="0"
+            aria-label="Show missing Base ROMs"
+        >
             <strong id="base-missing">—</strong>
             <span>Missing</span>
         </article>
 
-        <article class="hd-base-stat">
+        <article
+            class="
+                hd-base-stat
+                hd-summary-filter-card
+            "
+            data-base-summary="registry"
+            role="button"
+            tabindex="0"
+            aria-label="Show all registry Base ROMs"
+        >
             <strong id="base-total">—</strong>
             <span>Registry</span>
         </article>
 
-        <article class="hd-base-stat">
+        <article
+            class="
+                hd-base-stat
+                hd-summary-filter-card
+            "
+            data-base-summary="platforms"
+            role="button"
+            tabindex="0"
+            aria-label="Show all Base ROM platforms"
+        >
             <strong id="base-platform-count">—</strong>
             <span>Platforms</span>
         </article>
@@ -1393,6 +1431,141 @@ document
 
 
 loadBaseInventory();
+
+/*
+ * v0.9.8 summary-card filters.
+ *
+ * Base ROMs has two independent filter dimensions:
+ * ownership and platform.
+ *
+ * Registry resets the ownership filter.
+ * Platforms resets the platform filter.
+ */
+function syncBaseSummaryCards() {
+    document
+        .querySelectorAll(
+            "[data-base-summary]"
+        )
+        .forEach(card => {
+            const mode =
+                card.dataset.baseSummary;
+
+            let active = false;
+
+            if (mode === "owned") {
+                active =
+                    activeBaseStatus
+                    === "owned";
+
+            } else if (mode === "missing") {
+                active =
+                    activeBaseStatus
+                    === "missing";
+
+            } else if (mode === "registry") {
+                active =
+                    activeBaseStatus
+                    === "";
+
+            } else if (mode === "platforms") {
+                active =
+                    activePlatform
+                    === "";
+            }
+
+            card.classList.toggle(
+                "is-active",
+                active,
+            );
+        });
+}
+
+
+function applyBaseSummaryFilter(mode) {
+    requestedBase = "";
+
+    if (mode === "owned") {
+        setStatusTab("owned");
+
+    } else if (mode === "missing") {
+        setStatusTab("missing");
+
+    } else if (mode === "registry") {
+        setStatusTab("");
+
+    } else if (mode === "platforms") {
+        setPlatformTab("");
+    }
+
+    syncBaseSummaryCards();
+    render();
+}
+
+
+document
+    .querySelectorAll(
+        "[data-base-summary]"
+    )
+    .forEach(card => {
+
+        const activate = () => {
+            applyBaseSummaryFilter(
+                card.dataset.baseSummary
+            );
+        };
+
+        card.addEventListener(
+            "click",
+            activate,
+        );
+
+        card.addEventListener(
+            "keydown",
+            event => {
+                if (
+                    event.key === "Enter"
+                    || event.key === " "
+                ) {
+                    event.preventDefault();
+                    activate();
+                }
+            },
+        );
+    });
+
+
+document
+    .getElementById(
+        "ownership-tabs"
+    )
+    .addEventListener(
+        "click",
+        () => {
+            window.setTimeout(
+                syncBaseSummaryCards,
+                0,
+            );
+        },
+    );
+
+
+document
+    .getElementById(
+        "platform-tabs"
+    )
+    .addEventListener(
+        "click",
+        () => {
+            window.setTimeout(
+                syncBaseSummaryCards,
+                0,
+            );
+        },
+    );
+
+
+syncBaseSummaryCards();
+
 </script>
 
 </body>

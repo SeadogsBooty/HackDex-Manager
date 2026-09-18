@@ -257,7 +257,7 @@ echo "Setup Guide structure: PASS"
 echo
 echo "===== VERIFY v0.9.5 READINESS-AWARE UI ====="
 
-sudo docker exec "$CONTAINER_NAME" python - <<'PYUI'
+sudo docker exec "$NAME" python - <<'PYUI'
 from pathlib import Path
 
 setup = Path(

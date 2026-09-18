@@ -35390,3 +35390,103 @@ body.hd-shell-active
     outline-offset:
         -2px;
 }
+
+/* =========================================================
+   v0.9.8 — compact interactive summary controls
+   ========================================================= */
+
+/*
+ * These rows are status/filter controls, not content panels.
+ * Keep their footprint compact instead of stretching each
+ * item across the full available width.
+ */
+.stats.hd-dashboard-stats,
+.hd-base-stats,
+.hd-review-summary-unified,
+.hd-health-stats {
+    display: grid !important;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(132px, 172px)
+        ) !important;
+    justify-content: start !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+.stats.hd-dashboard-stats > .stat,
+.hd-base-stats > .hd-base-stat,
+.hd-review-summary-unified > .hd-base-stat,
+.hd-health-stats > .hd-base-stat {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 72px !important;
+    padding: 11px 13px !important;
+    box-sizing: border-box;
+}
+
+.stats.hd-dashboard-stats
+.stat-number,
+.hd-base-stats
+.hd-base-stat strong,
+.hd-review-summary-unified
+.hd-base-stat strong,
+.hd-health-stats
+.hd-base-stat strong {
+    line-height: 1.05;
+}
+
+.hd-summary-filter-card {
+    cursor: pointer;
+    user-select: none;
+    transition:
+        transform 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease,
+        background 120ms ease;
+}
+
+.hd-summary-filter-card:hover {
+    transform: translateY(-1px);
+}
+
+.hd-summary-filter-card:focus-visible {
+    outline:
+        2px solid
+        var(--hd-primary);
+    outline-offset: 2px;
+}
+
+.hd-summary-filter-card.is-active {
+    border-color:
+        var(--hd-primary) !important;
+
+    box-shadow:
+        0 0 0 1px
+        var(--hd-primary);
+}
+
+@media (max-width: 760px) {
+    .stats.hd-dashboard-stats,
+    .hd-base-stats,
+    .hd-review-summary-unified,
+    .hd-health-stats {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .stats.hd-dashboard-stats,
+    .hd-base-stats,
+    .hd-review-summary-unified,
+    .hd-health-stats {
+        grid-template-columns:
+            1fr !important;
+    }
+}
