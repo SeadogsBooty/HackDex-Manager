@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.9.10 — 2026-09-18
+
+### UI
+
+- Base ROMs, Needs Review, and Library Health now reuse the same dashboard summary-card component classes as the Library homepage.
+- Secondary-page summary controls now use the same compact left-aligned spacing instead of distributing cards across the entire page width.
+- Existing ownership, review, and health filter behavior remains unchanged.
+- Summary-card hover, dimensions, typography, and responsive layout now match the Library dashboard.
+
+### Light Mode
+
+- Fixed the Replace ROM confirmation dialog mixing dark and light surfaces.
+- Dialog title, message, filename panel, warning text, footer, and buttons now use a coherent light appearance.
+- Explicit dark mode remains unchanged.
+
+
 ## v0.9.9 — 2026-09-18
 
 ### UI

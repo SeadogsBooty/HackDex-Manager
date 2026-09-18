@@ -35652,3 +35652,406 @@ html[data-mode="light"]
             1fr !important;
     }
 }
+
+
+/* =========================================================
+   v0.9.10 — exact Library summary-row behavior
+   ========================================================= */
+
+/*
+ * These pages now carry the same .stats + .hd-dashboard-stats
+ * component classes as the Library homepage.
+ *
+ * Remove the old auto-fit behavior that was distributing the
+ * secondary cards over the full available width.
+ */
+body.hd-shell-active
+.hd-shared-summary-row.stats.hd-dashboard-stats {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+
+    gap: 14px !important;
+
+    width: auto !important;
+    max-width: 100% !important;
+
+    margin-bottom: 20px !important;
+}
+
+
+/*
+ * Match the footprint of the actual Library dashboard cards.
+ * Flex prevents the browser from distributing unused page
+ * width between the controls.
+ */
+body.hd-shell-active
+.hd-shared-summary-row
+> .stat.hd-dashboard-stat-link {
+    flex:
+        0
+        0
+        172px !important;
+
+    width:
+        172px !important;
+
+    max-width:
+        172px !important;
+
+    min-width:
+        172px !important;
+
+    min-height:
+        88px !important;
+
+    padding:
+        17px
+        18px !important;
+
+    margin:
+        0 !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    justify-content:
+        center !important;
+
+    text-align:
+        left !important;
+
+    border-radius:
+        14px !important;
+}
+
+
+/*
+ * Let dashboard card typography apply consistently to the
+ * strong/span markup used by the secondary pages.
+ */
+body.hd-shell-active
+.hd-shared-summary-row
+> .stat
+> strong {
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        27px !important;
+
+    font-weight:
+        850 !important;
+
+    line-height:
+        1.05 !important;
+}
+
+body.hd-shell-active
+.hd-shared-summary-row
+> .stat
+> span {
+    margin-top:
+        5px;
+
+    line-height:
+        1.25;
+}
+
+
+/*
+ * Keep semantic active states while using the same component.
+ */
+body.hd-shell-active
+.hd-shared-summary-row
+> .stat.active,
+body.hd-shell-active
+.hd-shared-summary-row
+> .stat.is-active {
+    border-color:
+        var(--hd-primary) !important;
+
+    box-shadow:
+        0 0 0 1px
+        var(--hd-primary),
+        0 2px 10px
+        rgba(25, 40, 62, .075) !important;
+}
+
+
+/*
+ * Same dashboard hover treatment as Library.
+ */
+body.hd-shell-active
+.hd-shared-summary-row
+> .hd-dashboard-stat-link:hover {
+    transform:
+        translateY(-2px);
+
+    border-color:
+        var(--hd-primary) !important;
+
+    box-shadow:
+        0 7px 18px
+        color-mix(
+            in srgb,
+            var(--hd-primary) 10%,
+            transparent
+        ) !important;
+}
+
+
+/* =========================================================
+   v0.9.10 — coherent light-mode confirmation dialog
+   ========================================================= */
+
+html[data-mode="light"]
+.app-dialog {
+    background:
+        var(--hd-surface) !important;
+
+    border-color:
+        var(--hd-border) !important;
+
+    color:
+        var(--hd-text) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-header,
+html[data-mode="light"]
+.app-dialog-body {
+    background:
+        var(--hd-surface) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-title {
+    color:
+        var(--hd-text) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-message {
+    color:
+        var(--hd-text-muted) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-file {
+    background:
+        var(--hd-surface-2) !important;
+
+    border-color:
+        var(--hd-border) !important;
+
+    color:
+        var(--hd-text) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-warning {
+    color:
+        var(--hd-text-muted) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-actions {
+    background:
+        var(--hd-surface-2) !important;
+
+    border-top-color:
+        var(--hd-border) !important;
+}
+
+html[data-mode="light"]
+.app-dialog-icon {
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-accent) 12%,
+            var(--hd-surface)
+        ) !important;
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-accent) 38%,
+            var(--hd-border)
+        ) !important;
+
+    color:
+        var(--hd-accent) !important;
+}
+
+html[data-mode="light"]
+.dialog-cancel {
+    background:
+        var(--hd-surface) !important;
+
+    border-color:
+        var(--hd-border-strong) !important;
+
+    color:
+        var(--hd-text) !important;
+}
+
+html[data-mode="light"]
+.dialog-cancel:hover {
+    background:
+        var(--hd-surface-2) !important;
+}
+
+html[data-mode="light"]
+.dialog-danger {
+    background:
+        #b54b59 !important;
+
+    border-color:
+        #9e3f4c !important;
+
+    color:
+        #ffffff !important;
+}
+
+html[data-mode="light"]
+.dialog-danger:hover {
+    background:
+        #9f3f4c !important;
+}
+
+
+/*
+ * System appearance while the operating system is light.
+ */
+@media (prefers-color-scheme: light) {
+
+    html:not([data-mode="dark"])
+    .app-dialog {
+        background:
+            var(--hd-surface) !important;
+
+        border-color:
+            var(--hd-border) !important;
+
+        color:
+            var(--hd-text) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .app-dialog-header,
+    html:not([data-mode="dark"])
+    .app-dialog-body {
+        background:
+            var(--hd-surface) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .app-dialog-title {
+        color:
+            var(--hd-text) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .app-dialog-message,
+    html:not([data-mode="dark"])
+    .app-dialog-warning {
+        color:
+            var(--hd-text-muted) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .app-dialog-file {
+        background:
+            var(--hd-surface-2) !important;
+
+        border-color:
+            var(--hd-border) !important;
+
+        color:
+            var(--hd-text) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .app-dialog-actions {
+        background:
+            var(--hd-surface-2) !important;
+
+        border-top-color:
+            var(--hd-border) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .dialog-cancel {
+        background:
+            var(--hd-surface) !important;
+
+        border-color:
+            var(--hd-border-strong) !important;
+
+        color:
+            var(--hd-text) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .dialog-cancel:hover {
+        background:
+            var(--hd-surface-2) !important;
+    }
+
+    html:not([data-mode="dark"])
+    .dialog-danger {
+        background:
+            #b54b59 !important;
+
+        border-color:
+            #9e3f4c !important;
+
+        color:
+            #ffffff !important;
+    }
+}
+
+
+/* Responsive summary layout */
+@media (max-width: 760px) {
+
+    body.hd-shell-active
+    .hd-shared-summary-row.stats.hd-dashboard-stats {
+        display:
+            grid !important;
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+    }
+
+    body.hd-shell-active
+    .hd-shared-summary-row
+    > .stat.hd-dashboard-stat-link {
+        width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        max-width:
+            none !important;
+    }
+}
+
+
+@media (max-width: 430px) {
+
+    body.hd-shell-active
+    .hd-shared-summary-row.stats.hd-dashboard-stats {
+        grid-template-columns:
+            1fr !important;
+    }
+}
