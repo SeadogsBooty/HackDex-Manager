@@ -159,7 +159,12 @@ def _download_patch(hack):
 
     with httpx.Client(
         follow_redirects=True,
-        timeout=120,
+        timeout=httpx.Timeout(
+            connect=10.0,
+            read=30.0,
+            write=30.0,
+            pool=10.0,
+        ),
     ) as client:
 
         with client.stream(
@@ -764,6 +769,40 @@ def check_hack_readiness(
         #
         base = None
 
+        if fmt == "bps":
+            verified_base_count = (
+                db.query(BaseRom)
+                .filter(
+                    BaseRom.verification_status
+                    == "VERIFIED"
+                )
+                .count()
+            )
+
+            if verified_base_count == 0:
+                detail = (
+                    "No verified Base ROMs are currently "
+                    "available. Exact BPS source "
+                    "compatibility will be resolved after "
+                    "Base ROM verification."
+                )
+
+                _save_result(
+                    db,
+                    hack,
+                    None,
+                    "BASE_MISSING",
+                    detail,
+                    base_key=hack.base_rom,
+                )
+
+                return {
+                    "hack": hack.slug,
+                    "status": "BASE_MISSING",
+                    "base_key": hack.base_rom,
+                    "detail": detail,
+                }
+
         if fmt != "bps":
             base = _verified_base(
                 db,
@@ -1344,6 +1383,7 @@ def readiness_summary():
 
 def reconcile_readiness(
     initialize=False,
+    force=False,
 ):
     """
     Reconcile readiness records against the current
@@ -1432,6 +1472,16 @@ def reconcile_readiness(
             row = row_by_slug.get(
                 hack.slug
             )
+
+            if force:
+                targets.append(
+                    hack.slug
+                )
+
+                if row is None:
+                    missing += 1
+
+                continue
 
             if row is None:
                 missing += 1
@@ -1534,9 +1584,14 @@ def reconcile_readiness(
             )
 
         except Exception as exc:
-            counts["ERROR"] = (
+            detail = (
+                "Automatic readiness check failed: "
+                + str(exc)
+            )
+
+            counts["CHECK_FAILED"] = (
                 counts.get(
-                    "ERROR",
+                    "CHECK_FAILED",
                     0,
                 )
                 + 1
@@ -1546,6 +1601,34 @@ def reconcile_readiness(
                 "hack": slug,
                 "error": str(exc),
             })
+
+            #
+            # A failed check is still an evaluated state.
+            # Persist it so the catalog shows a Problem
+            # instead of leaving the hack NOT_CHECKED.
+            #
+            error_db = SessionLocal()
+
+            try:
+                error_hack = (
+                    error_db.query(Hack)
+                    .filter(
+                        Hack.slug == slug
+                    )
+                    .first()
+                )
+
+                if error_hack is not None:
+                    _save_result(
+                        error_db,
+                        error_hack,
+                        None,
+                        "CHECK_FAILED",
+                        detail[:4000],
+                    )
+
+            finally:
+                error_db.close()
 
     return {
         "success":

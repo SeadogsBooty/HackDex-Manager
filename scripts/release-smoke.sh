@@ -416,58 +416,147 @@ echo "Completed setup state: PASS"
 
 
 echo
-echo "===== VERIFY NO FIRST-RUN READINESS STORM ====="
+echo "===== WAIT FOR AUTOMATIC FULL-CATALOG READINESS ====="
 
-BEFORE="$(
-    sudo docker exec \
-        "$NAME" \
-        python -c '
-import sqlite3
-db=sqlite3.connect("/data/hackdex-manager.db")
-print(
-    db.execute(
-        "SELECT COUNT(*) FROM patch_readiness"
-    ).fetchone()[0]
+python3 - \
+    "$PORT" \
+    "$ROOT/initialize.json" \
+    <<'PYREADINESS'
+import json
+import sys
+import time
+import urllib.request
+from collections import Counter
+
+port = sys.argv[1]
+initialize_path = sys.argv[2]
+
+with open(
+    initialize_path,
+    "r",
+    encoding="utf-8",
+) as handle:
+    initialized = json.load(handle)
+
+catalog_total = int(
+    initialized.get(
+        "catalog",
+        {},
+    ).get(
+        "imported",
+        0,
+    )
 )
-'
-)" || fail "Could not inspect readiness state."
 
-sleep 10
+if catalog_total <= 0:
+    raise SystemExit(
+        "Catalog did not initialize."
+    )
 
-AFTER="$(
-    sudo docker exec \
-        "$NAME" \
-        python -c '
-import sqlite3
-db=sqlite3.connect("/data/hackdex-manager.db")
-print(
-    db.execute(
-        "SELECT COUNT(*) FROM patch_readiness"
-    ).fetchone()[0]
+url = (
+    "http://127.0.0.1:"
+    + str(port)
+    + "/api/readiness/details"
 )
-'
-)" || fail "Could not re-check readiness state."
 
-echo "Readiness rows before: $BEFORE"
-echo "Readiness rows after:  $AFTER"
+deadline = time.monotonic() + 900
+attempt = 0
+last_signature = None
 
-if [ "$BEFORE" != "$AFTER" ]; then
-    fail "A first-run readiness sweep started unexpectedly."
-fi
+while time.monotonic() < deadline:
+    attempt += 1
 
-if sudo docker logs \
-    "$NAME" \
-    2>&1 \
-    | grep -q \
-      'Initial readiness build started'
-then
-    fail "Initial readiness build was launched during onboarding."
-fi
+    try:
+        with urllib.request.urlopen(
+            url,
+            timeout=30,
+        ) as response:
+            readiness = json.load(
+                response
+            )
 
-echo "No first-run readiness storm: PASS"
+    except Exception as exc:
+        print(
+            "Readiness poll failed:",
+            exc,
+        )
+        time.sleep(5)
+        continue
 
+    items = readiness.get(
+        "items",
+        {},
+    )
+
+    statuses = Counter(
+        (
+            item.get("status")
+            or "UNKNOWN"
+        )
+        for item in items.values()
+    )
+
+    signature = (
+        len(items),
+        tuple(
+            sorted(
+                statuses.items()
+            )
+        ),
+    )
+
+    if (
+        signature != last_signature
+        or attempt % 6 == 0
+    ):
+        print()
+        print(
+            "Readiness rows:",
+            len(items),
+            "/",
+            catalog_total,
+        )
+
+        for status, count in sorted(
+            statuses.items()
+        ):
+            print(
+                f"{status}: {count}"
+            )
+
+        last_signature = signature
+
+    complete = (
+        len(items) == catalog_total
+        and statuses.get(
+            "NOT_CHECKED",
+            0,
+        ) == 0
+        and statuses.get(
+            "UNKNOWN",
+            0,
+        ) == 0
+    )
+
+    if complete:
+        print()
+        print(
+            "Automatic full-catalog "
+            "readiness: PASS"
+        )
+        break
+
+    time.sleep(5)
+
+else:
+    raise SystemExit(
+        "Timed out waiting for automatic "
+        "full-catalog readiness."
+    )
+PYREADINESS
 
 echo
+
 echo "===== VERIFY APPLICATION UNLOCKED ====="
 
 for PAGE in \

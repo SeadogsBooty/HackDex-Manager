@@ -607,6 +607,45 @@ def refresh_base_rom_verification(
     return result
 
 
+def build_full_readiness():
+    """
+    Build a complete PatchReadiness catalog.
+
+    Base ROM verification must complete first so valid
+    local Base ROMs cannot be incorrectly classified as
+    missing during the full readiness pass.
+    """
+    verification = (
+        refresh_base_rom_verification()
+    )
+
+    if not verification.get("success"):
+        raise RuntimeError(
+            "Base ROM verification failed before "
+            "full readiness initialization."
+        )
+
+    return reconcile_readiness(
+        initialize=True,
+        force=True,
+    )
+
+
+def reconcile_catalog_readiness():
+    """
+    Keep pre-setup reconciliation lightweight.
+
+    Once setup is complete, automatically schedule a full
+    catalog readiness refresh in the background.
+    """
+    if setup_is_complete():
+        return start_background_initial_readiness()
+
+    return reconcile_readiness(
+        initialize=False,
+    )
+
+
 def run_base_rom_bootstrap():
     base_rom_logger.info(
         "Base ROM startup verification started."
@@ -684,9 +723,7 @@ def run_catalog_bootstrap():
 
         try:
             readiness = (
-                reconcile_readiness(
-                    initialize=False,
-                )
+                reconcile_catalog_readiness()
             )
 
             catalog_logger.info(
@@ -711,37 +748,82 @@ def run_catalog_bootstrap():
 
 
 
+readiness_job_lock = threading.Lock()
+
+readiness_job_state = {
+    "running": False,
+}
+
+
 def run_initial_readiness():
     catalog_logger.info(
-        "Initial readiness build started."
+        "Full catalog readiness build started."
     )
 
     try:
-        result = reconcile_readiness(
-            initialize=True,
-        )
+        result = build_full_readiness()
 
         catalog_logger.info(
-            "Initial readiness build "
+            "Full catalog readiness build "
             "completed result=%s",
             result,
         )
 
     except Exception as exc:
         catalog_logger.exception(
-            "Initial readiness build failed: %s",
+            "Full catalog readiness build failed: %s",
             exc,
         )
 
+    finally:
+        with readiness_job_lock:
+            readiness_job_state[
+                "running"
+            ] = False
+
 
 def start_background_initial_readiness():
-    thread = threading.Thread(
-        target=run_initial_readiness,
-        daemon=True,
-    )
+    with readiness_job_lock:
+        if readiness_job_state[
+            "running"
+        ]:
+            return {
+                "success": True,
+                "scheduled": False,
+                "running": True,
+                "message":
+                    "Full catalog readiness "
+                    "refresh is already running.",
+            }
 
-    thread.start()
+        readiness_job_state[
+            "running"
+        ] = True
 
+    try:
+        thread = threading.Thread(
+            target=run_initial_readiness,
+            daemon=True,
+        )
+
+        thread.start()
+
+    except Exception:
+        with readiness_job_lock:
+            readiness_job_state[
+                "running"
+            ] = False
+
+        raise
+
+    return {
+        "success": True,
+        "scheduled": True,
+        "running": True,
+        "message":
+            "Full catalog readiness "
+            "refresh started.",
+    }
 
 
 def start_background_catalog_bootstrap():
@@ -1357,13 +1439,23 @@ def api_base_rom_verification():
 
 @app.post("/api/base-roms/scan")
 def api_base_rom_scan():
-    return _run_logged_operation(
+    result = _run_logged_operation(
         base_rom_logger,
         "base_rom_scan_and_verify",
         lambda: refresh_base_rom_verification(
             scan=True,
         ),
     )
+
+    if (
+        result.get("success")
+        and setup_is_complete()
+    ):
+        result["readiness"] = (
+            start_background_initial_readiness()
+        )
+
+    return result
 
 
 @app.get("/api/library-health")
@@ -1620,9 +1712,7 @@ def api_catalog_sync():
             _run_logged_operation(
                 catalog_logger,
                 "post_catalog_readiness",
-                lambda: reconcile_readiness(
-                    initialize=False,
-                ),
+                lambda: reconcile_catalog_readiness(),
             )
         )
 
@@ -2101,14 +2191,15 @@ def api_setup_initialize():
             "true",
     })
 
-    # Do not launch a full first-run readiness sweep here.
-    #
-    # A fresh catalog can contain hundreds of patches.
-    # Downloading/inspecting all of them immediately can
-    # overwhelm the provider and trigger rate limiting.
-    #
-    # Readiness is reconciled incrementally after normal
-    # catalog activity and on established installations.
+    # v0.9.4:
+    # Setup is not complete until the full HackDex
+    # catalog has an evaluated readiness state.
+    # v0.9.4:
+    # Do not hold the setup HTTP request open while every
+    # catalog hack is evaluated. Start the complete readiness
+    # build automatically in the background instead.
+    readiness = start_background_initial_readiness()
+
     result["success"] = True
     result["message"] = (
         "HackDex Manager setup completed."

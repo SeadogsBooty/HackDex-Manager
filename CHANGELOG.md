@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.9.4 — 2026-09-17
+
+### Fixed
+
+- Full readiness refreshes now forcibly re-evaluate every active catalog hack rather than only missing or stale rows.
+- Individual readiness failures are persisted as `CHECK_FAILED` so they appear as Problems instead of remaining `NOT_CHECKED`.
+- Remote patch retrieval uses bounded network timeouts so one unavailable patch cannot stall the complete catalog refresh.
+- When no verified Base ROM exists, BPS hacks are classified immediately as missing a base instead of downloading patches unnecessarily.
+- Successful Base ROM scans automatically schedule a complete readiness refresh.
+
+- The full HackDex catalog is now evaluated for patch readiness during initial setup instead of leaving hacks as `NOT_CHECKED`.
+- Setup now automatically starts full-catalog readiness evaluation in the background after its normal initialization work, avoiding a long blocking setup request.
+- Normal catalog synchronization on configured installations automatically schedules a full readiness refresh for the entire catalog, including newly added hacks.
+- Existing on-demand readiness checks remain as a fallback, not the primary readiness mechanism.
+- Clean pre-setup behavior is preserved; the full readiness catalog is not initialized before setup is complete.
+
+
 ## v0.9.3 — 2026-09-17
 
 ### Fixed
