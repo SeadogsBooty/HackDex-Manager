@@ -14,6 +14,7 @@ from fastapi.responses import (
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from desktop_api import router as desktop_router
 
 from catalog import get_catalog, get_catalog_stats
 from hackdex_provider import sync_catalog
@@ -124,6 +125,8 @@ app = FastAPI(
     title="HackDex Manager",
     version=APP_VERSION,
 )
+
+app.include_router(desktop_router)
 
 templates = Jinja2Templates(
     directory="templates"
