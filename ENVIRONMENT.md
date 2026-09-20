@@ -1,139 +1,106 @@
-# HackDex Manager Environment Variables
+# HackDex Manager Configuration
 
-HackDex Manager supports two configuration methods:
+HackDex Manager supports two Docker Compose configuration methods:
 
-1. Put values in a `.env` file next to `compose.yaml`.
-2. Replace the variable expressions directly in `compose.yaml`.
+1. Edit values directly in `compose.yaml`.
+2. Use an optional `.env` file.
 
-You only need to configure values that differ from the defaults.
+A `.env` file is not required.
 
----
+## Deployment Settings
 
-## Common Variables
+| Setting | Default | Description |
+| --- | --- | --- |
+| PUID | `1000` | Linux user ID used by the container |
+| PGID | `1000` | Linux group ID used by the container |
+| Host port | `8095` | Port used to access HackDex Manager |
+| Data path | `./data` | Persistent application state |
+| Staging path | `./staging` | Temporary patch/download workspace |
+| ROM path | `./roms` | General ROM collection mounted read-only |
+| Hacks path | `./hacks` | Writable ROM-hack library root |
 
-| Variable | Default | Required | Description |
-| --- | --- | --- | --- |
-| `PUID` | `1000` | No | Numeric Linux user ID used to run HackDex Manager inside the container. Useful for matching ownership of mounted files. |
-| `PGID` | `1000` | No | Numeric Linux group ID used to run HackDex Manager inside the container. |
-| `HACKDEX_PORT` | `8080` | No | Host port used to access the HackDex Manager web interface. |
-| `TZ` | `UTC` | No | Container timezone. Example: `America/New_York`, `Europe/London`, or `UTC`. |
-| `LOG_LEVEL` | `INFO` | No | Application logging level. Supported values: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
-| `HACKDEX_DATA_PATH` | `./data` | No | Persistent HackDex Manager application data directory. |
-| `HACKDEX_STAGING_PATH` | `./staging` | No | Temporary working/staging directory. |
-| `ROM_PATH` | `./roms` | No | Host ROM source directory mounted read-only inside the container. |
-| `HACKDEX_HACKS_PATH` | `./hacks` | No | Host parent directory for writable ROM-hack libraries. Mounted inside the container at `/hacks`. |
-| `HACKDEX_IMAGE` | `hackdex-manager:local` | No | Docker image name/tag. Set this to the image supplied by your registry or repository when using a published build. |
+When configuring directly in YAML, PUID and PGID are represented by:
 
----
+```yaml
+user: "1000:1000"
+```
 
-## PUID and PGID
+The first number is PUID and the second is PGID.
 
-`PUID` and `PGID` control which Linux user and group HackDex Manager runs as.
+## Optional Application Environment Variables
 
-The selected UID/GID must have write permission to the host directories used for `HACKDEX_DATA_PATH` and `HACKDEX_STAGING_PATH`.
+These values are optional:
 
-For example, if your Docker host user is UID `1000` and GID `1000`, use:
+| Variable | Default | Description |
+| --- | --- | --- |
+| `TZ` | `UTC` | Container timezone |
+| `LOG_LEVEL` | `INFO` | Application logging level |
 
-    PUID=1000
-    PGID=1000
+Example:
 
-You can check your current host user with:
+```yaml
+environment:
+  TZ: America/New_York
+  LOG_LEVEL: INFO
+```
 
-    id
+Supported logging levels are:
 
-If the mounted data/staging directories are owned by a different UID/GID, either change `PUID`/`PGID` to match or change the directory ownership/permissions before starting HackDex Manager.
+- `DEBUG`
+- `INFO`
+- `WARNING`
+- `ERROR`
+- `CRITICAL`
 
-A mismatch can prevent startup because HackDex Manager must create files and directories such as the SQLite database, logs, and patch cache under `/data`.
+## Optional `.env` Configuration
 
-The selected account must have access to the host directories mounted into the container.
+Copy the included example:
 
-To find your current Linux UID and GID:
+```bash
+cp .env.example .env
+```
 
-    id
+The standard values are:
 
----
+```text
+PUID=1000
+PGID=1000
+HACKDEX_PORT=8095
 
-## Port
+TZ=UTC
+LOG_LEVEL=INFO
 
-Using `.env`:
+HACKDEX_DATA_PATH=./data
+HACKDEX_STAGING_PATH=./staging
 
-    HACKDEX_PORT=8080
+ROM_PATH=./roms
+HACKDEX_HACKS_PATH=./hacks
+```
 
-Or directly in `compose.yaml`:
+Local `.env` files are ignored by Git and excluded from Docker builds.
 
-    ports:
-      - "8080:8080"
+## Library Detection
 
-Only the value on the left is the host port.
+`ROM_PATH` can point at a larger multi-system ROM collection.
 
----
+`HACKDEX_HACKS_PATH` can point wherever your writable ROM-hack libraries are stored.
 
-## Paths
+During first-run setup, HackDex Manager scans those mounted roots and identifies supported Base ROM and ROM-hack folders automatically.
 
-Using `.env`:
-
-    HACKDEX_DATA_PATH=/srv/hackdex/data
-    HACKDEX_STAGING_PATH=/srv/hackdex/staging
-    ROM_PATH=/srv/roms
-    HACKDEX_HACKS_PATH=/srv/hacks
-
-Or directly in `compose.yaml`:
-
-    volumes:
-      - /srv/hackdex/data:/data
-      - /srv/hackdex/staging:/staging
-      - /srv/roms:/roms:ro
-      - /srv/hacks:/hacks:rw
-
-Use whatever paths are appropriate for your own environment.
-
----
-
-## Logging
-
-Default:
-
-    LOG_LEVEL=INFO
-
-Available levels:
-
-- `DEBUG` — detailed troubleshooting information
-- `INFO` — normal application activity
-- `WARNING` — unusual but recoverable conditions
-- `ERROR` — failed operations
-- `CRITICAL` — severe application failures
-
-The capture level can also be changed temporarily from the Diagnostics & Logs page.
-
----
+Unrelated systems and folders are ignored.
 
 ## Advanced Provider Overrides
 
-Normal users should not need these variables.
+Normal installations do not need provider configuration.
 
-HackDex Manager v1 is intended to include its standard public HackDex provider configuration automatically.
+HackDex Manager includes the public provider configuration required for normal catalog access.
 
-These overrides are only for development, testing, mirrors, or troubleshooting:
+These optional overrides exist for development, mirrors, and troubleshooting:
 
 | Variable | Description |
 | --- | --- |
-| `HACKDEX_SUPABASE_URL` | Overrides the built-in HackDex API endpoint. |
-| `HACKDEX_SUPABASE_KEY` | Overrides the built-in public HackDex client credential. |
-| `HACKDEX_COVERS_BASE_URL` | Overrides the built-in HackDex artwork endpoint. |
+| `HACKDEX_SUPABASE_URL` | Override the built-in HackDex API endpoint |
+| `HACKDEX_SUPABASE_KEY` | Override the built-in public client credential |
+| `HACKDEX_COVERS_BASE_URL` | Override the built-in artwork endpoint |
 
-Never use a private Supabase service-role key or administrative credential here.
-
----
-
-## Minimal Example
-
-    PUID=1000
-    PGID=1000
-    HACKDEX_PORT=8080
-    TZ=UTC
-
-    HACKDEX_DATA_PATH=./data
-    HACKDEX_STAGING_PATH=./staging
-
-    ROM_PATH=./roms
-    HACKDEX_HACKS_PATH=./hacks
+Never use private service-role or administrative credentials.

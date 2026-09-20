@@ -1493,6 +1493,7 @@ function coverMarkup(item) {
             src="${escapeHtml(item.cover_url)}"
             alt="${escapeHtml(item.title)}"
             loading="lazy"
+            decoding="async"
             onerror="
                 this.style.display='none';
                 this.nextElementSibling.style.display='flex';
@@ -2279,6 +2280,69 @@ function syncCatalogFromUrl(
 }
 
 
+
+function libraryStatusDockClass(status) {
+
+    const value =
+        String(
+            status || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (value === "OWNED") {
+        return "is-owned";
+    }
+
+
+    if (value === "UPDATE_AVAILABLE") {
+        return "is-update";
+    }
+
+
+    if (value === "NEEDS_REVIEW") {
+        return "is-review";
+    }
+
+
+    return "is-missing";
+}
+
+
+function libraryReadinessDockClass(status) {
+
+    const value =
+        String(
+            status || ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (value === "READY") {
+        return "is-ready";
+    }
+
+
+    if (value === "BASE_MISSING") {
+        return "is-missing-base";
+    }
+
+
+    if (
+        value === "NOT_CHECKED"
+        || value === "UNKNOWN"
+        || !value
+    ) {
+        return "is-unchecked";
+    }
+
+
+    return "is-problem";
+}
+
+
 function render() {
     const search = (
         document
@@ -2388,7 +2452,11 @@ function render() {
 
             return `
                 <article
-                    class="card hd-hack-card"
+                    class="
+                        card
+                        hd-hack-card
+                        hd-hackdex-discover-card
+                    "
                     onclick="
                         openDetails(
                             '${escapeHtml(
@@ -2397,55 +2465,59 @@ function render() {
                         )
                     "
                 >
-
-                    <div class="hd-hack-card-chips">
-
-                        <span class="hd-hack-chip">
-                            ${escapeHtml(
-                                item.platform
-                                || "Unknown"
-                            )}
-                        </span>
-
-                        <span
-                            class="
-                                hd-hack-chip
-                                ${statusClass(
-                                    item.library_status
-                                )}
-                            "
-                        >
-                            ${escapeHtml(
-                                statusLabel(
-                                    item.library_status
-                                )
-                            )}
-                        </span>
-
-                        <span
-                            class="
-                                hd-hack-chip
-                                ${readinessClass(
-                                    ready.status
-                                )}
-                            "
-                        >
-                            ${escapeHtml(
-                                readinessLabel(
-                                    ready.status
-                                )
-                            )}
-                        </span>
-
-                    </div>
-
-
                     <div class="cover-wrap hd-hack-cover">
                         ${coverMarkup(item)}
                     </div>
 
 
                     <div class="body hd-hack-card-body">
+
+                        <div class="hd-hackdex-status-dock">
+
+                            <span
+                                class="
+                                    hd-hackdex-status-pill
+                                    is-platform
+                                "
+                            >
+                                ${escapeHtml(
+                                    item.platform
+                                    || "Unknown"
+                                )}
+                            </span>
+
+                            <span
+                                class="
+                                    hd-hackdex-status-pill
+                                    ${libraryStatusDockClass(
+                                        item.library_status
+                                    )}
+                                "
+                            >
+                                ${escapeHtml(
+                                    statusLabel(
+                                        item.library_status
+                                    )
+                                )}
+                            </span>
+
+                            <span
+                                class="
+                                    hd-hackdex-status-pill
+                                    ${libraryReadinessDockClass(
+                                        ready.status
+                                    )}
+                                "
+                            >
+                                ${escapeHtml(
+                                    readinessLabel(
+                                        ready.status
+                                    )
+                                )}
+                            </span>
+
+                        </div>
+
 
                         <div class="hd-hack-title-row">
 
@@ -5978,13 +6050,6 @@ load();
     class="toast-container"
     id="toast-container"
 ></div>
-
-
-
-
-
-
-
 
 
 

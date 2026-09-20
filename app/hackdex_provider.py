@@ -506,11 +506,365 @@ def save_cache(rows):
     )
 
 
+
+
+
+#
+# The HackDex catalog contains both operational metadata and
+# display/popularity metadata.
+#
+# A change to downloads, summary artwork metadata, or another
+# unrelated field must not cause every local ROM to be rematched
+# or every readiness record to be rebuilt.
+#
+
+DATABASE_CATALOG_FIELDS = (
+    "slug",
+    "title",
+    "author",
+    "summary",
+    "base_rom",
+    "platform",
+    "latest_version",
+    "completion_status",
+    "cover_url",
+    "current_patch",
+    "current_patch_filename",
+    "current_patch_bucket",
+    "current_patch_format",
+    "current_patch_published",
+    "current_patch_archived",
+    "current_patch_updated_at",
+    "published_at",
+)
+
+
+#
+# matcher.py uses the Hack title/platform to score identity,
+# slug to persist identity, and latest_version when confirmed
+# ROM status/version information is refreshed.
+#
+MATCHING_CATALOG_FIELDS = (
+    "slug",
+    "title",
+    "platform",
+    "latest_version",
+)
+
+
+#
+# patch_readiness.py uses these fields to determine whether
+# catalog readiness is still valid.
+#
+# current_patch_updated_at + patch ID + filename + format also
+# compose the existing _patch_identity() value.
+#
+READINESS_CATALOG_FIELDS = (
+    "slug",
+    "base_rom",
+    "current_patch",
+    "current_patch_filename",
+    "current_patch_bucket",
+    "current_patch_format",
+    "current_patch_published",
+    "current_patch_archived",
+    "current_patch_updated_at",
+)
+
+
+def _canonical_catalog_value(value):
+    """
+    Produce stable comparable values.
+
+    Datetimes may be represented either with an ISO T separator
+    or a space after passing through the JSON cache.
+    """
+
+    if isinstance(
+        value,
+        datetime,
+    ):
+        return value.isoformat()
+
+
+    if isinstance(
+        value,
+        dict,
+    ):
+        return {
+            str(key):
+                _canonical_catalog_value(
+                    item
+                )
+            for key, item
+            in value.items()
+        }
+
+
+    if isinstance(
+        value,
+        list,
+    ):
+        return [
+            _canonical_catalog_value(
+                item
+            )
+            for item in value
+        ]
+
+
+    if isinstance(
+        value,
+        str,
+    ):
+        candidate = value.strip()
+
+        if (
+            len(candidate) >= 19
+            and candidate[4:5] == "-"
+            and candidate[7:8] == "-"
+            and candidate[10:11]
+                in ("T", " ")
+        ):
+            try:
+                return datetime.fromisoformat(
+                    candidate.replace(
+                        "Z",
+                        "+00:00",
+                    )
+                ).isoformat()
+
+            except ValueError:
+                pass
+
+
+    return value
+
+
+def _load_cached_catalog():
+    try:
+        if not CACHE_PATH.exists():
+            return None
+
+        value = json.loads(
+            CACHE_PATH.read_text(
+                encoding="utf-8"
+            )
+        )
+
+        if not isinstance(
+            value,
+            list,
+        ):
+            return None
+
+        return value
+
+    except Exception:
+        return None
+
+
+def _catalog_projection_snapshot(
+    rows,
+    fields=None,
+):
+    """
+    Deterministic catalog representation.
+
+    The remote row order is not stable, so rows are always sorted
+    by slug.
+
+    fields=None compares the complete catalog and is used only to
+    decide whether the JSON cache itself should be refreshed.
+    """
+
+    projected = []
+
+    for row in rows:
+
+        if isinstance(
+            row,
+            dict,
+        ):
+
+            if fields is None:
+                value = row
+
+            else:
+                value = {
+                    field:
+                        row.get(field)
+                    for field in fields
+                }
+
+        else:
+            value = row
+
+
+        projected.append(
+            _canonical_catalog_value(
+                value
+            )
+        )
+
+
+    projected.sort(
+        key=lambda row:
+            str(
+                row.get(
+                    "slug",
+                    "",
+                )
+            )
+            if isinstance(
+                row,
+                dict,
+            )
+            else ""
+    )
+
+
+    return json.dumps(
+        projected,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+
+
+def _cached_catalog_projection_matches(
+    rows,
+    fields=None,
+):
+    cached = _load_cached_catalog()
+
+    if cached is None:
+        return False
+
+    return (
+        _catalog_projection_snapshot(
+            cached,
+            fields,
+        )
+        ==
+        _catalog_projection_snapshot(
+            rows,
+            fields,
+        )
+    )
+
+
+def _database_catalog_matches(rows):
+    """
+    Compare the fields actually persisted to the Hack table.
+
+    This remains one bulk SELECT and performs the rest of the
+    comparison in memory.
+    """
+
+    fresh_by_slug = {
+        str(item["slug"]):
+            item
+        for item in rows
+        if item.get("slug")
+    }
+
+
+    db = SessionLocal()
+
+    try:
+        existing = (
+            db.query(Hack)
+            .all()
+        )
+
+
+        active_by_slug = {
+            str(hack.slug):
+                hack
+            for hack in existing
+            if (
+                hack.approved is True
+                and hack.is_archive is False
+            )
+        }
+
+
+        if (
+            set(active_by_slug)
+            != set(fresh_by_slug)
+        ):
+            return False
+
+
+        for slug, item in fresh_by_slug.items():
+
+            hack = active_by_slug[
+                slug
+            ]
+
+
+            for field in (
+                DATABASE_CATALOG_FIELDS
+            ):
+
+                if field == "slug":
+                    actual = hack.slug
+
+                else:
+                    actual = getattr(
+                        hack,
+                        field,
+                        None,
+                    )
+
+
+                expected = item.get(
+                    field
+                )
+
+
+                if (
+                    _canonical_catalog_value(
+                        actual
+                    )
+                    !=
+                    _canonical_catalog_value(
+                        expected
+                    )
+                ):
+                    return False
+
+
+        return True
+
+    finally:
+        db.close()
+
 def import_catalog(rows):
+    """
+    Import HackDex catalog data efficiently.
+
+    Previous behavior issued a separate SELECT against Hack for
+    every catalog row. On SQLite-backed NAS storage this greatly
+    extends the startup transaction and can block Library API
+    readers.
+
+    Load the existing Hack table once and reconcile in memory.
+    """
     db = SessionLocal()
 
     try:
         now = datetime.utcnow()
+
+        existing = db.query(Hack).all()
+
+        existing_by_slug = {
+            hack.slug: hack
+            for hack in existing
+        }
+
         seen = set()
 
         for item in rows:
@@ -518,10 +872,8 @@ def import_catalog(rows):
 
             seen.add(slug)
 
-            hack = (
-                db.query(Hack)
-                .filter(Hack.slug == slug)
-                .first()
+            hack = existing_by_slug.get(
+                slug
             )
 
             if hack is None:
@@ -532,20 +884,29 @@ def import_catalog(rows):
 
                 db.add(hack)
 
+                existing_by_slug[
+                    slug
+                ] = hack
+
             hack.title = item["title"]
             hack.author = item["author"]
             hack.summary = item["summary"]
             hack.base_rom = item["base_rom"]
             hack.platform = item["platform"]
+
             hack.latest_version = (
                 item["latest_version"]
             )
+
             hack.completion_status = (
                 item["completion_status"]
             )
+
             hack.cover_url = item["cover_url"]
+
             hack.approved = True
             hack.is_archive = False
+
             hack.current_patch = (
                 item["current_patch"]
             )
@@ -589,14 +950,15 @@ def import_catalog(rows):
             hack.published_at = (
                 item["published_at"]
             )
+
             hack.catalog_updated_at = now
             hack.last_seen = now
 
-        existing = db.query(Hack).all()
 
         for hack in existing:
             if hack.slug not in seen:
                 hack.approved = False
+
 
         db.commit()
 
@@ -610,9 +972,66 @@ def sync_catalog():
     try:
         rows = build_catalog()
 
-        imported = import_catalog(rows)
 
-        save_cache(rows)
+        #
+        # Full cache comparison:
+        # preserve all current HackDex metadata, including
+        # downloads and other display-only changes.
+        #
+        cache_changed = not (
+            _cached_catalog_projection_matches(
+                rows,
+                None,
+            )
+        )
+
+
+        #
+        # Database comparison:
+        # only rewrite the Hack table if fields persisted to
+        # SQLite differ.
+        #
+        database_changed = not (
+            _database_catalog_matches(
+                rows
+            )
+        )
+
+
+        #
+        # Expensive downstream jobs get independent fingerprints.
+        #
+        matching_changed = not (
+            _cached_catalog_projection_matches(
+                rows,
+                MATCHING_CATALOG_FIELDS,
+            )
+        )
+
+        readiness_changed = not (
+            _cached_catalog_projection_matches(
+                rows,
+                READINESS_CATALOG_FIELDS,
+            )
+        )
+
+
+        if database_changed:
+            imported = import_catalog(
+                rows
+            )
+
+        else:
+            imported = len(
+                rows
+            )
+
+
+        if cache_changed:
+            save_cache(
+                rows
+            )
+
 
         update_settings(
             {
@@ -621,20 +1040,45 @@ def sync_catalog():
             }
         )
 
+
         return {
             "success": True,
             "source": "hackdex-supabase",
             "imported": imported,
+
+            "changed": bool(
+                cache_changed
+                or database_changed
+            ),
+
+            "cache_changed":
+                cache_changed,
+
+            "database_changed":
+                database_changed,
+
+            "matching_changed":
+                matching_changed,
+
+            "readiness_changed":
+                readiness_changed,
+
             "message": (
-                "HackDex catalog synchronized "
-                "from Supabase."
+                "HackDex catalog synchronization "
+                "completed."
             ),
         }
+
 
     except Exception as exc:
         return {
             "success": False,
             "source": "hackdex-supabase",
             "imported": 0,
+            "changed": False,
+            "cache_changed": False,
+            "database_changed": False,
+            "matching_changed": False,
+            "readiness_changed": False,
             "message": str(exc),
         }

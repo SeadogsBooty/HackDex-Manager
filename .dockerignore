@@ -1,8 +1,20 @@
 .git
+.github
 .gitignore
 
 .env
 .env.*
+!.env.example
+
+.preview-backups
+private-release-backups
+release-private
+
+data
+staging
+logs
+patch-cache
+backups
 
 *.db
 *.db-shm
@@ -15,27 +27,20 @@
 *.backup
 *.old
 *.orig
+*.rej
 
 __pycache__
-*.pyc
+*.py[cod]
 .pytest_cache
+.mypy_cache
+.ruff_cache
+.venv
+venv
 
-data
-staging
-logs
-patch-cache
-
-private-release-backups
-release-private
+compose.override.yaml
+compose.override.yml
 
 .DS_Store
 Thumbs.db
 .vscode
 .idea
-*.bak*
-**/*.bak
-**/*.bak.*
-**/*.bak*
-
-# Local Docker Compose override
-compose.override.yaml

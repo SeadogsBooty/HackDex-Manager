@@ -18,6 +18,652 @@
     <script
         src="/static/hackdex-ui.js?v={{ app_version }}"
     ></script>
+
+
+<style id="hackdex-base-card-pass12">
+
+/*
+ * Page-local Base ROM card styling.
+ * Deliberately lives after global CSS and does not depend on
+ * hd-shell-active or theme mode.
+ */
+
+
+/* Card */
+
+.hd-base-rom-page .hd-hackdex-base-card {
+    background: #053f31 !important;
+    background-color: #053f31 !important;
+    border: 1px solid rgba(39, 190, 126, .56) !important;
+    color: #f5fff9 !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card.missing {
+    background: #053f31 !important;
+    background-color: #053f31 !important;
+    border-color: rgba(217, 154, 40, .62) !important;
+}
+
+
+/* Artwork */
+
+.hd-base-rom-page .hd-hackdex-base-card .hd-base-cover {
+    background: #087156 !important;
+    background-color: #087156 !important;
+}
+
+
+/* Body */
+
+.hd-base-rom-page .hd-hackdex-base-card .hd-base-card-body {
+    background: #053f31 !important;
+    background-color: #053f31 !important;
+    color: #f5fff9 !important;
+}
+
+
+/* Dock */
+
+.hd-base-rom-page .hd-hackdex-base-card .hd-base-status-dock {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 0 9px !important;
+    padding: 0 0 9px !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(164, 224, 194, .17) !important;
+    background: transparent !important;
+}
+
+
+/* Pills */
+
+.hd-base-rom-page .hd-hackdex-base-card .hd-base-dock-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    min-height: 23px !important;
+
+    margin: 0 !important;
+    padding: 4px 8px !important;
+
+    border: 1px solid rgba(255,255,255,.20) !important;
+    border-radius: 999px !important;
+
+    color: #fff !important;
+
+    font-size: 10px !important;
+    font-weight: 750 !important;
+    line-height: 1 !important;
+    letter-spacing: .01em !important;
+
+    white-space: nowrap !important;
+
+    box-shadow: 0 2px 7px rgba(0,0,0,.16) !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card .hd-base-dock-pill::before {
+    content: "" !important;
+    display: block !important;
+
+    width: 6px !important;
+    height: 6px !important;
+    flex: 0 0 6px !important;
+
+    border-radius: 2px !important;
+    background: currentColor !important;
+}
+
+
+/* Platform — same blue/slate identity as Library */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-platform {
+    background: #173f55 !important;
+    border-color: rgba(127,201,234,.52) !important;
+    color: #ddf4ff !important;
+}
+
+
+/* Region */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-region {
+    background: #35454d !important;
+    border-color: rgba(188,211,220,.38) !important;
+    color: #edf8fc !important;
+}
+
+
+/* Verified */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-verified {
+    background: #0a7a4d !important;
+    border-color: rgba(119,241,174,.58) !important;
+    color: #dcffeb !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-verified::before {
+    border-radius: 50% !important;
+}
+
+
+/* Missing */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-missing {
+    background: #815716 !important;
+    border-color: rgba(255,206,105,.58) !important;
+    color: #ffe7aa !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-dock-pill.is-missing::before {
+    border-radius: 50% !important;
+}
+
+
+/* Title */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-title-row h3 {
+    color: #fff !important;
+    opacity: 1 !important;
+}
+
+
+/* Local status container */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status,
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status.missing {
+    background: transparent !important;
+    background-color: transparent !important;
+
+    border: 0 !important;
+    box-shadow: none !important;
+
+    color: #e4f5eb !important;
+}
+
+
+/* Status dot */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-icon {
+    background: #23c77f !important;
+    color: transparent !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status.missing
+.hd-base-library-icon {
+    background: #d99a28 !important;
+}
+
+
+/* Status heading */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status span {
+    color: #9bc9b3 !important;
+    opacity: 1 !important;
+}
+
+
+/* Filename / missing explanation */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status strong {
+    color: #e4f5eb !important;
+    opacity: 1 !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-library-status.missing strong {
+    color: #f0dba8 !important;
+}
+
+
+/*
+ * Historical light-mode rules had very low-opacity text on
+ * missing cards. Force all body descendants back to normal
+ * visibility, then apply explicit colors above.
+ */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-card-body * {
+    opacity: 1;
+}
+
+
+/* Technical details */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech {
+    background: transparent !important;
+    background-color: transparent !important;
+
+    border-color: rgba(154,218,185,.16) !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech summary {
+    color: #b8d9c8 !important;
+    opacity: 1 !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech-grid span,
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech-path span {
+    color: #8ebda6 !important;
+}
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech-grid code,
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-tech-path code {
+    color: #e3f4eb !important;
+
+    background: rgba(3,29,22,.58) !important;
+
+    border-color: rgba(144,207,175,.16) !important;
+}
+
+
+/* Artwork fallback */
+
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-art-fallback,
+.hd-base-rom-page .hd-hackdex-base-card
+.hd-base-art-fallback strong {
+    color: #eefcf4 !important;
+}
+
+</style>
+
+
+
+
+<style id="hackdex-base-card-pass13">
+
+/* ============================================================
+
+   1. Match Base ROM pill proportions to compact Library pills.
+   2. Eliminate remaining dark / low-opacity Base ROM text.
+   3. Renderer and layout remain completely unchanged.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   DOCK RHYTHM
+   ------------------------------------------------------------ */
+
+.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-status-dock {
+    gap:
+        5px !important;
+
+    margin:
+        0 0 8px !important;
+
+    padding:
+        0 0 8px !important;
+}
+
+
+/* ------------------------------------------------------------
+   COMPACT PILLS
+
+   Base ROM Pass 12 used:
+       min-height: 23px
+       padding: 4px 8px
+       font-size: 10px
+
+   Reduce these to the compact visual scale used by the
+   Library cards.
+   ------------------------------------------------------------ */
+
+.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-dock-pill {
+    min-height:
+        18px !important;
+
+    height:
+        18px !important;
+
+    padding:
+        2px
+        6px !important;
+
+    gap:
+        3px !important;
+
+    font-size:
+        8.5px !important;
+
+    font-weight:
+        750 !important;
+
+    line-height:
+        1 !important;
+
+    letter-spacing:
+        0 !important;
+
+    border-radius:
+        999px !important;
+
+    box-shadow:
+        0 1px 4px
+        rgba(
+            0,
+            0,
+            0,
+            .16
+        ) !important;
+}
+
+
+/* Smaller marker to match compact Library status dots */
+
+.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-dock-pill::before {
+    width:
+        4px !important;
+
+    height:
+        4px !important;
+
+    flex:
+        0 0 4px !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORCE COMPLETE BODY READABILITY
+
+   Older Base-ROM rules still color some descendants directly.
+   Set a sane readable default first.
+   ------------------------------------------------------------ */
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-card-body,
+
+html[data-mode="dark"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-card-body,
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-card-body {
+    color:
+        #e7f6ee !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/*
+ * Reset inherited opacity on everything in the body.
+ */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-card-body
+* {
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   TITLE
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-title-row
+h3,
+
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-title-row
+h3,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-title-row
+h3,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-title-row
+h3 {
+    color:
+        #ffffff !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   LOCAL STATUS LABEL
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status
+span,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    color:
+        #9fd1b8 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Missing heading gets amber emphasis */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status.missing
+span,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status.missing
+span {
+    color:
+        #e5b84d !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   FILENAME / STATUS DESCRIPTION
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status
+strong,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    color:
+        #e8f7ef !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Missing instruction */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status.missing
+strong,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-library-status.missing
+strong {
+    color:
+        #f0d18a !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   TECHNICAL DETAILS
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech
+summary,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech
+summary,
+
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-tech
+summary {
+    color:
+        #b9ddca !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Expanded technical labels */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech-grid
+span,
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech-path
+span {
+    color:
+        #96c6ae !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Expanded values */
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech-grid
+code,
+
+body.hd-base-rom-page
+.hd-hackdex-base-card
+.hd-base-tech-path
+code {
+    color:
+        #e8f7ef !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   MISSING CARD CATCH-ALL
+
+   Explicitly defeat old muted/dark typography rules that only
+   apply to missing Base ROMs.
+   ------------------------------------------------------------ */
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-card-body {
+    color:
+        #e7f6ee !important;
+}
+
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-card-body
+.hd-base-title-row,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-card-body
+.hd-base-library-status,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+.hd-hackdex-base-card.missing
+.hd-base-card-body
+.hd-base-tech {
+    color:
+        #e7f6ee !important;
+
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+}
+
+</style>
+
+
 </head>
 
 <body class="hd-base-rom-page">
@@ -730,6 +1376,7 @@ function render() {
                 <article
                     class="
                         hd-base-card
+                        hd-hackdex-base-card
                         ${
                             row.owned
                             ? "owned"
@@ -746,53 +1393,62 @@ function render() {
                     )}"
                 >
 
-                    <div class="hd-base-card-chips">
-
-                        <span class="hd-base-platform">
-                            ${escapeHtml(
-                                row.platform
-                                || "?"
-                            )}
-                        </span>
-
-                        ${
-                            row.region
-                            ? `
-                            <span class="hd-base-region">
-                                ${escapeHtml(
-                                    row.region
-                                )}
-                            </span>
-                            `
-                            : ""
-                        }
-
-                        <span
-                            class="
-                                hd-base-state
-                                ${
-                                    row.owned
-                                    ? "owned"
-                                    : "missing"
-                                }
-                            "
-                        >
-                            ${
-                                row.owned
-                                ? "✓ Verified"
-                                : "Missing"
-                            }
-                        </span>
-
-                    </div>
-
-
                     <div class="hd-base-cover">
                         ${baseRomArtMarkup(row)}
                     </div>
 
 
                     <div class="hd-base-card-body">
+
+                        <div class="hd-base-status-dock">
+
+                            <span
+                                class="
+                                    hd-base-dock-pill
+                                    is-platform
+                                "
+                            >
+                                ${escapeHtml(
+                                    row.platform
+                                    || "?"
+                                )}
+                            </span>
+
+                            ${
+                                row.region
+                                ? `
+                                <span
+                                    class="
+                                        hd-base-dock-pill
+                                        is-region
+                                    "
+                                >
+                                    ${escapeHtml(
+                                        row.region
+                                    )}
+                                </span>
+                                `
+                                : ""
+                            }
+
+                            <span
+                                class="
+                                    hd-base-dock-pill
+                                    ${
+                                        row.owned
+                                        ? "is-verified"
+                                        : "is-missing"
+                                    }
+                                "
+                            >
+                                ${
+                                    row.owned
+                                    ? "Verified"
+                                    : "Missing"
+                                }
+                            </span>
+
+                        </div>
 
                         <div class="hd-base-title-row">
 
@@ -1582,6 +2238,237 @@ document
 syncBaseSummaryCards();
 
 </script>
+
+
+
+<script>
+(() => {
+
+    function text(value) {
+
+        return String(
+            value || ""
+        )
+            .replace(
+                /\s+/g,
+                " "
+            )
+            .trim();
+    }
+
+
+    function makePill(
+        value,
+        className
+    ) {
+
+        const pill =
+            document.createElement(
+                "span"
+            );
+
+        pill.className =
+            "hd-base-dock-pill "
+            + className;
+
+        pill.textContent =
+            value;
+
+        return pill;
+    }
+
+
+    function decorateBaseCard(card) {
+
+        if (
+            card.dataset
+                .hdBaseDockReady
+                === "yes"
+        ) {
+            return;
+        }
+
+
+        const chips =
+            card.querySelector(
+                ".hd-base-card-chips"
+            );
+
+
+        const body =
+            card.querySelector(
+                ".hd-base-card-body"
+            );
+
+
+        if (
+            !chips
+            || !body
+        ) {
+            return;
+        }
+
+
+        const platform =
+            chips.querySelector(
+                ".hd-base-platform"
+            );
+
+
+        const region =
+            chips.querySelector(
+                ".hd-base-region"
+            );
+
+
+        const state =
+            chips.querySelector(
+                ".hd-base-state"
+            );
+
+
+        const dock =
+            document.createElement(
+                "div"
+            );
+
+
+        dock.className =
+            "hd-base-status-dock";
+
+
+        if (
+            platform
+            && text(
+                platform.textContent
+            )
+        ) {
+
+            dock.appendChild(
+                makePill(
+                    text(
+                        platform.textContent
+                    ),
+                    "is-platform"
+                )
+            );
+        }
+
+
+        if (
+            region
+            && text(
+                region.textContent
+            )
+        ) {
+
+            dock.appendChild(
+                makePill(
+                    text(
+                        region.textContent
+                    ),
+                    "is-region"
+                )
+            );
+        }
+
+
+        if (
+            state
+            && text(
+                state.textContent
+            )
+        ) {
+
+            const stateText =
+                text(
+                    state.textContent
+                );
+
+
+            const missing =
+                stateText
+                    .toLowerCase()
+                    .includes(
+                        "missing"
+                    );
+
+
+            dock.appendChild(
+                makePill(
+                    stateText
+                        .replace(
+                            /^✓\s*/,
+                            ""
+                        ),
+                    missing
+                        ? "is-missing"
+                        : "is-verified"
+                )
+            );
+        }
+
+
+        body.insertBefore(
+            dock,
+            body.firstChild
+        );
+
+
+        card.dataset
+            .hdBaseDockReady =
+                "yes";
+    }
+
+
+    function decorateAll() {
+
+        document
+            .querySelectorAll(
+                "article.hd-hackdex-base-card"
+            )
+            .forEach(
+                decorateBaseCard
+            );
+    }
+
+
+    function schedule() {
+
+        requestAnimationFrame(
+            decorateAll
+        );
+    }
+
+
+    /*
+     * Base inventory renders asynchronously and re-renders
+     * when filters/scans change.
+     */
+
+    schedule();
+
+
+    const observer =
+        new MutationObserver(
+            schedule
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList:
+                true,
+
+            subtree:
+                true,
+        }
+    );
+
+})();
+</script>
+
 
 </body>
 </html>

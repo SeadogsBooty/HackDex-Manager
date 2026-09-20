@@ -1,4 +1,4 @@
-# Secrets and local configuration
+# Local configuration
 .env
 .env.*
 !.env.example
@@ -8,13 +8,21 @@ data/
 staging/
 logs/
 patch-cache/
+backups/
+
+# Local development and release backups
+.preview-backups/
+private-release-backups/
+release-private/
+
+# Databases
 *.db
 *.db-shm
 *.db-wal
 *.sqlite
 *.sqlite3
 
-# Backups
+# Backup/temp files
 *.bak
 *.bak.*
 *.backup
@@ -27,22 +35,16 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 .venv/
 venv/
 
-# Editors / OS
+# Local Compose overrides
+compose.override.yaml
+compose.override.yml
+
+# Editors and operating systems
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-
-# Private release material
-private-release-backups/
-release-private/
-*.bak*/
-**/*.bak
-**/*.bak.*
-**/*.bak*/
-
-# Local Docker Compose override
-compose.override.yaml

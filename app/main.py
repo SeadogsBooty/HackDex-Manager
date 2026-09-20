@@ -677,15 +677,17 @@ def start_background_base_rom_bootstrap():
 
 def run_catalog_bootstrap():
     """
-    Refresh the built-in HackDex catalog independently
-    of ROM and Base ROM scanning.
+    Refresh HackDex catalog metadata independently of ROM and
+    Base-ROM scanning.
 
-    Provider failure must never prevent HackDex Manager
-    from starting.
+    Pass 20 separates ordinary catalog metadata changes from
+    changes that actually require matching or readiness work.
     """
+
     catalog_logger.info(
         "HackDex catalog startup synchronization started."
     )
+
 
     try:
         result = sync_catalog()
@@ -698,13 +700,48 @@ def run_catalog_bootstrap():
         )
         return
 
-    if result.get("success"):
-        catalog_logger.info(
+
+    if not result.get(
+        "success"
+    ):
+        catalog_logger.warning(
             "HackDex catalog startup synchronization "
-            "completed imported=%s source=%s",
-            result.get("imported"),
-            result.get("source"),
+            "did not complete message=%s",
+            result.get(
+                "message"
+            ),
         )
+        return
+
+
+    catalog_logger.info(
+        "HackDex catalog startup synchronization "
+        "completed imported=%s source=%s "
+        "changed=%s cache_changed=%s "
+        "database_changed=%s matching_changed=%s "
+        "readiness_changed=%s",
+        result.get("imported"),
+        result.get("source"),
+        result.get("changed"),
+        result.get("cache_changed"),
+        result.get("database_changed"),
+        result.get("matching_changed"),
+        result.get("readiness_changed"),
+    )
+
+
+    matching_changed = result.get(
+        "matching_changed",
+        True,
+    )
+
+    readiness_changed = result.get(
+        "readiness_changed",
+        True,
+    )
+
+
+    if matching_changed:
 
         try:
             matching = run_matching()
@@ -720,6 +757,15 @@ def run_catalog_bootstrap():
                 "Post-catalog matching failed: %s",
                 exc,
             )
+
+    else:
+        catalog_logger.info(
+            "HackDex matching inputs unchanged; "
+            "skipping post-catalog matching."
+        )
+
+
+    if readiness_changed:
 
         try:
             readiness = (
@@ -740,12 +786,10 @@ def run_catalog_bootstrap():
             )
 
     else:
-        catalog_logger.warning(
-            "HackDex catalog startup synchronization "
-            "did not complete message=%s",
-            result.get("message"),
+        catalog_logger.info(
+            "HackDex readiness inputs unchanged; "
+            "skipping post-catalog readiness reconciliation."
         )
-
 
 
 readiness_job_lock = threading.Lock()

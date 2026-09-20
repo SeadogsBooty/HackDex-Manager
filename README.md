@@ -2,312 +2,244 @@
 
 HackDex Manager is a self-hosted web application for managing a local Pokémon ROM-hack library alongside the HackDex catalog.
 
-It can scan local ROM-hack libraries, match installed games to HackDex catalog entries, identify available updates, track base-ROM readiness, review uncertain matches, and provide library-health information from a browser-based interface.
+It scans your existing libraries, identifies installed hacks, matches them with HackDex, tracks available updates, verifies Base ROM readiness, and provides Download, Update, Reinstall, and library-management workflows from a browser.
 
 ## Features
 
 - HackDex catalog synchronization
-- Local ROM-hack library scanning
-- Installed, missing, and update views
-- Match confidence and manual review workflows
-- Version tracking
-- Base-ROM inventory and readiness checks
-- Library-health diagnostics
-- Persistent SQLite application state
-- Built-in application logging and diagnostics
+- Automatic ROM-hack library scanning
+- Installed, Missing, Update, and Needs Review states
+- Automatic matching with manual review for uncertain matches
+- Base ROM discovery and verification
+- Download, Install, Update, and Reinstall workflows
+- Patch readiness validation
+- Library Health diagnostics
+- Backup and restore utilities
+- Light and dark modes
 - Docker deployment
-- Configurable storage paths
-- Configurable PUID and PGID
-- Configurable host port and timezone
-- Built-in HackDex public provider configuration
-
-## Requirements
-
-You need:
-
-- Docker Engine
-- Docker Compose v2
-- Local storage for HackDex Manager application data
-- Access to your own ROM-hack library
-
-HackDex Manager does not include ROM files or base-game ROMs.
-
-You are responsible for supplying and managing your own game files.
+- No commercial ROM or Base ROM files included
 
 ## Quick Start
 
-Clone the repository and enter the project directory:
+Docker Compose is the recommended installation method.
 
-    git clone <repository-url>
-    cd hackdex-manager
+Create a `compose.yaml` file:
 
-Create your local environment configuration:
+```yaml
+services:
+  hackdex-manager:
+    image: ghcr.io/seadogsbooty/hackdex-manager:1.0.0
+    container_name: hackdex-manager
+    restart: unless-stopped
 
-    cp .env.example .env
+    user: "1000:1000"
 
-Edit `.env` as needed.
+    ports:
+      - "8095:8080"
 
-At minimum, review:
+    volumes:
+      - /path/to/hackdex-manager/data:/data
+      - /path/to/hackdex-manager/staging:/staging
+      - /path/to/roms:/roms:ro
+      - /path/to/hacks:/hacks
+```
 
-    PUID=1000
-    PGID=1000
-    HACKDEX_PORT=8080
-    TZ=UTC
+Change the paths on the left side of each volume to match your Docker host.
 
-    HACKDEX_DATA_PATH=./data
-    HACKDEX_STAGING_PATH=./staging
-
-    ROM_PATH=./roms
-    HACKDEX_HACKS_PATH=./hacks
+Change `1000:1000` if your Docker user uses a different PUID and PGID.
 
 Start HackDex Manager:
 
-    docker compose up -d
+```bash
+docker compose up -d
+```
 
 Open:
 
-    http://localhost:8080
+```text
+http://your-server-ip:8095
+```
 
-If you changed `HACKDEX_PORT`, use that port instead.
+## Library Scanning
 
-## Docker Compose Configuration
+You do not need to manually configure every system folder in your collection.
 
-HackDex Manager supports both:
+During first-run setup, HackDex Manager scans the mounted `/roms` and `/hacks` locations and identifies only the supported folders it needs.
 
-1. values stored in `.env`
-2. literal paths and values written directly into `compose.yaml`
+The scan locates:
 
-For example:
+- supported Base ROM locations
+- supported ROM-hack library locations
 
-    ports:
-      - "8081:8080"
+Unrelated systems and folders are ignored.
 
-And:
+This means `/roms` can point to your existing multi-system ROM collection, while `/hacks` can point wherever you already store ROM hacks.
 
-    volumes:
-      - /srv/hackdex/data:/data
-      - /srv/hackdex/staging:/staging
-      - /srv/roms:/roms:ro
-      - /srv/hacks:/hacks:rw
+HackDex Manager handles the supported-folder detection during setup.
 
-See [ENVIRONMENT.md](ENVIRONMENT.md) for the complete configuration reference.
+## Volume Reference
+
+| Mount | Purpose |
+| --- | --- |
+| `/path/to/hackdex-manager/data:/data` | Database, settings, logs, and persistent application state |
+| `/path/to/hackdex-manager/staging:/staging` | Temporary patch and download workspace |
+| `/path/to/roms:/roms:ro` | Existing ROM collection, mounted read-only |
+| `/path/to/hacks:/hacks` | Writable ROM-hack library root |
 
 ## PUID and PGID
 
-HackDex Manager can run as a specific Linux UID and GID.
+The example uses:
 
-This is useful when mounted directories are owned by a particular user or group.
+```yaml
+user: "1000:1000"
+```
 
-Example:
+The first number is the PUID and the second is the PGID.
 
-    PUID=1000
-    PGID=1000
+Run:
 
-You can normally determine your current UID and GID with:
+```bash
+id
+```
 
-    id
+on your Docker host to find the UID and GID you want HackDex Manager to use.
 
-The selected UID and GID must have write permission to the host directories used for HackDex Manager's writable mounts, especially `HACKDEX_DATA_PATH` and `HACKDEX_STAGING_PATH`.
+The selected user must have write access to:
 
-Check the host account with:
+- `/data`
+- `/staging`
+- configured writable hack-library folders
 
-    id
+The general `/roms` mount remains read-only.
 
-For example, if the host user is UID `1000` and GID `1000`:
+## Optional Environment Variables
 
-    PUID=1000
-    PGID=1000
+The basic YAML example does not require an `environment:` section.
 
-If these values do not match the ownership or permissions of the mounted directories, HackDex Manager may fail to start when creating the SQLite database, logs, or patch cache under `/data`.
+Add one only if you want to override the defaults:
 
-## Storage
+```yaml
+environment:
+  TZ: America/New_York
+  LOG_LEVEL: DEBUG
+```
 
-HackDex Manager uses persistent storage for application state.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `TZ` | `UTC` | Container timezone |
+| `LOG_LEVEL` | `INFO` | Application logging level |
 
-The `/data` mount contains application data such as:
+Supported logging levels are:
 
-- SQLite database
-- logs
-- cached provider data
-- application state
+- `DEBUG`
+- `INFO`
+- `WARNING`
+- `ERROR`
+- `CRITICAL`
 
-The `/staging` mount is used for temporary working data.
+Advanced provider overrides are documented in [ENVIRONMENT.md](ENVIRONMENT.md). Normal users do not need them.
 
-Your general ROM source is mounted at `/roms`.
+## Using an `.env` File
 
-The default Docker configuration mounts `/roms` read-only.
+An `.env` file is optional.
 
-ROM hacks are normally mounted beneath one writable
-container-visible parent at `/hacks`.
+If you prefer keeping deployment values outside the Compose file:
 
-The recommended structure is:
+```bash
+git clone https://github.com/SeadogsBooty/HackDex-Manager.git
+cd HackDex-Manager
+cp .env.example .env
+docker compose up -d
+```
 
-    /hacks/gb
-    /hacks/gbc
-    /hacks/gba
-    /hacks/nds
-
-The first-run Setup Guide can detect that structure
-automatically. It also supports traditional `*-hacks`
-directory names and individually configured custom
-container-visible paths.
+The supplied `compose.yaml` works with or without an `.env` file.
 
 ## First-Run Setup
 
-A brand-new HackDex Manager installation starts with an
-empty local application database.
+A new installation opens the Setup Guide automatically.
 
-On first launch, HackDex Manager opens the Setup Guide.
-The guide:
+Setup will:
 
-- verifies `/data`, `/staging`, and the clean `/roms` mount
-- detects or manually configures the user's ROM-hack libraries
-- synchronizes the live HackDex catalog
-- scans the user's own Base ROM and ROM-hack libraries
-- matches local games against the catalog
-- unlocks the normal application interface when setup completes
+1. verify application storage
+2. detect supported ROM-hack library locations
+3. synchronize the HackDex catalog
+4. discover and verify supported Base ROMs
+5. scan installed ROM hacks
+6. match installed games to HackDex
+7. prepare patch readiness information
 
-No local ROM records, Base ROM records, match history, or
-scan results are bundled with the application image.
-
-The general `/roms` mount is read-only by default.
-
-## HackDex Provider Configuration
-
-Normal users do not need to configure the HackDex API.
-
-HackDex Manager includes the standard public HackDex provider configuration required for catalog access.
-
-Advanced override variables are available for development, testing, mirrors, or troubleshooting.
-
-See [ENVIRONMENT.md](ENVIRONMENT.md).
-
-## Logs and Diagnostics
-
-HackDex Manager includes persistent application logging and a browser-based diagnostics interface.
-
-The default logging level is:
-
-    LOG_LEVEL=INFO
-
-Available levels include:
-
-- DEBUG
-- INFO
-- WARNING
-- ERROR
-- CRITICAL
-
-## Health Check
-
-The application exposes:
-
-    /health
-
-Example:
-
-    curl http://localhost:8080/health
-
-A healthy instance returns JSON containing:
-
-    "status": "ok"
-
-## Updating
-
-For source-based Docker deployments:
-
-    git pull
-    docker compose build
-    docker compose up -d
-
-Release-specific upgrade instructions will be documented in the project changelog and release notes.
-
-## Backups and Restore
-
-HackDex Manager includes tested backup and restore utilities.
-
-Create a backup:
-
-    ./scripts/backup.sh
-
-By default, backups are written to:
-
-    ./backups
-
-You can specify another destination:
-
-    ./scripts/backup.sh /path/to/backup-directory
-
-The backup archive contains:
-
-- `manifest.json`
-- `hackdex-manager.db`
-
-The backup intentionally excludes:
-
-- ROM/game files
-- patch cache
-- logs
-- provider/catalog cache files
-- historical database backup files
-
-HackDex Manager uses SQLite's backup API to create a consistent live backup.
-
-Restore a backup with:
-
-    ./scripts/restore.sh /path/to/hackdex-manager-backup-*.tar.gz
-
-Before restoring, the utility:
-
-- validates the archive layout
-- verifies the backup checksum
-- checks SQLite integrity
-- creates an automatic pre-restore safety backup
-- stops the application
-- replaces only the HackDex Manager SQLite database
-- restarts the application
-- waits for the health endpoint to return successfully
-
-ROM and game files are not part of the backup or restore process.
-
-Backups should still be copied to storage outside the HackDex Manager host if disaster recovery from host failure is required.
-
-## Privacy and Local Configuration
-
-Do not commit your `.env` file.
-
-The repository excludes local environment files, databases, logs, backups, runtime data, and other deployment-specific information.
-
-HackDex Manager includes a release audit script used to detect private deployment information and common secret patterns before publication.
+After setup completes, the normal Library interface becomes available.
 
 ## ROM Safety
 
-HackDex Manager treats the general ROM source mount as read-only by default.
+HackDex Manager does not include or distribute commercial ROMs or Base ROM files.
 
-The project does not bundle commercial game ROMs.
+The general `/roms` library is mounted read-only by default.
 
-Users are responsible for obtaining and managing any game files they use with the application.
+Writable game operations are restricted to explicitly configured ROM-hack libraries and HackDex Manager's staging workspace.
 
-## Current Release Status
+Download, Update, and Reinstall operations validate their source and destination before replacing an installed hack.
 
-HackDex Manager is currently preparing for its first stable `v1.0.0` release.
+Users are responsible for supplying and managing their own game files.
 
-The pre-1.0 stabilization series focuses on:
+## Updating
 
-- deployment portability
-- privacy and secret hygiene
-- documentation
-- backup and restore
-- release packaging
-- automated validation
-- clean-install testing
+For the standard Compose deployment:
 
-## Documentation
+```bash
+docker compose pull
+docker compose up -d
+```
 
-- [Environment Variables](ENVIRONMENT.md)
-- `CHANGELOG.md` — release history
-- `RELEASE.md` — release and upgrade procedures
-- `SECURITY.md` — security reporting and deployment guidance
+Persistent application state remains in `/data`.
+
+## Backup and Restore
+
+Create an application-state backup:
+
+```bash
+./scripts/backup.sh
+```
+
+Restore a backup:
+
+```bash
+./scripts/restore.sh /path/to/hackdex-manager-backup.tar.gz
+```
+
+ROM and game files are not included in HackDex Manager backups.
+
+## Health Check
+
+HackDex Manager exposes:
+
+```text
+/health
+```
+
+Example:
+
+```bash
+curl http://localhost:8095/health
+```
+
+A healthy instance returns:
+
+```json
+{"status":"ok"}
+```
+
+## Configuration
+
+See [ENVIRONMENT.md](ENVIRONMENT.md).
+
+## Security
+
+See [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

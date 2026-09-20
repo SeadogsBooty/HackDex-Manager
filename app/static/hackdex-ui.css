@@ -36055,3 +36055,7313 @@ html[data-mode="light"]
             1fr !important;
     }
 }
+
+
+/* ============================================================
+   Local-only visual experiment for 192.0.2.10.
+   No release/version semantics.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Catalog grid — mirror HackDex Discover proportions
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#grid {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+
+    gap:
+        24px !important;
+
+    align-items:
+        stretch !important;
+}
+
+
+/* ------------------------------------------------------------
+   HackDex catalog card shell
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card {
+    position:
+        relative !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    height:
+        100% !important;
+
+    overflow:
+        hidden !important;
+
+    padding:
+        0 !important;
+
+    border:
+        1px solid
+        var(--hd-border) !important;
+
+    border-radius:
+        12px !important;
+
+    background:
+        var(--hd-surface) !important;
+
+    box-shadow:
+        0 8px 22px
+        color-mix(
+            in srgb,
+            var(--hd-text) 8%,
+            transparent
+        ) !important;
+
+    cursor:
+        pointer;
+
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        border-color .22s ease !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card:hover {
+    transform:
+        translateY(-3px) !important;
+
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-primary) 42%,
+            var(--hd-border)
+        ) !important;
+
+    box-shadow:
+        0 16px 34px
+        color-mix(
+            in srgb,
+            var(--hd-text) 15%,
+            transparent
+        ) !important;
+}
+
+
+/*
+ * Keep Manager ownership semantics but make the state subtle,
+ * like HackDex's ready-card ring treatment.
+ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card:has(.owned),
+body.hd-shell-active
+.hd-hackdex-discover-card:has(.status-owned) {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-success) 48%,
+            var(--hd-border)
+        ) !important;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-success) 4%,
+            var(--hd-surface)
+        ) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card:has(.update-available),
+body.hd-shell-active
+.hd-hackdex-discover-card:has(.status-update-available) {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 54%,
+            var(--hd-border)
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Artwork
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-cover {
+    position:
+        relative !important;
+
+    order:
+        0;
+
+    width:
+        100% !important;
+
+    aspect-ratio:
+        3 / 2 !important;
+
+    min-height:
+        0 !important;
+
+    max-height:
+        none !important;
+
+    overflow:
+        hidden !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        12px
+        12px
+        0
+        0 !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                #000 28%,
+                var(--hd-surface)
+            ),
+            color-mix(
+                in srgb,
+                #000 10%,
+                var(--hd-surface)
+            )
+        ) !important;
+}
+
+
+html[data-mode="dark"]
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-cover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(0, 0, 0, .82),
+            rgba(0, 0, 0, .42)
+        ) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-cover
+.cover {
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    object-fit:
+        contain !important;
+
+    object-position:
+        center !important;
+
+    padding:
+        8px !important;
+
+    box-sizing:
+        border-box !important;
+
+    transition:
+        transform .28s ease !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card:hover
+.hd-hack-cover
+.cover {
+    transform:
+        scale(1.035);
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.cover-fallback {
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    min-height:
+        0 !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column;
+
+    justify-content:
+        center;
+
+    align-items:
+        center;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+/* ------------------------------------------------------------
+   Overlay chips
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-chips {
+    position:
+        absolute !important;
+
+    z-index:
+        5 !important;
+
+    top:
+        12px !important;
+
+    left:
+        12px !important;
+
+    right:
+        12px !important;
+
+    display:
+        flex !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        7px !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    pointer-events:
+        none;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip {
+    min-height:
+        auto !important;
+
+    padding:
+        4px
+        9px !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-text) 18%,
+            transparent
+        ) !important;
+
+    border-radius:
+        999px !important;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-surface) 74%,
+            transparent
+        ) !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        650 !important;
+
+    line-height:
+        1.2 !important;
+
+    backdrop-filter:
+        blur(10px);
+
+    box-shadow:
+        0 1px 4px
+        rgba(0, 0, 0, .12);
+}
+
+
+/* Preserve semantic chip colors. */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip.owned,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip.status-owned,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip.ready {
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-success) 70%,
+            transparent
+        ) !important;
+
+    color:
+        #fff !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip.update-available,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-chip.status-update-available {
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 78%,
+            transparent
+        ) !important;
+
+    color:
+        #fff !important;
+}
+
+
+/* ------------------------------------------------------------
+   Card body
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-body {
+    order:
+        1;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    flex:
+        1
+        1
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    padding:
+        16px !important;
+
+    gap:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-title-row {
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        space-between !important;
+
+    gap:
+        10px !important;
+
+    margin:
+        0 !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-title-row
+.title {
+    min-width:
+        0;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        15px !important;
+
+    font-weight:
+        700 !important;
+
+    letter-spacing:
+        -.01em;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.version-badge,
+body.hd-shell-active
+.hd-hackdex-discover-card
+[class*="version-pill"] {
+    flex:
+        0
+        0
+        auto;
+
+    border-radius:
+        999px !important;
+
+    padding:
+        3px
+        8px !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        650 !important;
+}
+
+
+/*
+ * Author line already exists in Manager.
+ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-author,
+body.hd-shell-active
+.hd-hackdex-discover-card
+[class*="author"] {
+    margin-top:
+        5px !important;
+
+    color:
+        var(--hd-text-muted) !important;
+
+    font-size:
+        12px !important;
+}
+
+
+/*
+ * HackDex Discover clamps summary to two lines.
+ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-summary {
+    display:
+        -webkit-box !important;
+
+    -webkit-box-orient:
+        vertical;
+
+    -webkit-line-clamp:
+        2;
+
+    overflow:
+        hidden !important;
+
+    min-height:
+        2.8em;
+
+    margin:
+        11px
+        0
+        0 !important;
+
+    color:
+        var(--hd-text-muted) !important;
+
+    font-size:
+        13px !important;
+
+    line-height:
+        1.4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM line — simplify current tile into Discover footer
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-meta {
+    display:
+        block !important;
+
+    margin-top:
+        auto !important;
+
+    padding-top:
+        14px !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-meta-tile,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-meta
+> div {
+    display:
+        flex !important;
+
+    align-items:
+        baseline !important;
+
+    gap:
+        5px !important;
+
+    min-height:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-meta
+span {
+    display:
+        inline !important;
+
+    color:
+        var(--hd-text-muted) !important;
+
+    font-size:
+        11px !important;
+
+    text-transform:
+        none !important;
+
+    letter-spacing:
+        0 !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    color:
+        var(--hd-text-muted) !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        600 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Manager-only version/update block
+   Keep it, but compact it to avoid fighting Discover hierarchy.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-version-compare,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-version-strip,
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-latest-version-box {
+    margin-top:
+        10px !important;
+
+    padding:
+        8px
+        10px !important;
+
+    border-radius:
+        9px !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* ------------------------------------------------------------
+   Actions
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-actions {
+    display:
+        flex !important;
+
+    gap:
+        8px !important;
+
+    margin-top:
+        14px !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-discover-card
+.hd-hack-card-actions
+button {
+    min-height:
+        36px !important;
+
+    padding:
+        8px
+        12px !important;
+
+    border-radius:
+        8px !important;
+
+    font-size:
+        12px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM grid
+   Same 3 / 2 / 1 Discover rhythm
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#base-grid {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+
+    gap:
+        24px !important;
+
+    align-items:
+        stretch !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM card shell
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-base-card {
+    position:
+        relative !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    height:
+        100% !important;
+
+    overflow:
+        hidden !important;
+
+    padding:
+        0 !important;
+
+    border:
+        1px solid
+        var(--hd-border) !important;
+
+    border-radius:
+        12px !important;
+
+    background:
+        var(--hd-surface) !important;
+
+    box-shadow:
+        0 8px 22px
+        color-mix(
+            in srgb,
+            var(--hd-text) 8%,
+            transparent
+        ) !important;
+
+    transition:
+        transform .22s ease,
+        box-shadow .22s ease,
+        border-color .22s ease !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card:hover {
+    transform:
+        translateY(-3px) !important;
+
+    box-shadow:
+        0 16px 34px
+        color-mix(
+            in srgb,
+            var(--hd-text) 14%,
+            transparent
+        ) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card.owned {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-success) 45%,
+            var(--hd-border)
+        ) !important;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-success) 4%,
+            var(--hd-surface)
+        ) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card.missing {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 30%,
+            var(--hd-border)
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM artwork
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-cover {
+    position:
+        relative !important;
+
+    width:
+        100% !important;
+
+    aspect-ratio:
+        3 / 2 !important;
+
+    min-height:
+        0 !important;
+
+    height:
+        auto !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        12px
+        12px
+        0
+        0 !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            color-mix(
+                in srgb,
+                #000 24%,
+                var(--hd-surface)
+            ),
+            color-mix(
+                in srgb,
+                #000 8%,
+                var(--hd-surface)
+            )
+        ) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-art {
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    min-height:
+        0 !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        8px !important;
+
+    box-sizing:
+        border-box !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-art
+img {
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    max-width:
+        100% !important;
+
+    max-height:
+        100% !important;
+
+    object-fit:
+        contain !important;
+
+    transition:
+        transform .28s ease;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card:hover
+.hd-base-art
+img {
+    transform:
+        scale(1.035);
+}
+
+
+/* ------------------------------------------------------------
+   Base chips overlay
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-card-chips {
+    position:
+        absolute !important;
+
+    z-index:
+        5;
+
+    top:
+        12px !important;
+
+    left:
+        12px !important;
+
+    right:
+        12px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        7px !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-platform,
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-region,
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-state {
+    border-radius:
+        999px !important;
+
+    padding:
+        4px
+        9px !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-text) 18%,
+            transparent
+        ) !important;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-surface) 76%,
+            transparent
+        ) !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        650 !important;
+
+    backdrop-filter:
+        blur(10px);
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-state.owned {
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-success) 72%,
+            transparent
+        ) !important;
+
+    color:
+        #fff !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-state.missing {
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 76%,
+            transparent
+        ) !important;
+
+    color:
+        #fff !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base body
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-card-body {
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    flex:
+        1
+        1
+        auto !important;
+
+    padding:
+        16px !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    margin:
+        0 !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        15px !important;
+
+    font-weight:
+        700 !important;
+
+    letter-spacing:
+        -.01em;
+}
+
+
+/*
+ * Replace large Manager status panel visually with the simpler
+ * Base ROM status language used by HackDex.
+ */
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-status,
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-status.missing {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        8px
+        minmax(0, 1fr) !important;
+
+    align-items:
+        start !important;
+
+    column-gap:
+        10px !important;
+
+    margin-top:
+        10px !important;
+
+    padding:
+        0 !important;
+
+    min-height:
+        42px;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-icon {
+    width:
+        8px !important;
+
+    height:
+        8px !important;
+
+    min-width:
+        8px !important;
+
+    margin-top:
+        5px;
+
+    overflow:
+        hidden;
+
+    border:
+        0 !important;
+
+    border-radius:
+        50% !important;
+
+    background:
+        var(--hd-success) !important;
+
+    color:
+        transparent !important;
+
+    font-size:
+        0 !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-status.missing
+.hd-base-library-icon {
+    background:
+        var(--hd-warning) !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    color:
+        var(--hd-text-muted) !important;
+
+    font-size:
+        12px !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    display:
+        block;
+
+    margin-top:
+        3px;
+
+    overflow:
+        hidden;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        12px !important;
+
+    font-weight:
+        600 !important;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+}
+
+
+/* Technical section remains available but visually subordinate. */
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-tech {
+    margin-top:
+        auto !important;
+
+    padding-top:
+        13px !important;
+
+    border:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    padding:
+        0 !important;
+
+    color:
+        var(--hd-text-muted) !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        650 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Responsive Discover grids
+   ------------------------------------------------------------ */
+
+@media (max-width: 1180px) {
+
+    body.hd-shell-active
+    #grid,
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+    }
+}
+
+
+@media (max-width: 700px) {
+
+    body.hd-shell-active
+    #grid,
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        gap:
+            18px !important;
+    }
+}
+
+
+/* ============================================================
+   Local 156-only visual experiment.
+   Strong final overrides intentionally defeat legacy card CSS.
+   ============================================================ */
+
+
+/* ============================================================
+   CATALOG WIDTH / RHYTHM
+   HackDex Discover is intentionally much narrower than the
+   full Manager workspace.
+   ============================================================ */
+
+body.hd-shell-active
+#grid {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+
+    gap:
+        18px !important;
+
+    width:
+        min(
+            100%,
+            990px
+        ) !important;
+
+    max-width:
+        990px !important;
+
+    margin-left:
+        auto !important;
+
+    margin-right:
+        auto !important;
+
+    align-items:
+        stretch !important;
+}
+
+
+/* ============================================================
+   CATALOG CARD
+   ============================================================ */
+
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card {
+    position:
+        relative !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    min-width:
+        0 !important;
+
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-border) 88%,
+            transparent
+        ) !important;
+
+    border-radius:
+        12px !important;
+
+    background:
+        var(--hd-surface) !important;
+
+    box-shadow:
+        none !important;
+
+    transform:
+        none !important;
+
+    cursor:
+        pointer !important;
+
+    transition:
+        transform .22s ease,
+        border-color .22s ease,
+        box-shadow .22s ease !important;
+}
+
+
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card:hover {
+    transform:
+        translateY(-2px) !important;
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, .18) !important;
+}
+
+
+/* Ready = HackDex-like emerald card */
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card:has(.readiness-ready) {
+    border-color:
+        rgba(39, 210, 132, .48) !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(14, 66, 49, .88),
+            rgba(8, 40, 31, .96)
+        ) !important;
+}
+
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card:has(.readiness-ready) {
+    border-color:
+        rgba(22, 160, 103, .42) !important;
+
+    background:
+        color-mix(
+            in srgb,
+            var(--hd-success) 8%,
+            var(--hd-surface)
+        ) !important;
+}
+
+
+/* Missing base stays restrained rather than turning orange */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card:has(.readiness-missing) {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 38%,
+            var(--hd-border)
+        ) !important;
+}
+
+
+/* ============================================================
+   MEDIA PANEL
+   Force all artwork/fallback children into ONE panel.
+   This removes the broken left/right split from Pass 1.
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover {
+    position:
+        relative !important;
+
+    display:
+        block !important;
+
+    width:
+        100% !important;
+
+    height:
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    max-height:
+        none !important;
+
+    aspect-ratio:
+        3 / 2 !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        11px
+        11px
+        0
+        0 !important;
+
+    background:
+        rgba(0, 0, 0, .28) !important;
+}
+
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card:has(.readiness-ready)
+.hd-hack-cover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(19, 105, 78, .94),
+            rgba(13, 87, 64, .92)
+        ) !important;
+}
+
+
+/*
+ * Absolute positioning is deliberate here.
+ * Existing card CSS has imposed sizing/flex behavior on .cover
+ * over several earlier releases.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+img.cover {
+    position:
+        absolute !important;
+
+    inset:
+        12px !important;
+
+    display:
+        block !important;
+
+    width:
+        calc(100% - 24px) !important;
+
+    height:
+        calc(100% - 24px) !important;
+
+    min-width:
+        0 !important;
+
+    min-height:
+        0 !important;
+
+    max-width:
+        none !important;
+
+    max-height:
+        none !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    object-fit:
+        contain !important;
+
+    object-position:
+        center !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    box-shadow:
+        0 12px 28px
+        rgba(0, 0, 0, .22) !important;
+
+    transform:
+        none !important;
+
+    transition:
+        transform .25s ease !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card:hover
+.hd-hack-cover
+img.cover {
+    transform:
+        scale(1.025) !important;
+}
+
+
+/*
+ * A valid image returns an inline fallback with display:none.
+ * Keep that hidden even against old card CSS.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+.cover-fallback[style*="display:none"],
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+.cover-fallback[style*="display: none"] {
+    display:
+        none !important;
+}
+
+
+/*
+ * True no-artwork/error fallback fills the same media panel.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+.cover-fallback:not([style*="display:none"]):not([style*="display: none"]) {
+    position:
+        absolute !important;
+
+    inset:
+        0 !important;
+
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    padding:
+        20px !important;
+
+    margin:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    text-align:
+        center !important;
+}
+
+
+/* ============================================================
+   OVERLAY CHIPS
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips {
+    position:
+        absolute !important;
+
+    z-index:
+        20 !important;
+
+    top:
+        9px !important;
+
+    left:
+        9px !important;
+
+    right:
+        9px !important;
+
+    display:
+        flex !important;
+
+    flex-wrap:
+        wrap !important;
+
+    align-items:
+        center !important;
+
+    gap:
+        5px !important;
+
+    width:
+        auto !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+
+    pointer-events:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+.hd-hack-chip {
+    width:
+        auto !important;
+
+    min-width:
+        0 !important;
+
+    min-height:
+        0 !important;
+
+    height:
+        auto !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        3px
+        7px !important;
+
+    border:
+        1px solid
+        rgba(255,255,255,.20) !important;
+
+    border-radius:
+        999px !important;
+
+    background:
+        rgba(13, 18, 20, .76) !important;
+
+    color:
+        rgba(255,255,255,.92) !important;
+
+    font-size:
+        10px !important;
+
+    line-height:
+        1.2 !important;
+
+    font-weight:
+        650 !important;
+
+    letter-spacing:
+        0 !important;
+
+    text-transform:
+        none !important;
+
+    backdrop-filter:
+        blur(7px);
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-chip.readiness-ready {
+    background:
+        rgba(22, 149, 96, .86) !important;
+
+    border-color:
+        rgba(91, 230, 166, .55) !important;
+
+    color:
+        #effff7 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-chip.readiness-missing {
+    background:
+        rgba(163, 111, 24, .90) !important;
+
+    border-color:
+        rgba(255, 202, 101, .52) !important;
+
+    color:
+        #fff8e8 !important;
+}
+
+
+/* ============================================================
+   BODY
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body {
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    flex:
+        1
+        1
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    width:
+        100% !important;
+
+    padding:
+        12px
+        13px
+        13px !important;
+
+    margin:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row {
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        space-between !important;
+
+    gap:
+        7px !important;
+
+    margin:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title {
+    flex:
+        1
+        1
+        auto;
+
+    min-width:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    text-overflow:
+        ellipsis !important;
+
+    white-space:
+        nowrap !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        14px !important;
+
+    line-height:
+        1.25 !important;
+
+    font-weight:
+        750 !important;
+
+    letter-spacing:
+        -.01em !important;
+}
+
+
+/* Version pill */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+span,
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.version-badge {
+    flex:
+        0
+        0
+        auto !important;
+
+    font-size:
+        10px !important;
+}
+
+
+/* Author */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-author,
+body.hd-shell-active
+article.hd-hackdex-discover-card
+[class*="author"] {
+    margin:
+        4px 0 0 !important;
+
+    color:
+        color-mix(
+            in srgb,
+            var(--hd-text) 58%,
+            transparent
+        ) !important;
+
+    font-size:
+        11px !important;
+
+    line-height:
+        1.3 !important;
+}
+
+
+/* Summary */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary {
+    display:
+        -webkit-box !important;
+
+    -webkit-box-orient:
+        vertical !important;
+
+    -webkit-line-clamp:
+        2 !important;
+
+    overflow:
+        hidden !important;
+
+    min-height:
+        0 !important;
+
+    max-height:
+        2.8em !important;
+
+    margin:
+        9px
+        0
+        0 !important;
+
+    padding:
+        0 !important;
+
+    color:
+        color-mix(
+            in srgb,
+            var(--hd-text) 68%,
+            transparent
+        ) !important;
+
+    font-size:
+        11.5px !important;
+
+    line-height:
+        1.4 !important;
+}
+
+
+/* ============================================================
+   BASE ROM LINE
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta {
+    display:
+        block !important;
+
+    width:
+        100% !important;
+
+    margin:
+        12px
+        0
+        0 !important;
+
+    padding:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+.hd-hack-meta-tile {
+    display:
+        flex !important;
+
+    align-items:
+        baseline !important;
+
+    gap:
+        4px !important;
+
+    min-height:
+        0 !important;
+
+    height:
+        auto !important;
+
+    width:
+        100% !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span,
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    display:
+        inline !important;
+
+    margin:
+        0 !important;
+
+    color:
+        color-mix(
+            in srgb,
+            var(--hd-text) 60%,
+            transparent
+        ) !important;
+
+    font-size:
+        10px !important;
+
+    line-height:
+        1.3 !important;
+
+    letter-spacing:
+        0 !important;
+
+    text-transform:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span::after {
+    content:
+        ":" !important;
+}
+
+
+/* ============================================================
+   VERSION STATUS
+   Keep Manager functionality but make it visually subordinate.
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    display:
+        flex !important;
+
+    width:
+        100% !important;
+
+    min-height:
+        0 !important;
+
+    margin:
+        10px
+        0
+        0 !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-top:
+        1px solid
+        color-mix(
+            in srgb,
+            var(--hd-border) 70%,
+            transparent
+        ) !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side {
+    min-height:
+        0 !important;
+
+    padding:
+        8px
+        8px
+        0
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+span {
+    font-size:
+        8px !important;
+
+    opacity:
+        .62 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+strong {
+    font-size:
+        10px !important;
+}
+
+
+/* ============================================================
+   ACTIONS
+   Entire card already opens details, so hide redundant button.
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions {
+    display:
+        flex !important;
+
+    width:
+        100% !important;
+
+    margin:
+        auto 0 0 !important;
+
+    padding:
+        11px
+        0
+        0 !important;
+
+    gap:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions
+.hd-details-button {
+    display:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions
+.obtain-button {
+    width:
+        100% !important;
+
+    min-height:
+        31px !important;
+
+    height:
+        31px !important;
+
+    padding:
+        5px
+        10px !important;
+
+    border-radius:
+        7px !important;
+
+    font-size:
+        11px !important;
+
+    font-weight:
+        700 !important;
+}
+
+
+/* ============================================================
+   BASE ROM GRID
+   Match catalog width/rhythm.
+   ============================================================ */
+
+body.hd-shell-active
+#base-grid {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+
+    gap:
+        18px !important;
+
+    width:
+        min(
+            100%,
+            990px
+        ) !important;
+
+    max-width:
+        990px !important;
+
+    margin-left:
+        auto !important;
+
+    margin-right:
+        auto !important;
+
+    align-items:
+        stretch !important;
+}
+
+
+/* ============================================================
+   BASE ROM CARD
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-base-card.hd-hackdex-base-card {
+    position:
+        relative !important;
+
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    min-width:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        1px solid
+        var(--hd-border) !important;
+
+    border-radius:
+        12px !important;
+
+    background:
+        var(--hd-surface) !important;
+
+    box-shadow:
+        none !important;
+
+    transition:
+        transform .22s ease,
+        border-color .22s ease,
+        box-shadow .22s ease !important;
+}
+
+
+body.hd-shell-active
+article.hd-base-card.hd-hackdex-base-card:hover {
+    transform:
+        translateY(-2px) !important;
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, .16) !important;
+}
+
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card.owned {
+    border-color:
+        rgba(39, 210, 132, .46) !important;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(14, 66, 49, .86),
+            rgba(8, 40, 31, .96)
+        ) !important;
+}
+
+
+/* Base media */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover {
+    position:
+        relative !important;
+
+    display:
+        block !important;
+
+    width:
+        100% !important;
+
+    height:
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    max-height:
+        none !important;
+
+    aspect-ratio:
+        3 / 2 !important;
+
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        11px
+        11px
+        0
+        0 !important;
+
+    background:
+        rgba(0, 0, 0, .25) !important;
+}
+
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card.owned
+.hd-base-cover {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(19, 105, 78, .94),
+            rgba(13, 87, 64, .92)
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art {
+    position:
+        absolute !important;
+
+    inset:
+        10px !important;
+
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    width:
+        calc(100% - 20px) !important;
+
+    height:
+        calc(100% - 20px) !important;
+
+    min-width:
+        0 !important;
+
+    min-height:
+        0 !important;
+
+    max-width:
+        none !important;
+
+    max-height:
+        none !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art
+img {
+    display:
+        block !important;
+
+    width:
+        100% !important;
+
+    height:
+        100% !important;
+
+    max-width:
+        none !important;
+
+    max-height:
+        none !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    object-fit:
+        contain !important;
+
+    object-position:
+        center !important;
+
+    box-shadow:
+        0 12px 28px
+        rgba(0,0,0,.20) !important;
+}
+
+
+/* Base chips */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips {
+    position:
+        absolute !important;
+
+    z-index:
+        20 !important;
+
+    top:
+        9px !important;
+
+    left:
+        9px !important;
+
+    right:
+        9px !important;
+
+    display:
+        flex !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        5px !important;
+
+    width:
+        auto !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips
+span {
+    width:
+        auto !important;
+
+    min-width:
+        0 !important;
+
+    min-height:
+        0 !important;
+
+    height:
+        auto !important;
+
+    padding:
+        3px
+        7px !important;
+
+    margin:
+        0 !important;
+
+    border:
+        1px solid
+        rgba(255,255,255,.20) !important;
+
+    border-radius:
+        999px !important;
+
+    background:
+        rgba(13,18,20,.76) !important;
+
+    color:
+        rgba(255,255,255,.92) !important;
+
+    font-size:
+        10px !important;
+
+    line-height:
+        1.2 !important;
+
+    font-weight:
+        650 !important;
+
+    backdrop-filter:
+        blur(7px);
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-state.owned {
+    background:
+        rgba(22,149,96,.86) !important;
+
+    border-color:
+        rgba(91,230,166,.55) !important;
+
+    color:
+        #effff7 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-state.missing {
+    background:
+        rgba(163,111,24,.90) !important;
+
+    border-color:
+        rgba(255,202,101,.52) !important;
+
+    color:
+        #fff8e8 !important;
+}
+
+
+/* Base body */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    flex:
+        1
+        1
+        auto !important;
+
+    min-height:
+        0 !important;
+
+    width:
+        100% !important;
+
+    padding:
+        12px
+        13px
+        13px !important;
+
+    margin:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    margin:
+        0 !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        14px !important;
+
+    line-height:
+        1.25 !important;
+
+    font-weight:
+        750 !important;
+}
+
+
+/* Compact verified/missing status */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status,
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        7px
+        minmax(0,1fr) !important;
+
+    gap:
+        8px !important;
+
+    align-items:
+        start !important;
+
+    width:
+        100% !important;
+
+    min-height:
+        0 !important;
+
+    margin:
+        9px
+        0
+        0 !important;
+
+    padding:
+        0 !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-icon {
+    width:
+        7px !important;
+
+    height:
+        7px !important;
+
+    min-width:
+        7px !important;
+
+    margin-top:
+        5px !important;
+
+    padding:
+        0 !important;
+
+    overflow:
+        hidden !important;
+
+    border:
+        0 !important;
+
+    border-radius:
+        50% !important;
+
+    background:
+        var(--hd-success) !important;
+
+    color:
+        transparent !important;
+
+    font-size:
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing
+.hd-base-library-icon {
+    background:
+        var(--hd-warning) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    color:
+        color-mix(
+            in srgb,
+            var(--hd-text) 64%,
+            transparent
+        ) !important;
+
+    font-size:
+        10px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    display:
+        block !important;
+
+    margin-top:
+        2px !important;
+
+    overflow:
+        hidden !important;
+
+    color:
+        var(--hd-text) !important;
+
+    font-size:
+        10.5px !important;
+
+    font-weight:
+        600 !important;
+
+    text-overflow:
+        ellipsis !important;
+
+    white-space:
+        nowrap !important;
+}
+
+
+/* Technical details as subtle footer */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech {
+    width:
+        100% !important;
+
+    margin:
+        auto 0 0 !important;
+
+    padding:
+        11px
+        0
+        0 !important;
+
+    border:
+        0 !important;
+
+    background:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    padding:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    border:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    color:
+        color-mix(
+            in srgb,
+            var(--hd-text) 62%,
+            transparent
+        ) !important;
+
+    font-size:
+        10px !important;
+
+    line-height:
+        1.3 !important;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1180px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0,1fr)
+            ) !important;
+
+        width:
+            min(
+                100%,
+                660px
+            ) !important;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        width:
+            min(
+                100%,
+                340px
+            ) !important;
+
+        gap:
+            16px !important;
+    }
+}
+
+
+/* ============================================================
+   Scale + spacing refinement.
+   Local-only 156 preview.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Wider Discover layout
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#grid,
+
+body.hd-shell-active
+#base-grid {
+    width:
+        min(
+            100%,
+            1220px
+        ) !important;
+
+    max-width:
+        1220px !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        ) !important;
+
+    gap:
+        22px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Larger media area
+   Preserve HackDex 3:2 proportions.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover {
+    aspect-ratio:
+        3 / 2 !important;
+}
+
+
+/*
+ * Slightly more room around contained artwork.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+img.cover {
+    inset:
+        14px !important;
+
+    width:
+        calc(100% - 28px) !important;
+
+    height:
+        calc(100% - 28px) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art {
+    inset:
+        13px !important;
+
+    width:
+        calc(100% - 26px) !important;
+
+    height:
+        calc(100% - 26px) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Card body breathing room
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    padding:
+        15px
+        16px
+        16px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Title scale
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    font-size:
+        15.5px !important;
+
+    line-height:
+        1.3 !important;
+
+    font-weight:
+        750 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Version pill
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.version-badge {
+    font-size:
+        10.5px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Author/meta
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-author,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+[class*="author"] {
+    margin-top:
+        5px !important;
+
+    font-size:
+        12px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Summary
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary {
+    margin-top:
+        11px !important;
+
+    font-size:
+        12.5px !important;
+
+    line-height:
+        1.45 !important;
+
+    max-height:
+        2.9em !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM footer line
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta {
+    margin-top:
+        14px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    font-size:
+        11px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Version strip
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    margin-top:
+        12px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side {
+    padding:
+        10px
+        10px
+        0
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+span {
+    font-size:
+        9px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+strong {
+    font-size:
+        11px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Action button
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions {
+    padding-top:
+        13px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions
+.obtain-button {
+    height:
+        36px !important;
+
+    min-height:
+        36px !important;
+
+    font-size:
+        12px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Overlay chips slightly larger
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips {
+    top:
+        11px !important;
+
+    left:
+        11px !important;
+
+    right:
+        11px !important;
+
+    gap:
+        6px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+.hd-hack-chip,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips
+span {
+    padding:
+        4px
+        8px !important;
+
+    font-size:
+        10.5px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Base ROM status text
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status {
+    margin-top:
+        11px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    font-size:
+        11px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    font-size:
+        11.5px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Technical details
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech {
+    padding-top:
+        13px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    font-size:
+        11px !important;
+}
+
+
+/* ------------------------------------------------------------
+   Responsive sizing
+   ------------------------------------------------------------ */
+
+@media (max-width: 1380px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        width:
+            min(
+                100%,
+                1080px
+            ) !important;
+
+        max-width:
+            1080px !important;
+    }
+}
+
+
+@media (max-width: 1080px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+
+        width:
+            min(
+                100%,
+                760px
+            ) !important;
+
+        max-width:
+            760px !important;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        width:
+            min(
+                100%,
+                390px
+            ) !important;
+
+        max-width:
+            390px !important;
+
+        gap:
+            18px !important;
+    }
+}
+
+
+/* ============================================================
+   Local-only 156 preview.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   PAGE UTILIZATION
+   Wider overall grid footprint without enlarging each card.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#grid,
+
+body.hd-shell-active
+#base-grid {
+    width:
+        min(
+            100%,
+            1420px
+        ) !important;
+
+    max-width:
+        1420px !important;
+
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(
+                300px,
+                1fr
+            )
+        ) !important;
+
+    column-gap:
+        34px !important;
+
+    row-gap:
+        20px !important;
+
+    margin-left:
+        auto !important;
+
+    margin-right:
+        auto !important;
+}
+
+
+/* ------------------------------------------------------------
+   Neutralize Pass 3 enlargements.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    padding:
+        12px
+        13px
+        13px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    font-size:
+        14px !important;
+
+    line-height:
+        1.25 !important;
+
+    font-weight:
+        750 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.version-badge {
+    font-size:
+        10px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-author,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+[class*="author"] {
+    margin-top:
+        4px !important;
+
+    font-size:
+        11px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary {
+    margin-top:
+        9px !important;
+
+    font-size:
+        11.5px !important;
+
+    line-height:
+        1.4 !important;
+
+    max-height:
+        2.8em !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta {
+    margin-top:
+        12px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    font-size:
+        10px !important;
+}
+
+
+/* Version area back to Pass 2 scale */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    margin-top:
+        10px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side {
+    padding:
+        8px
+        8px
+        0
+        0 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+span {
+    font-size:
+        8px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+strong {
+    font-size:
+        10px !important;
+}
+
+
+/* Buttons back to Pass 2 scale */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions {
+    padding-top:
+        11px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions
+.obtain-button {
+    height:
+        31px !important;
+
+    min-height:
+        31px !important;
+
+    font-size:
+        11px !important;
+}
+
+
+/* Overlay chips back to Pass 2 scale */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips {
+    top:
+        9px !important;
+
+    left:
+        9px !important;
+
+    right:
+        9px !important;
+
+    gap:
+        5px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+.hd-hack-chip,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-chips
+span {
+    padding:
+        3px
+        7px !important;
+
+    font-size:
+        10px !important;
+}
+
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+img.cover {
+    inset:
+        12px !important;
+
+    width:
+        calc(100% - 24px) !important;
+
+    height:
+        calc(100% - 24px) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art {
+    inset:
+        10px !important;
+
+    width:
+        calc(100% - 20px) !important;
+
+    height:
+        calc(100% - 20px) !important;
+}
+
+
+/* Base ROM text back to Pass 2 size */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status {
+    margin-top:
+        9px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    font-size:
+        10px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    font-size:
+        10.5px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech {
+    padding-top:
+        11px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    font-size:
+        10px !important;
+}
+
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+   Keep broader desktop utilization.
+   ------------------------------------------------------------ */
+
+@media (max-width: 1500px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        width:
+            min(
+                100%,
+                1260px
+            ) !important;
+
+        max-width:
+            1260px !important;
+
+        column-gap:
+            28px !important;
+    }
+}
+
+
+@media (max-width: 1180px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                    300px,
+                    1fr
+                )
+            ) !important;
+
+        width:
+            min(
+                100%,
+                860px
+            ) !important;
+
+        max-width:
+            860px !important;
+
+        column-gap:
+            24px !important;
+    }
+}
+
+
+@media (max-width: 720px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        width:
+            min(
+                100%,
+                390px
+            ) !important;
+
+        max-width:
+            390px !important;
+
+        gap:
+            18px !important;
+    }
+}
+
+
+/* ============================================================
+   Same compact card scale, more cards per row.
+   Local-only 156 preview.
+   ============================================================ */
+
+
+/*
+ * The previous experiments kept three columns regardless of
+ * the large Manager workspace.
+ *
+ * Keep the compact HackDex-style card footprint and increase
+ * the number of columns instead of stretching each card.
+ */
+
+body.hd-shell-active
+#grid,
+
+body.hd-shell-active
+#base-grid {
+    display:
+        grid !important;
+
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(
+                0,
+                1fr
+            )
+        ) !important;
+
+    width:
+        100% !important;
+
+    max-width:
+        none !important;
+
+    margin-left:
+        0 !important;
+
+    margin-right:
+        0 !important;
+
+    column-gap:
+        18px !important;
+
+    row-gap:
+        18px !important;
+
+    align-items:
+        stretch !important;
+}
+
+
+/*
+ * Keep cards from ballooning just because the Manager content
+ * area is very wide.
+ */
+
+body.hd-shell-active
+#grid
+> article.hd-hackdex-discover-card,
+
+body.hd-shell-active
+#base-grid
+> article.hd-hackdex-base-card {
+    width:
+        100% !important;
+
+    max-width:
+        360px !important;
+
+    justify-self:
+        stretch !important;
+}
+
+
+/*
+ * Distribute the four compact cards across the available row.
+ */
+
+body.hd-shell-active
+#grid,
+
+body.hd-shell-active
+#base-grid {
+    justify-content:
+        space-between !important;
+}
+
+
+/* ------------------------------------------------------------
+   LARGE DESKTOP
+   Your current desktop viewport should land here.
+   ------------------------------------------------------------ */
+
+@media (min-width: 1700px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                4,
+                minmax(
+                    280px,
+                    360px
+                )
+            ) !important;
+
+        justify-content:
+            space-between !important;
+
+        column-gap:
+            22px !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   NORMAL DESKTOP
+   ------------------------------------------------------------ */
+
+@media (max-width: 1699px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(
+                    280px,
+                    1fr
+                )
+            ) !important;
+
+        column-gap:
+            20px !important;
+    }
+
+
+    body.hd-shell-active
+    #grid
+    > article.hd-hackdex-discover-card,
+
+    body.hd-shell-active
+    #base-grid
+    > article.hd-hackdex-base-card {
+        max-width:
+            none !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   TABLET / SMALL DESKTOP
+   ------------------------------------------------------------ */
+
+@media (max-width: 1180px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                    280px,
+                    1fr
+                )
+            ) !important;
+
+        column-gap:
+            18px !important;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   MOBILE
+   ------------------------------------------------------------ */
+
+@media (max-width: 720px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        width:
+            100% !important;
+
+        gap:
+            16px !important;
+    }
+
+
+    body.hd-shell-active
+    #grid
+    > article.hd-hackdex-discover-card,
+
+    body.hd-shell-active
+    #base-grid
+    > article.hd-hackdex-base-card {
+        width:
+            100% !important;
+
+        max-width:
+            none !important;
+    }
+}
+
+
+/* ============================================================
+
+   Goal:
+   - compact cards like the original Discover-style preview
+   - never stretch cards to consume a grid column
+   - fit as many cards as practical per row
+   - distribute unused horizontal space evenly
+   - local 156-only preview
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   FULL-WIDTH COMPACT CATALOG GRID
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#grid,
+
+body.hd-shell-active
+#base-grid {
+    display:
+        grid !important;
+
+    /*
+     * Fixed compact card tracks.
+     *
+     * auto-fill creates as many columns as fit naturally.
+     * Cards remain ~265px instead of stretching across the page.
+     */
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            265px
+        ) !important;
+
+    width:
+        100% !important;
+
+    max-width:
+        none !important;
+
+    margin:
+        0 !important;
+
+    /*
+     * This is the key difference from Pass 5:
+     * leftover width is spread evenly BETWEEN the fixed cards.
+     */
+    justify-content:
+        space-between !important;
+
+    align-items:
+        stretch !important;
+
+    column-gap:
+        16px !important;
+
+    row-gap:
+        20px !important;
+}
+
+
+/* ------------------------------------------------------------
+   FIX CARD WIDTH
+   Prevent earlier 1fr layouts from stretching them.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+#grid
+> article.hd-hackdex-discover-card,
+
+body.hd-shell-active
+#base-grid
+> article.hd-hackdex-base-card {
+    width:
+        265px !important;
+
+    min-width:
+        265px !important;
+
+    max-width:
+        265px !important;
+
+    justify-self:
+        start !important;
+}
+
+
+/* ------------------------------------------------------------
+   Explicitly defeat any lingering Pass-3 enlargement.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    padding:
+        12px
+        13px
+        13px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    font-size:
+        14px !important;
+
+    line-height:
+        1.25 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary {
+    margin-top:
+        9px !important;
+
+    font-size:
+        11.5px !important;
+
+    line-height:
+        1.4 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    font-size:
+        10px !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions
+.obtain-button {
+    height:
+        31px !important;
+
+    min-height:
+        31px !important;
+
+    font-size:
+        11px !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK
+   Retain compact 3:2 Discover presentation.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover {
+    aspect-ratio:
+        3 / 2 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover
+img.cover {
+    inset:
+        12px !important;
+
+    width:
+        calc(100% - 24px) !important;
+
+    height:
+        calc(100% - 24px) !important;
+}
+
+
+/* ------------------------------------------------------------
+   RESPONSIVE CARD WIDTHS
+   Keep cards fixed where possible; only shrink when needed.
+   ------------------------------------------------------------ */
+
+@media (max-width: 1200px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                250px
+            ) !important;
+    }
+
+
+    body.hd-shell-active
+    #grid
+    > article.hd-hackdex-discover-card,
+
+    body.hd-shell-active
+    #base-grid
+    > article.hd-hackdex-base-card {
+        width:
+            250px !important;
+
+        min-width:
+            250px !important;
+
+        max-width:
+            250px !important;
+    }
+}
+
+
+@media (max-width: 760px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(
+                    0,
+                    1fr
+                )
+            ) !important;
+
+        column-gap:
+            14px !important;
+
+        justify-content:
+            stretch !important;
+    }
+
+
+    body.hd-shell-active
+    #grid
+    > article.hd-hackdex-discover-card,
+
+    body.hd-shell-active
+    #base-grid
+    > article.hd-hackdex-base-card {
+        width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        max-width:
+            none !important;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    body.hd-shell-active
+    #grid,
+
+    body.hd-shell-active
+    #base-grid {
+        grid-template-columns:
+            1fr !important;
+
+        row-gap:
+            16px !important;
+    }
+}
+
+
+/* ============================================================
+
+   1. Green catalog cards in BOTH light and dark modes.
+   2. Move ownership/readiness states into a dedicated dock
+      immediately below the artwork.
+   3. Keep platform as the small artwork-overlay chip.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   CONSISTENT GREEN CARD SURFACE
+   Light mode deliberately uses the same visual identity.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card {
+    background:
+        linear-gradient(
+            180deg,
+            #07543f 0%,
+            #053c30 100%
+        ) !important;
+
+    border-color:
+        rgba(
+            38,
+            190,
+            125,
+            .58
+        ) !important;
+
+    color:
+        #f4fff9 !important;
+}
+
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card {
+    background:
+        linear-gradient(
+            180deg,
+            #07543f 0%,
+            #053c30 100%
+        ) !important;
+
+    border-color:
+        rgba(
+            38,
+            190,
+            125,
+            .58
+        ) !important;
+}
+
+
+/* Titles */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title {
+    color:
+        #f7fffa !important;
+}
+
+
+/* Supporting text */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-author,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+[class*="author"] {
+    color:
+        rgba(
+            231,
+            247,
+            238,
+            .78
+        ) !important;
+}
+
+
+/* Base ROM footer */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    color:
+        rgba(
+            225,
+            244,
+            234,
+            .70
+        ) !important;
+}
+
+
+/* Version separator */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    border-top-color:
+        rgba(
+            147,
+            221,
+            184,
+            .22
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK PANEL
+   Keep green identity in both themes.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover {
+    background:
+        linear-gradient(
+            180deg,
+            #087156 0%,
+            #075943 100%
+        ) !important;
+}
+
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover {
+    background:
+        linear-gradient(
+            180deg,
+            #087156 0%,
+            #075943 100%
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ORIGINAL OVERLAY CHIPS
+
+   Keep PLATFORM visible on artwork.
+   Status chips moved by JS receive data-hd-status-source=yes.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+[data-hd-status-source="yes"] {
+    display:
+        none !important;
+}
+
+
+/*
+ * Platform chip remains on the artwork.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+.hd-hack-chip:not([data-hd-status-source="yes"]) {
+    background:
+        rgba(
+            8,
+            15,
+            13,
+            .78
+        ) !important;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            .22
+        ) !important;
+
+    color:
+        #ffffff !important;
+
+    box-shadow:
+        0 3px 10px
+        rgba(
+            0,
+            0,
+            0,
+            .20
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   STATUS DOCK
+   Lives directly below artwork, inside card body.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-dock {
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        6px !important;
+
+    width:
+        100% !important;
+
+    margin:
+        0 0 10px !important;
+
+    padding:
+        0 !important;
+
+    background:
+        transparent !important;
+
+    border:
+        0 !important;
+}
+
+
+/* Base dock pill */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill {
+    display:
+        inline-flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    gap:
+        4px !important;
+
+    min-height:
+        23px !important;
+
+    padding:
+        4px
+        8px !important;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .20
+        ) !important;
+
+    border-radius:
+        999px !important;
+
+    color:
+        #ffffff !important;
+
+    font-size:
+        10px !important;
+
+    font-weight:
+        750 !important;
+
+    line-height:
+        1 !important;
+
+    letter-spacing:
+        .01em !important;
+
+    text-transform:
+        none !important;
+
+    white-space:
+        nowrap !important;
+
+    box-shadow:
+        0 2px 7px
+        rgba(
+            0,
+            0,
+            0,
+            .16
+        ) !important;
+}
+
+
+/* Status dot */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill::before {
+    content:
+        "";
+
+    width:
+        6px;
+
+    height:
+        6px;
+
+    flex:
+        0 0 6px;
+
+    border-radius:
+        50%;
+
+    background:
+        currentColor;
+}
+
+
+/* OWNED */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-owned {
+    background:
+        rgba(
+            9,
+            103,
+            68,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            112,
+            235,
+            173,
+            .48
+        ) !important;
+
+    color:
+        #c7ffe2 !important;
+}
+
+
+/* READY */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-ready {
+    background:
+        rgba(
+            10,
+            126,
+            77,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            132,
+            255,
+            190,
+            .55
+        ) !important;
+
+    color:
+        #d8ffe9 !important;
+}
+
+
+/* MISSING */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-missing {
+    background:
+        rgba(
+            113,
+            41,
+            43,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            255,
+            158,
+            158,
+            .48
+        ) !important;
+
+    color:
+        #ffd3d3 !important;
+}
+
+
+/* MISSING BASE */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-missing-base {
+    background:
+        rgba(
+            124,
+            82,
+            15,
+            .98
+        ) !important;
+
+    border-color:
+        rgba(
+            255,
+            205,
+            101,
+            .52
+        ) !important;
+
+    color:
+        #ffe4a8 !important;
+}
+
+
+/* PROBLEM */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-problem {
+    background:
+        rgba(
+            117,
+            35,
+            59,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            255,
+            145,
+            176,
+            .48
+        ) !important;
+
+    color:
+        #ffd2df !important;
+}
+
+
+/* UNKNOWN / CHECKING */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-neutral {
+    background:
+        rgba(
+            45,
+            58,
+            54,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            190,
+            211,
+            201,
+            .34
+        ) !important;
+
+    color:
+        #ddebe4 !important;
+}
+
+
+/* ------------------------------------------------------------
+   BUTTON CONTRAST ON GREEN
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button {
+    background:
+        #d7e2ea !important;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            .18
+        ) !important;
+
+    color:
+        #20313c !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button:hover:not(:disabled) {
+    background:
+        #eef5f8 !important;
+}
+
+
+/* ------------------------------------------------------------
+   BASE ROM CARDS
+   Give light/dark modes the same green identity as requested.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card.owned {
+    background:
+        linear-gradient(
+            180deg,
+            #07543f 0%,
+            #053c30 100%
+        ) !important;
+
+    border-color:
+        rgba(
+            38,
+            190,
+            125,
+            .58
+        ) !important;
+
+    color:
+        #f4fff9 !important;
+}
+
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card.owned,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card.owned {
+    background:
+        linear-gradient(
+            180deg,
+            #07543f 0%,
+            #053c30 100%
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card.owned
+.hd-base-title-row
+h3,
+
+body.hd-shell-active
+article.hd-hackdex-base-card.owned
+.hd-base-library-status
+strong {
+    color:
+        #f6fffa !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card.owned
+.hd-base-library-status
+span,
+
+body.hd-shell-active
+article.hd-hackdex-base-card.owned
+.hd-base-tech
+summary {
+    color:
+        rgba(
+            225,
+            244,
+            234,
+            .72
+        ) !important;
+}
+
+
+/* Missing Base ROM cards use a subdued green/amber identity */
+
+body.hd-shell-active
+article.hd-hackdex-base-card.missing {
+    background:
+        linear-gradient(
+            180deg,
+            #114b3c 0%,
+            #123b31 100%
+        ) !important;
+
+    border-color:
+        rgba(
+            202,
+            155,
+            62,
+            .48
+        ) !important;
+
+    color:
+        #f4fff9 !important;
+}
+
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card.missing,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card.missing {
+    background:
+        linear-gradient(
+            180deg,
+            #114b3c 0%,
+            #123b31 100%
+        ) !important;
+}
+
+
+/* ============================================================
+
+   - move platform into the information/status dock
+   - remove remaining chips from artwork
+   - force catalog body readability in light mode
+   - preserve compact Pass 6/7 geometry
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   PLATFORM CHIP SOURCE
+   Platform is now represented in the dock instead.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips
+[data-hd-platform-source="yes"] {
+    display:
+        none !important;
+}
+
+
+/*
+ * Once all catalog state has moved below the artwork there
+ * should be nothing left occupying the artwork overlay row.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-chips:empty {
+    display:
+        none !important;
+}
+
+
+/* ------------------------------------------------------------
+   PLATFORM PILL
+   Neutral blue/slate treatment so it reads as identity rather
+   than state.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-platform {
+    background:
+        rgba(
+            32,
+            66,
+            82,
+            .96
+        ) !important;
+
+    border-color:
+        rgba(
+            143,
+            202,
+            229,
+            .46
+        ) !important;
+
+    color:
+        #daf3ff !important;
+}
+
+
+/*
+ * Platform is categorical rather than a state, so use a small
+ * square-ish marker instead of the status dot.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-platform::before {
+    width:
+        6px !important;
+
+    height:
+        6px !important;
+
+    flex:
+        0 0 6px !important;
+
+    border-radius:
+        2px !important;
+
+    background:
+        #8ed6f5 !important;
+}
+
+
+/* ------------------------------------------------------------
+   FORCE ONE CONSISTENT GREEN BODY IN BOTH THEMES
+   This deliberately defeats legacy light-theme card rules.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body {
+    background:
+        linear-gradient(
+            180deg,
+            #064a39 0%,
+            #053c30 100%
+        ) !important;
+
+    color:
+        #f4fff8 !important;
+}
+
+
+/*
+ * Explicit descendant colors beat broad historical light-mode
+ * selectors elsewhere in HackDex Manager.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.title,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+h1,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+h2,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+h3,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+h4 {
+    color:
+        #f7fff9 !important;
+}
+
+
+/* Author / supporting information */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-author,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+[class*="author"] {
+    color:
+        rgba(
+            226,
+            246,
+            235,
+            .76
+        ) !important;
+}
+
+
+/* Summary */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-summary {
+    color:
+        rgba(
+            238,
+            249,
+            243,
+            .82
+        ) !important;
+}
+
+
+/* Base ROM information */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+> div,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+> div {
+    background:
+        transparent !important;
+
+    border-color:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span {
+    color:
+        rgba(
+            205,
+            235,
+            219,
+            .65
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    color:
+        rgba(
+            235,
+            251,
+            242,
+            .82
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERSION AREA
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    background:
+        transparent !important;
+
+    border-top-color:
+        rgba(
+            151,
+            218,
+            184,
+            .24
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side {
+    background:
+        transparent !important;
+
+    border-color:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+span {
+    color:
+        rgba(
+            207,
+            235,
+            221,
+            .60
+        ) !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+strong {
+    color:
+        #f3fff8 !important;
+}
+
+
+/*
+ * Available/latest versions retain the amber cue.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side.available
+strong,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.version-available {
+    color:
+        #ffd66f !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERSION PILL NEXT TO TITLE
+   Give it a dark translucent surface so it works in both modes.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.version-badge,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+[class*="version"] {
+    background:
+        rgba(
+            8,
+            25,
+            20,
+            .62
+        ) !important;
+
+    border-color:
+        rgba(
+            176,
+            226,
+            200,
+            .28
+        ) !important;
+
+    color:
+        #effff6 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ACTION BUTTON
+   Intentionally contrasting against green card body.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button {
+    background:
+        #d4e0e8 !important;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            .16
+        ) !important;
+
+    color:
+        #1d303a !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button:hover:not(:disabled) {
+    background:
+        #edf4f7 !important;
+
+    color:
+        #10252f !important;
+}
+
+
+/* ------------------------------------------------------------
+   DOCK DIVIDER
+   Helps status information read as a discrete information row.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-dock {
+    padding-bottom:
+        9px !important;
+
+    margin-bottom:
+        9px !important;
+
+    border-bottom:
+        1px solid
+        rgba(
+            164,
+            224,
+            194,
+            .15
+        ) !important;
+}
+
+
+/* ============================================================
+
+   Final correction for:
+   - duplicate platform chip on artwork
+   - pale light-mode card body
+   - unreadable light-mode text
+
+   Does NOT change card/grid dimensions.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   REMOVE OLD ARTWORK CHIP ROW COMPLETELY
+
+   Pass 7/8 already duplicate the useful information into the
+   dock. Once the dock exists there is no reason to retain any
+   overlay chip on the artwork.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card[data-hd-status-dock-ready="yes"]
+.hd-hack-card-chips,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card[data-hd-platform-dock-ready="yes"]
+.hd-hack-card-chips {
+    display:
+        none !important;
+
+    visibility:
+        hidden !important;
+
+    opacity:
+        0 !important;
+
+    pointer-events:
+        none !important;
+}
+
+
+/* ------------------------------------------------------------
+   CARD SHELL
+   Same green identity regardless of application theme.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    border-color:
+        rgba(
+            39,
+            190,
+            126,
+            .56
+        ) !important;
+
+    color:
+        #f5fff9 !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK AREA
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-cover {
+    background:
+        #087156 !important;
+
+    background-color:
+        #087156 !important;
+}
+
+
+/* ------------------------------------------------------------
+   BODY SURFACE
+
+   These selectors are intentionally highly specific because
+   HackDex Manager has older light-theme !important rules.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card
+div.body.hd-hack-card-body,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card
+div.body.hd-hack-card-body,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.card.hd-hack-card.hd-hackdex-discover-card
+div.body.hd-hack-card-body {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    color:
+        #f5fff9 !important;
+}
+
+
+/*
+ * Defeat any nested historical surface backgrounds.
+ */
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-title-row,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-summary,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-card-meta,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-card-meta
+> div,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-version-compare,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-version-side,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-body
+.hd-hack-card-actions {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+}
+
+
+/* ------------------------------------------------------------
+   STATUS DOCK
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-dock {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border-bottom:
+        1px solid
+        rgba(
+            159,
+            224,
+            191,
+            .18
+        ) !important;
+}
+
+
+/*
+ * Platform first, then library/readiness states.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill {
+    opacity:
+        1 !important;
+}
+
+
+/* Platform */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-platform {
+    background:
+        #173f55 !important;
+
+    color:
+        #ddf4ff !important;
+
+    border-color:
+        rgba(
+            127,
+            201,
+            234,
+            .52
+        ) !important;
+}
+
+
+/* Owned */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-owned {
+    background:
+        #096744 !important;
+
+    color:
+        #d2ffe7 !important;
+
+    border-color:
+        rgba(
+            98,
+            229,
+            159,
+            .54
+        ) !important;
+}
+
+
+/* Ready */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-ready {
+    background:
+        #0a7a4d !important;
+
+    color:
+        #dcffeb !important;
+
+    border-color:
+        rgba(
+            119,
+            241,
+            174,
+            .58
+        ) !important;
+}
+
+
+/* Missing */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-missing {
+    background:
+        #7d3034 !important;
+
+    color:
+        #ffd9d9 !important;
+
+    border-color:
+        rgba(
+            255,
+            151,
+            151,
+            .54
+        ) !important;
+}
+
+
+/* Missing base */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hackdex-status-pill.is-missing-base {
+    background:
+        #815716 !important;
+
+    color:
+        #ffe7aa !important;
+
+    border-color:
+        rgba(
+            255,
+            206,
+            105,
+            .58
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   TITLE
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title {
+    color:
+        #ffffff !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERSION PILL
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.version-badge,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+[class*="version"] {
+    background:
+        rgba(
+            4,
+            23,
+            17,
+            .72
+        ) !important;
+
+    color:
+        #f2fff7 !important;
+
+    border-color:
+        rgba(
+            188,
+            233,
+            208,
+            .32
+        ) !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   AUTHOR
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-author,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+[class*="author"] {
+    color:
+        #bfddce !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   SUMMARY
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-summary {
+    color:
+        #d3e9de !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   BASE ROM
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+span {
+    color:
+        #94c5ad !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-meta
+strong {
+    color:
+        #d5ecdf !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERSION COMPARISON
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-compare {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border-top-color:
+        rgba(
+            143,
+            213,
+            177,
+            .20
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border-color:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+span {
+    color:
+        #89baa2 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side
+strong {
+    color:
+        #f0fff7 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Available/latest remains amber */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-version-side.available
+strong,
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.version-available {
+    color:
+        #ffd05f !important;
+}
+
+
+/* ------------------------------------------------------------
+   ACTION
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-card-actions {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button {
+    background:
+        #d4e0e8 !important;
+
+    color:
+        #162c36 !important;
+
+    border-color:
+        rgba(
+            255,
+            255,
+            255,
+            .16
+        ) !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.obtain-button:hover:not(:disabled) {
+    background:
+        #f0f6f8 !important;
+
+    color:
+        #0d232c !important;
+}
+
+
+/* ============================================================
+
+   Match Base ROM cards to the Library catalog:
+   - same green card identity in light/dark modes
+   - platform / region / verified state in dock below artwork
+   - no metadata pills over artwork
+   - readable text in light mode
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   CARD SHELL
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-base-card.hd-hackdex-base-card,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-base-card.hd-hackdex-base-card,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-base-card.hd-hackdex-base-card {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    border:
+        1px solid
+        rgba(
+            39,
+            190,
+            126,
+            .56
+        ) !important;
+
+    color:
+        #f5fff9 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/*
+ * Missing status is communicated by its pill rather than by
+ * making the whole card difficult to read.
+ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card.missing {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    border-color:
+        rgba(
+            206,
+            157,
+            57,
+            .48
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-cover {
+    background:
+        #087156 !important;
+
+    background-color:
+        #087156 !important;
+}
+
+
+/* ------------------------------------------------------------
+   REMOVE OLD ARTWORK CHIP ROW
+   All useful values are recreated in the dock.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card[data-hd-base-dock-ready="yes"]
+.hd-base-card-chips {
+    display:
+        none !important;
+
+    visibility:
+        hidden !important;
+
+    opacity:
+        0 !important;
+
+    pointer-events:
+        none !important;
+}
+
+
+/* ------------------------------------------------------------
+   BASE-ROM INFORMATION DOCK
+   Same visual concept as Library:
+   GBA | USA, Europe | Verified
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-status-dock {
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        6px !important;
+
+    width:
+        100% !important;
+
+    margin:
+        0 0 9px !important;
+
+    padding:
+        0 0 9px !important;
+
+    border-bottom:
+        1px solid
+        rgba(
+            164,
+            224,
+            194,
+            .16
+        ) !important;
+
+    background:
+        transparent !important;
+}
+
+
+/* Common pill */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill {
+    display:
+        inline-flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    gap:
+        4px !important;
+
+    min-height:
+        23px !important;
+
+    padding:
+        4px
+        8px !important;
+
+    border:
+        1px solid
+        rgba(
+            255,
+            255,
+            255,
+            .20
+        ) !important;
+
+    border-radius:
+        999px !important;
+
+    color:
+        #ffffff !important;
+
+    font-size:
+        10px !important;
+
+    line-height:
+        1 !important;
+
+    font-weight:
+        750 !important;
+
+    letter-spacing:
+        .01em !important;
+
+    white-space:
+        nowrap !important;
+
+    box-shadow:
+        0 2px 7px
+        rgba(
+            0,
+            0,
+            0,
+            .16
+        ) !important;
+}
+
+
+/* Small identifying marker */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill::before {
+    content:
+        "";
+
+    width:
+        6px;
+
+    height:
+        6px;
+
+    flex:
+        0 0 6px;
+
+    border-radius:
+        2px;
+
+    background:
+        currentColor;
+}
+
+
+/* Platform */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-platform {
+    background:
+        #173f55 !important;
+
+    border-color:
+        rgba(
+            127,
+            201,
+            234,
+            .52
+        ) !important;
+
+    color:
+        #ddf4ff !important;
+}
+
+
+/* Region / country */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-region {
+    background:
+        #35454d !important;
+
+    border-color:
+        rgba(
+            188,
+            211,
+            220,
+            .38
+        ) !important;
+
+    color:
+        #edf8fc !important;
+}
+
+
+/* Verified */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-verified {
+    background:
+        #0a7a4d !important;
+
+    border-color:
+        rgba(
+            119,
+            241,
+            174,
+            .58
+        ) !important;
+
+    color:
+        #dcffeb !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-verified::before {
+    border-radius:
+        50%;
+}
+
+
+/* Missing */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-missing {
+    background:
+        #815716 !important;
+
+    border-color:
+        rgba(
+            255,
+            206,
+            105,
+            .58
+        ) !important;
+
+    color:
+        #ffe7aa !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-missing::before {
+    border-radius:
+        50%;
+}
+
+
+/* ------------------------------------------------------------
+   CARD BODY
+   Force identical green surface in light and dark modes.
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body,
+
+html[data-mode="dark"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    color:
+        #f5fff9 !important;
+}
+
+
+/* ------------------------------------------------------------
+   TITLE
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    color:
+        #ffffff !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERIFIED / MISSING LOCAL COPY INFORMATION
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border:
+        0 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Status dot */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-icon {
+    background:
+        #23c77f !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing
+.hd-base-library-icon {
+    background:
+        #d99a28 !important;
+}
+
+
+/* Status label */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    color:
+        #9bc9b3 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Filename / missing explanation */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    color:
+        #e4f5eb !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-library-status.missing
+strong {
+    color:
+        #e8d9ae !important;
+}
+
+
+/* ------------------------------------------------------------
+   TECHNICAL DETAILS
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech,
+
+html[data-mode="light"]
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border-color:
+        rgba(
+            154,
+            218,
+            185,
+            .16
+        ) !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    color:
+        #b8d9c8 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech-grid
+span,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech-path
+span {
+    color:
+        #8ebda6 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech-grid
+code,
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-tech-path
+code {
+    color:
+        #e3f4eb !important;
+
+    background:
+        rgba(
+            3,
+            29,
+            22,
+            .58
+        ) !important;
+
+    border-color:
+        rgba(
+            144,
+            207,
+            175,
+            .16
+        ) !important;
+}
+
+
+/* ------------------------------------------------------------
+   FALLBACK ART
+   ------------------------------------------------------------ */
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art-fallback {
+    background:
+        transparent !important;
+
+    color:
+        #eefcf4 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-base-card
+.hd-base-art-fallback
+strong {
+    color:
+        #ffffff !important;
+}
+
+
+/* ============================================================
+
+   Pass 10 JS was correct, but its CSS was scoped to
+   body.hd-shell-active. The Base ROM page uses
+   body.hd-base-rom-page.
+
+   This block intentionally targets the real Base ROM page
+   directly and wins over the historical light-mode rules.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   CARD SHELL — IDENTICAL GREEN IN LIGHT AND DARK
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-base-card.hd-hackdex-base-card,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-base-card.hd-hackdex-base-card,
+
+html[data-mode="dark"]
+body.hd-base-rom-page
+article.hd-base-card.hd-hackdex-base-card {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    border:
+        1px solid
+        rgba(39, 190, 126, .56) !important;
+
+    color:
+        #f5fff9 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/*
+ * Missing uses an amber border cue without destroying contrast.
+ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card.missing {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    border-color:
+        rgba(217, 154, 40, .62) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK AREA
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-cover,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-cover,
+
+html[data-mode="dark"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-cover {
+    background:
+        #087156 !important;
+
+    background-color:
+        #087156 !important;
+}
+
+
+/* ------------------------------------------------------------
+   REMOVE THE OLD OVERLAY PILLS
+
+   Pass 10 sets data-hd-base-dock-ready=yes after rebuilding
+   Platform / Region / State in the new information dock.
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card[data-hd-base-dock-ready="yes"]
+.hd-base-card-chips {
+    display:
+        none !important;
+
+    visibility:
+        hidden !important;
+
+    opacity:
+        0 !important;
+
+    pointer-events:
+        none !important;
+}
+
+
+/* ------------------------------------------------------------
+   NEW BASE-ROM INFORMATION DOCK
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-status-dock {
+    display:
+        flex !important;
+
+    align-items:
+        center !important;
+
+    flex-wrap:
+        wrap !important;
+
+    gap:
+        6px !important;
+
+    width:
+        100% !important;
+
+    margin:
+        0 0 9px !important;
+
+    padding:
+        0 0 9px !important;
+
+    border:
+        0 !important;
+
+    border-bottom:
+        1px solid
+        rgba(164, 224, 194, .17) !important;
+
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    color:
+        inherit !important;
+}
+
+
+/* Common pill */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-status-dock
+.hd-base-dock-pill {
+    display:
+        inline-flex !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    gap:
+        4px !important;
+
+    width:
+        auto !important;
+
+    min-width:
+        0 !important;
+
+    max-width:
+        100% !important;
+
+    min-height:
+        23px !important;
+
+    height:
+        auto !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        4px 8px !important;
+
+    border:
+        1px solid rgba(255,255,255,.20) !important;
+
+    border-radius:
+        999px !important;
+
+    color:
+        #fff !important;
+
+    font-size:
+        10px !important;
+
+    font-weight:
+        750 !important;
+
+    line-height:
+        1 !important;
+
+    letter-spacing:
+        .01em !important;
+
+    text-transform:
+        none !important;
+
+    white-space:
+        nowrap !important;
+
+    opacity:
+        1 !important;
+
+    box-shadow:
+        0 2px 7px rgba(0,0,0,.16) !important;
+}
+
+
+/* Marker */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill::before {
+    content:
+        "" !important;
+
+    display:
+        block !important;
+
+    width:
+        6px !important;
+
+    height:
+        6px !important;
+
+    flex:
+        0 0 6px !important;
+
+    border-radius:
+        2px !important;
+
+    background:
+        currentColor !important;
+}
+
+
+/* Platform */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-platform {
+    background:
+        #173f55 !important;
+
+    border-color:
+        rgba(127,201,234,.52) !important;
+
+    color:
+        #ddf4ff !important;
+}
+
+
+/* Country / region */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-region {
+    background:
+        #35454d !important;
+
+    border-color:
+        rgba(188,211,220,.38) !important;
+
+    color:
+        #edf8fc !important;
+}
+
+
+/* Verified */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-verified {
+    background:
+        #0a7a4d !important;
+
+    border-color:
+        rgba(119,241,174,.58) !important;
+
+    color:
+        #dcffeb !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-verified::before {
+    border-radius:
+        50% !important;
+}
+
+
+/* Missing */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-missing {
+    background:
+        #815716 !important;
+
+    border-color:
+        rgba(255,206,105,.58) !important;
+
+    color:
+        #ffe7aa !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-dock-pill.is-missing::before {
+    border-radius:
+        50% !important;
+}
+
+
+/* ------------------------------------------------------------
+   BODY SURFACE
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-card-body,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-card-body,
+
+html[data-mode="dark"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-card-body {
+    background:
+        #053f31 !important;
+
+    background-color:
+        #053f31 !important;
+
+    color:
+        #f5fff9 !important;
+}
+
+
+/*
+ * Remove historical light-mode nested surface backgrounds.
+ */
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-title-row,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status.missing,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+}
+
+
+/* ------------------------------------------------------------
+   TITLE
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-title-row
+h3 {
+    color:
+        #ffffff !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* ------------------------------------------------------------
+   VERIFIED / MISSING DETAIL
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status.missing {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border:
+        0 !important;
+
+    box-shadow:
+        none !important;
+}
+
+
+/* Dot */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-icon {
+    background:
+        #23c77f !important;
+
+    color:
+        transparent !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status.missing
+.hd-base-library-icon {
+    background:
+        #d99a28 !important;
+}
+
+
+/* Label */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status
+span,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status
+span {
+    color:
+        #9bc9b3 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+/* Filename / explanation */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status
+strong {
+    color:
+        #e4f5eb !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-library-status.missing
+strong {
+    color:
+        #f0dba8 !important;
+}
+
+
+/*
+ * Any remaining explanatory text under a Missing card.
+ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card.missing
+.hd-base-card-body
+p,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card.missing
+.hd-base-card-body
+span,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card.missing
+.hd-base-card-body
+div {
+    opacity:
+        1;
+}
+
+
+/* ------------------------------------------------------------
+   TECHNICAL DETAILS
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech {
+    background:
+        transparent !important;
+
+    background-color:
+        transparent !important;
+
+    border-color:
+        rgba(154,218,185,.16) !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech
+summary,
+
+html[data-mode="light"]
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech
+summary {
+    color:
+        #b8d9c8 !important;
+
+    opacity:
+        1 !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech-grid
+span,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech-path
+span {
+    color:
+        #8ebda6 !important;
+}
+
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech-grid
+code,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-tech-path
+code {
+    color:
+        #e3f4eb !important;
+
+    background:
+        rgba(3,29,22,.58) !important;
+
+    border-color:
+        rgba(144,207,175,.16) !important;
+}
+
+
+/* ------------------------------------------------------------
+   ARTWORK FALLBACK
+   ------------------------------------------------------------ */
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-art-fallback,
+
+body.hd-base-rom-page
+article.hd-hackdex-base-card
+.hd-base-art-fallback
+strong {
+    color:
+        #eefcf4 !important;
+}

@@ -1,110 +1,25 @@
 services:
-
   hackdex-manager:
+    image: ${HACKDEX_IMAGE:-ghcr.io/seadogsbooty/hackdex-manager:1.0.0}
+    restart: unless-stopped
 
-    # --------------------------------------------------------
-    # Image
-    #
-    # Source deployments can build locally.
-    # Container-registry deployments can set HACKDEX_IMAGE
-    # to the desired published image.
-    # --------------------------------------------------------
-
-    image: ${HACKDEX_IMAGE:-hackdex-manager:local}
-
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    restart:
-      unless-stopped
-
-
-    # --------------------------------------------------------
-    # Runtime user/group
-    #
-    # Set these to a UID/GID that can write to the mounted
-    # data, staging, and hack-library directories.
-    # --------------------------------------------------------
-
-    user:
-      "${PUID:-1000}:${PGID:-1000}"
-
-
-    environment:
-
-      TZ: ${TZ:-UTC}
-
-      # DEBUG / INFO / WARNING / ERROR / CRITICAL
-      LOG_LEVEL: ${LOG_LEVEL:-INFO}
-
-      # Container-visible clean ROM root.
-      ROM_PATH: /roms
-
+    user: "${PUID:-1000}:${PGID:-1000}"
 
     ports:
+      - "${HACKDEX_PORT:-8095}:8080"
 
-      - "${HACKDEX_PORT:-8080}:8080"
-
+    environment:
+      TZ: ${TZ:-UTC}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
     volumes:
-
-      # ------------------------------------------------------
-      # Persistent application state
-      # ------------------------------------------------------
-
-      - ${HACKDEX_DATA_PATH:-./data}:/data
-
-      - ${HACKDEX_STAGING_PATH:-./staging}:/staging
-
-
-      # ------------------------------------------------------
-      # Clean/general ROM library
-      #
-      # Read-only by design. HackDex Manager scans this
-      # location for supported Base ROMs but does not modify
-      # the mounted game files.
-      # ------------------------------------------------------
-
+      - ${HACKDEX_DATA_PATH:-./data}:/data:rw
+      - ${HACKDEX_STAGING_PATH:-./staging}:/staging:rw
       - ${ROM_PATH:-./roms}:/roms:ro
-
-
-      # ------------------------------------------------------
-      # ROM hack library
-      #
-      # Recommended layout inside this parent:
-      #
-      #   /hacks/gb
-      #   /hacks/gbc
-      #   /hacks/gba
-      #   /hacks/nds
-      #
-      # The Setup Guide can also configure custom individual
-      # container-visible locations.
-      # ------------------------------------------------------
-
       - ${HACKDEX_HACKS_PATH:-./hacks}:/hacks:rw
-
 
     security_opt:
       - no-new-privileges:true
 
-
     cap_drop:
       - ALL
-
-
-    healthcheck:
-
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5)"
-        ]
-
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 20s
