@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
+from platform_paths import data_path
 
-DATABASE_URL = "sqlite:////data/hackdex-manager.db"
+DATABASE_URL = f"sqlite:///{data_path('hackdex-manager.db')}"
 
 engine = create_engine(
     DATABASE_URL,

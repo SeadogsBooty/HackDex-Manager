@@ -10,6 +10,7 @@ import zlib
 
 from datetime import datetime
 from pathlib import Path
+from platform_paths import data_path
 
 import httpx
 import py7zr
@@ -24,7 +25,7 @@ from models import (
 
 
 PATCH_CACHE = Path(
-    "/data/patch-cache"
+    str(data_path("patch-cache"))
 )
 
 PATCH_CACHE.mkdir(

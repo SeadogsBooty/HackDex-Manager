@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from platform_paths import data_path
 
 import httpx
 
@@ -16,7 +17,7 @@ from provider_defaults import (
 from settings_store import update_settings
 
 
-CACHE_PATH = Path("/data/hackdex-catalog.json")
+CACHE_PATH = data_path("hackdex-catalog.json")
 
 
 BASE_ROM_PLATFORMS = {

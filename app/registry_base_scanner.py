@@ -7,6 +7,7 @@ import zipfile
 import zlib
 
 from pathlib import Path
+from platform_paths import data_path
 
 import py7zr
 
