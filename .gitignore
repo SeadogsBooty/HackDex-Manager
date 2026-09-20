@@ -48,3 +48,22 @@ compose.override.yml
 Thumbs.db
 .vscode/
 .idea/
+
+# Windows packaging output
+windows/build/
+windows/dist/
+
+
+# Windows desktop development runtime
+.desktop-runtime/
+
+windows/installer/output/
+/HackDex Manager.exe
+/_internal/
+/unins000.exe
+/unins000.dat
+/Data/
+/Staging/
+/Logs/
+/Backups/
+/HackDex Manager Data/

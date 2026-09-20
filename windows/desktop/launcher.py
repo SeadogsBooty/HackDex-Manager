@@ -18,8 +18,23 @@ from pathlib import Path
 
 
 def application_root() -> Path:
+    """Return the root containing bundled HackDex resources."""
+
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
+        bundled_root = getattr(
+            sys,
+            "_MEIPASS",
+            None,
+        )
+
+        if bundled_root:
+            return Path(
+                bundled_root
+            ).resolve()
+
+        return Path(
+            sys.executable
+        ).resolve().parent
 
     return Path(__file__).resolve().parents[2]
 
@@ -31,8 +46,62 @@ if str(APP_DIR) not in sys.path:
     sys.path.insert(0, str(APP_DIR))
 
 
-# Desktop mode must be established before importing HackDex.
+# Desktop mode and writable application workspace must be
+# established before importing any HackDex application module.
 os.environ["HACKDEX_DESKTOP"] = "1"
+
+
+def desktop_data_root() -> Path:
+    """
+    Frozen Windows application:
+        use the directory containing HackDex Manager.exe.
+
+    Development:
+        use repository-local .desktop-runtime.
+
+    HACKDEX_DATA_ROOT remains available as an explicit override.
+    """
+
+    explicit = str(
+        os.environ.get(
+            "HACKDEX_DATA_ROOT",
+            "",
+        )
+        or ""
+    ).strip()
+
+    if explicit:
+        return Path(
+            explicit
+        )
+
+    if getattr(
+        sys,
+        "frozen",
+        False,
+    ):
+        return (
+            Path(sys.executable)
+            .resolve()
+            .parent
+        )
+
+    return (
+        Path(__file__)
+        .resolve()
+        .parents[2]
+        / ".desktop-runtime"
+    )
+
+
+os.environ[
+    "HACKDEX_DATA_ROOT"
+] = str(
+    desktop_data_root()
+)
+
+
+# Desktop mode must be established before importing HackDex.
 
 from platform_paths import ensure_runtime_directories  # noqa: E402
 

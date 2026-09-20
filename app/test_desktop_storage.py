@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 
 from desktop_storage import (
@@ -93,21 +94,22 @@ class DesktopStorageTests(
             result["valid_syntax"]
         )
 
-    def test_existing_posix_directory(self):
-        result = (
-            validate_library_location(
-                "/tmp",
-                probe=True,
+    def test_existing_directory(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            result = (
+                validate_library_location(
+                    temp_dir,
+                    probe=True,
+                )
             )
-        )
 
-        self.assertTrue(
-            result["available"]
-        )
+            self.assertTrue(
+                result["available"]
+            )
 
-        self.assertTrue(
-            result["readable"]
-        )
+            self.assertTrue(
+                result["readable"]
+            )
 
 
 if __name__ == "__main__":

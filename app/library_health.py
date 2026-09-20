@@ -4,22 +4,138 @@ from collections import defaultdict
 from pathlib import Path
 
 from database import SessionLocal
+from platform_paths import running_as_desktop
 from models import (
     Hack,
     HackMatch,
+    LibraryLocation,
     MatchRejection,
     Rom,
     VersionDecision,
 )
 
 
-def _physical_path(rom):
-    path = Path(
+def _physical_path(
+    rom,
+    library_locations=None,
+):
+    """
+    Resolve a ROM's physical file location without changing the
+    stored database path.
+
+    Windows Desktop supports legacy relative paths recorded by
+    earlier scanner versions. Those paths are resolved against
+    enabled configured hack-library locations.
+
+    Container/server installs retain the historical ROM_PATH
+    or /roms behavior.
+    """
+
+    raw = str(
         rom.path
+        or ""
+    ).strip()
+
+    path = Path(
+        raw
     )
 
     if path.is_absolute():
         return path
+
+    if (
+        running_as_desktop()
+        and library_locations
+    ):
+        platform = str(
+            rom.platform
+            or ""
+        ).upper()
+
+        ordered = sorted(
+            library_locations,
+            key=lambda item: (
+                0
+                if str(
+                    item.platform
+                    or ""
+                ).upper()
+                == platform
+                else 1,
+                item.id,
+            ),
+        )
+
+        candidates = []
+
+        for location in ordered:
+            if not location.path:
+                continue
+
+            library_root = Path(
+                location.path
+            )
+
+            #
+            # Most legacy rows include the hack-library folder
+            # name in the stored relative path:
+            #
+            #   gba-hacks\Example.7z
+            #
+            # If the configured root itself is gba-hacks, resolve
+            # from its parent.
+            #
+            if (
+                path.parts
+                and path.parts[0].lower()
+                == library_root.name.lower()
+            ):
+                candidates.append(
+                    library_root.parent
+                    / path
+                )
+
+            #
+            # Some legacy rows contain only the filename.
+            #
+            candidates.append(
+                library_root
+                / path.name
+            )
+
+            #
+            # Preserve relative subdirectories beneath the
+            # configured library root.
+            #
+            candidates.append(
+                library_root
+                / path
+            )
+
+        seen = set()
+
+        for candidate in candidates:
+            key = str(
+                candidate
+            ).lower()
+
+            if key in seen:
+                continue
+
+            seen.add(
+                key
+            )
+
+            if candidate.is_file():
+                return candidate
+
+        #
+        # Nothing currently exists. Return the most sensible
+        # configured candidate so the health finding shows a
+        # useful Windows path rather than /roms.
+        #
+        if candidates:
+            return candidates[0]
 
     root = Path(
         os.environ.get(
@@ -144,6 +260,23 @@ def audit_library_health():
 
         findings = []
 
+        library_locations = []
+
+        if running_as_desktop():
+            library_locations = (
+                db.query(
+                    LibraryLocation
+                )
+                .filter(
+                    LibraryLocation.kind
+                    == "hack",
+
+                    LibraryLocation.enabled
+                    .is_(True),
+                )
+                .all()
+            )
+
         #
         # 1. DB rows whose physical ROM no
         # longer exists.
@@ -153,7 +286,8 @@ def audit_library_health():
         for rom in roms:
             physical = (
                 _physical_path(
-                    rom
+                    rom,
+                    library_locations,
                 )
             )
 

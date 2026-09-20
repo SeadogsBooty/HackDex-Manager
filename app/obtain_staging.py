@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import re
 import shutil
 import struct
@@ -26,12 +27,16 @@ from patch_readiness import (
     check_hack_readiness,
 )
 
-from settings_store import get_settings
-
-
-STAGING_ROOT = Path(
-    "/staging"
+from platform_paths import (
+    running_as_desktop,
+    staging_dir,
 )
+from settings_store import get_settings
+from tool_paths import xdelta3_executable
+from subprocess_utils import hidden_subprocess_kwargs
+
+
+STAGING_ROOT = staging_dir()
 
 LEGACY_STAGING_ROOTS = (
     Path("/staging/hackdex-manager"),
@@ -92,6 +97,41 @@ def _hash_file(path):
     }
 
 
+def _configured_base_rom_root():
+    """
+    Return the only root from which a verified Base ROM may
+    be used for patch staging.
+
+    Windows Desktop uses the explicitly configured Base ROM
+    root. Container/server installs retain the existing ROM_PATH
+    or /roms boundary.
+    """
+
+    if running_as_desktop():
+        configured = str(
+            get_settings().get(
+                "base_rom_root",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if (
+            configured
+            and configured != "/roms"
+        ):
+            return Path(
+                configured
+            )
+
+    return Path(
+        os.environ.get(
+            "ROM_PATH",
+            "/roms",
+        )
+    )
+
+
 def _source_path(row):
     raw = str(row.path or "")
 
@@ -104,15 +144,22 @@ def _source_path(row):
 
     try:
         resolved = path.resolve()
-        rom_root = Path(
-            "/roms"
-        ).resolve()
+        rom_root = (
+            _configured_base_rom_root()
+            .resolve()
+        )
 
         if (
             resolved != rom_root
             and rom_root
             not in resolved.parents
         ):
+            if running_as_desktop():
+                raise RuntimeError(
+                    "Base ROM source is outside "
+                    "the configured Base ROM root."
+                )
+
             raise RuntimeError(
                 "Base ROM source is outside "
                 "the read-only /roms tree."
@@ -129,13 +176,18 @@ def _rom_source_path(
     row,
 ):
     """
-    Resolve a scanned/installed hack ROM without applying
-    the Base-ROM-only /roms restriction.
+    Resolve an installed hack ROM while keeping the source
+    constrained to enabled HackDex library locations.
 
-    Absolute ROM paths must remain inside an enabled
-    configured hack-library location. Legacy relative paths
-    are resolved beneath the read-only /roms inventory.
+    Windows Desktop also supports legacy relative database
+    paths such as:
+
+        gba-hacks\\Pokemon Example.7z
+
+    These are resolved against the configured library roots
+    without rewriting or moving the ROM itself.
     """
+
     raw = str(
         row.path
         or ""
@@ -149,17 +201,6 @@ def _rom_source_path(
     path = Path(
         raw
     )
-
-    if path.is_absolute():
-        candidates = [
-            path
-        ]
-
-    else:
-        candidates = [
-            Path("/roms")
-            / path
-        ]
 
     library_rows = (
         db.query(
@@ -175,25 +216,128 @@ def _rom_source_path(
         .all()
     )
 
+    row_platform = str(
+        getattr(
+            row,
+            "platform",
+            "",
+        )
+        or ""
+    ).upper()
+
+    #
+    # Prefer the matching platform's configured root.
+    #
+    ordered_rows = sorted(
+        library_rows,
+        key=lambda item: (
+            0
+            if str(
+                item.platform
+                or ""
+            ).upper()
+            == row_platform
+            else 1,
+            item.id,
+        ),
+    )
+
     allowed_roots = [
         Path(item.path)
-        for item in library_rows
+        for item in ordered_rows
         if item.path
     ]
 
-    #
-    # Relative paths from older scanner versions may
-    # legitimately resolve beneath /roms.
-    #
-    allowed_roots.append(
-        Path("/roms")
-    )
+    candidates = []
+
+    if path.is_absolute():
+        candidates.append(
+            path
+        )
+
+    else:
+        for root in allowed_roots:
+
+            #
+            # Current library-relative form:
+            #
+            #   <library-root> / filename
+            #
+            candidates.append(
+                root
+                / path.name
+            )
+
+            #
+            # Older path may already include the library
+            # directory name, e.g. gba-hacks\file.7z.
+            #
+            if (
+                path.parts
+                and path.parts[0].lower()
+                == root.name.lower()
+            ):
+                candidates.append(
+                    root.parent
+                    / path
+                )
+
+            #
+            # Keep support for relative subdirectories
+            # beneath a configured library.
+            #
+            candidates.append(
+                root
+                / path
+            )
+
+        #
+        # Preserve the historical container/server fallback.
+        #
+        if not running_as_desktop():
+            legacy_root = Path(
+                "/roms"
+            )
+
+            allowed_roots.append(
+                legacy_root
+            )
+
+            candidates.append(
+                legacy_root
+                / path
+            )
+
+    seen = set()
 
     for candidate in candidates:
-        resolved = candidate.resolve()
+
+        candidate = Path(
+            candidate
+        )
+
+        key = str(
+            candidate
+        ).lower()
+
+        if key in seen:
+            continue
+
+        seen.add(
+            key
+        )
+
+        if not candidate.exists():
+            continue
+
+        resolved = (
+            candidate.resolve()
+        )
 
         for root in allowed_roots:
-            resolved_root = root.resolve()
+            resolved_root = (
+                root.resolve()
+            )
 
             if (
                 resolved == resolved_root
@@ -203,8 +347,8 @@ def _rom_source_path(
                 return candidate
 
     raise RuntimeError(
-        "Existing ROM source is outside configured "
-        "hack-library locations."
+        "Existing ROM is no longer present inside "
+        "an enabled configured hack-library location."
     )
 
 
@@ -704,9 +848,16 @@ def _apply_xdelta(
     patch_path,
     output_path,
 ):
+    xdelta3 = xdelta3_executable()
+
+    if not xdelta3:
+        raise RuntimeError(
+            "xdelta3 patch engine is unavailable."
+        )
+
     result = subprocess.run(
         [
-            "xdelta3",
+            str(xdelta3),
             "-d",
             "-s",
             str(source_path),
@@ -717,6 +868,7 @@ def _apply_xdelta(
         text=True,
         encoding="utf-8",
         errors="replace",
+        **hidden_subprocess_kwargs(),
     )
 
     if result.returncode != 0:

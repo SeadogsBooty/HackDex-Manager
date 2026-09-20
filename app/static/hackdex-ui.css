@@ -44397,3 +44397,17 @@ body.hd-shell-active
             14px !important;
     }
 }
+
+/* HACKDEX_CANONICAL_BRANDING_START */
+/* Canonical HackDex Manager brand mark shared by Docker and Windows UI. */
+.hd-pokeball {
+  background: transparent url("/static/hackdex-logo.png") center / contain no-repeat !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.hd-pokeball > * { display: none !important; }
+.hd-brand-mark .hd-pokeball {
+  background: transparent url("/static/hackdex-logo.png") center / contain no-repeat !important;
+}
+/* HACKDEX_CANONICAL_BRANDING_END */

@@ -1,35 +1,41 @@
-"""Platform-aware filesystem paths for HackDex Manager.
+﻿"""Platform-aware filesystem paths for HackDex Manager.
 
-Docker/Linux behavior remains compatible with the existing application.
+Windows Desktop:
+    <application root>\\Data
+    <application root>\\Staging
+    <application root>\\Logs
+    <application root>\\Backups
 
-Windows desktop builds store HackDex Manager application state beneath:
+The packaged application root is the directory containing
+HackDex Manager.exe.
 
-    %LOCALAPPDATA%\\HackDex Manager
+Source/development runs use:
+    <repository>\\.desktop-runtime
 
-ROM and hack libraries are intentionally not relocated here. Their paths
-are user-selected and may be local folders, mapped drives, or UNC shares.
+ROM and hack libraries remain user-selected and are never
+relocated by this module.
 """
 
 from __future__ import annotations
 
 import os
 import re
+import sys
+
 from pathlib import Path
 
 
-APP_FOLDER_NAME = "HackDex Manager"
-
-
 def running_on_windows() -> bool:
-    """Return True when running natively on Windows."""
     return os.name == "nt"
 
 
 def running_as_desktop() -> bool:
-    """Return True for the packaged/native desktop application."""
-    value = os.environ.get(
-        "HACKDEX_DESKTOP",
-        "",
+    value = str(
+        os.environ.get(
+            "HACKDEX_DESKTOP",
+            "",
+        )
+        or ""
     ).strip().lower()
 
     if value in {
@@ -40,100 +46,160 @@ def running_as_desktop() -> bool:
     }:
         return True
 
+    if value in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }:
+        return False
+
     return running_on_windows()
 
 
-def windows_app_root() -> Path:
-    """Return the per-user HackDex Manager application root."""
-    local_appdata = os.environ.get(
-        "LOCALAPPDATA"
-    )
+def application_data_root() -> Path:
+    """
+    Return the root containing HackDex-owned writable folders.
+    """
 
-    if local_appdata:
+    if not running_as_desktop():
+        return Path("/")
+
+    configured = str(
+        os.environ.get(
+            "HACKDEX_DATA_ROOT",
+            "",
+        )
+        or ""
+    ).strip()
+
+    if configured:
+        return Path(
+            configured
+        )
+
+    if getattr(
+        sys,
+        "frozen",
+        False,
+    ):
         return (
-            Path(local_appdata)
-            / APP_FOLDER_NAME
+            Path(sys.executable)
+            .resolve()
+            .parent
         )
 
     return (
-        Path.home()
-        / "AppData"
-        / "Local"
-        / APP_FOLDER_NAME
+        Path(__file__)
+        .resolve()
+        .parents[1]
+        / ".desktop-runtime"
     )
 
 
 def data_dir() -> Path:
-    """Persistent HackDex Manager application-data directory."""
-    override = os.environ.get(
-        "HACKDEX_INTERNAL_DATA_DIR"
-    )
+    override = str(
+        os.environ.get(
+            "HACKDEX_INTERNAL_DATA_DIR",
+            "",
+        )
+        or ""
+    ).strip()
 
     if override:
-        return Path(override)
+        return Path(
+            override
+        )
 
     if running_as_desktop():
         return (
-            windows_app_root()
-            / "data"
+            application_data_root()
+            / "Data"
         )
 
     return Path("/data")
 
 
 def staging_dir() -> Path:
-    """Temporary patch/download workspace."""
-    override = os.environ.get(
-        "HACKDEX_INTERNAL_STAGING_DIR"
-    )
+    override = str(
+        os.environ.get(
+            "HACKDEX_INTERNAL_STAGING_DIR",
+            "",
+        )
+        or ""
+    ).strip()
 
     if override:
-        return Path(override)
+        return Path(
+            override
+        )
 
     if running_as_desktop():
         return (
-            windows_app_root()
-            / "staging"
+            application_data_root()
+            / "Staging"
         )
 
     return Path("/staging")
 
 
 def logs_dir() -> Path:
-    """Application log directory."""
-    return data_dir() / "logs"
+    if running_as_desktop():
+        return (
+            application_data_root()
+            / "Logs"
+        )
+
+    return (
+        data_dir()
+        / "logs"
+    )
 
 
-def data_path(*parts: str) -> Path:
-    """Return a path beneath the persistent data directory."""
+def backups_dir() -> Path:
+    if running_as_desktop():
+        return (
+            application_data_root()
+            / "Backups"
+        )
+
+    return Path("/backups")
+
+
+def data_path(
+    *parts: str,
+) -> Path:
     return data_dir().joinpath(
         *parts
     )
 
 
-def staging_path(*parts: str) -> Path:
-    """Return a path beneath the staging directory."""
+def staging_path(
+    *parts: str,
+) -> Path:
     return staging_dir().joinpath(
         *parts
     )
 
 
 def ensure_runtime_directories() -> None:
-    """Create HackDex-owned writable runtime directories."""
-    data_dir().mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    """
+    Create HackDex-owned writable directories only.
 
-    staging_dir().mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    ROM and hack-library locations are never created,
+    changed, moved, or deleted here.
+    """
 
-    logs_dir().mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    for directory in (
+        data_dir(),
+        staging_dir(),
+        logs_dir(),
+        backups_dir(),
+    ):
+        directory.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
 
 _DRIVE_PATH = re.compile(

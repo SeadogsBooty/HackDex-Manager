@@ -92,11 +92,13 @@ class PlatformPathTests(
         )
 
     def test_windows_desktop_data_path(self):
+        root = (
+            r"C:\Users\Test\HackDex-Manager"
+        )
+
         env = {
             "HACKDEX_DESKTOP": "1",
-            "LOCALAPPDATA": (
-                r"C:\Users\Test\AppData\Local"
-            ),
+            "HACKDEX_DATA_ROOT": root,
         }
 
         with patch.dict(
@@ -108,15 +110,12 @@ class PlatformPathTests(
                 platform_paths.data_dir()
             )
 
-        self.assertIn(
-            "HackDex Manager",
+        self.assertEqual(
             str(result),
-        )
-
-        self.assertTrue(
-            str(result).endswith(
-                "data"
-            )
+            str(
+                platform_paths.Path(root)
+                / "Data"
+            ),
         )
 
     def test_docker_data_default(self):

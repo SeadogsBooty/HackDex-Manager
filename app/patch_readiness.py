@@ -15,6 +15,10 @@ from platform_paths import data_path
 import httpx
 import py7zr
 
+from platform_paths import staging_dir
+from tool_paths import xdelta3_executable
+from subprocess_utils import hidden_subprocess_kwargs
+
 from database import SessionLocal
 from base_rom_registry import load_registry
 from models import (
@@ -72,9 +76,17 @@ def _sha256_file(path):
 
 
 def _xdelta_checksum_status(path):
+    xdelta3 = xdelta3_executable()
+
+    if not xdelta3:
+        return (
+            None,
+            "xdelta3 patch engine is unavailable.",
+        )
+
     result = subprocess.run(
         [
-            "xdelta3",
+            str(xdelta3),
             "printhdrs",
             str(path),
         ],
@@ -83,39 +95,48 @@ def _xdelta_checksum_status(path):
         encoding="utf-8",
         errors="replace",
         timeout=60,
+        **hidden_subprocess_kwargs(),
     )
 
     output = (
-        (result.stdout or "")
-        + "\n"
-        + (result.stderr or "")
+        result.stdout
+        or ""
     )
+
+    error = (
+        result.stderr
+        or ""
+    )
+
+    combined = (
+        output
+        + "\n"
+        + error
+    ).lower()
 
     if result.returncode != 0:
-        return None, output.strip()
+        detail = (
+            error.strip()
+            or output.strip()
+            or "Unable to inspect xdelta patch headers."
+        )
 
-    indicators = [
-        line
-        for line in output.splitlines()
-        if "VCDIFF window indicator:"
-        in line
-    ]
+        return (
+            None,
+            detail,
+        )
 
-    if not indicators:
-        return None, output.strip()
-
-    #
-    # Conservative rule:
-    # every VCDIFF window must carry
-    # VCD_ADLER32 before we treat the
-    # stream as checksummed.
-    #
-    has_checksums = all(
-        "VCD_ADLER32" in line
-        for line in indicators
+    has_checksum = (
+        "checksum"
+        in combined
+        or "adler32"
+        in combined
     )
 
-    return has_checksums, output.strip()
+    return (
+        has_checksum,
+        None,
+    )
 
 
 def _download_patch(hack):
@@ -1305,9 +1326,9 @@ def check_hack_readiness(
             }
 
         if fmt == "xdelta":
-            if shutil.which(
-                "xdelta3"
-            ) is None:
+            xdelta3 = xdelta3_executable()
+
+            if xdelta3 is None:
                 _save_result(
                     db,
                     hack,
@@ -1326,7 +1347,7 @@ def check_hack_readiness(
                 }
 
             with tempfile.TemporaryDirectory(
-                dir="/staging"
+                dir=staging_dir()
             ) as temp:
 
                 base_path = (
@@ -1343,7 +1364,7 @@ def check_hack_readiness(
 
                 result = subprocess.run(
                     [
-                        "xdelta3",
+                        str(xdelta3),
                         "-d",
                         "-s",
                         str(base_path),
@@ -1355,6 +1376,7 @@ def check_hack_readiness(
                     encoding="utf-8",
                     errors="replace",
                     timeout=300,
+                    **hidden_subprocess_kwargs(),
                 )
 
                 combined = (

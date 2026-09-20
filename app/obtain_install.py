@@ -7,11 +7,10 @@ from pathlib import Path
 
 from database import SessionLocal
 from models import LibraryLocation
+from platform_paths import staging_dir
 
 
-STAGING_ROOT = Path(
-    "/staging"
-)
+STAGING_ROOT = staging_dir()
 
 LEGACY_STAGING_ROOTS = (
     Path("/staging/hackdex-manager"),
@@ -1046,6 +1045,74 @@ def install_staged(
                     + str(exc)
                 )
 
+        cleanup_warning = None
+
+        if manifest_warning is None:
+
+            cleanup_errors = (
+                _cleanup_completed_transaction(
+                    transaction,
+                    manifest_path,
+                    manifest,
+                )
+            )
+
+            if cleanup_errors:
+                manifest[
+                    "cleanup"
+                ] = {
+                    "status":
+                        "WARNING",
+
+                    "kept":
+                        [
+                            "manifest.json"
+                        ],
+
+                    "errors":
+                        cleanup_errors,
+                }
+
+                cleanup_warning = (
+                    "Install succeeded, but some "
+                    "temporary staging files could "
+                    "not be removed."
+                )
+
+            else:
+                manifest[
+                    "cleanup"
+                ] = {
+                    "status":
+                        "COMPLETE",
+
+                    "kept":
+                        [
+                            "manifest.json"
+                        ],
+                }
+
+            try:
+                _write_manifest(
+                    manifest_path,
+                    manifest,
+                )
+
+            except Exception as exc:
+                cleanup_warning = (
+                    (
+                        cleanup_warning
+                        + " "
+                    )
+                    if cleanup_warning
+                    else ""
+                ) + (
+                    "Cleanup completed, but the "
+                    "cleanup state could not be "
+                    "written to the manifest: "
+                    + str(exc)
+                )
+
         return {
             "success": True,
             "status":
@@ -1098,6 +1165,8 @@ def install_staged(
 
             "manifest_warning":
                 manifest_warning,
+            "cleanup_warning":
+                cleanup_warning,
         }
 
     except Exception as exc:

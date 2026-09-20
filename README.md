@@ -1,3 +1,9 @@
+<!-- HACKDEX_LOGO_START -->
+<p align="center">
+  <img src="docs/assets/hackdex-manager-logo.png" alt="HackDex Manager" width="240">
+</p>
+<!-- HACKDEX_LOGO_END -->
+
 # HackDex Manager
 
 HackDex Manager is a self-hosted web application for managing a local Pokémon ROM-hack library alongside the HackDex catalog.
@@ -246,3 +252,57 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 HackDex Manager is released under the MIT License.
 
 See [LICENSE](LICENSE).
+
+<!-- HACKDEX_WINDOWS_START -->
+## Windows
+
+HackDex Manager is available as a native Windows desktop application in addition to the Docker deployment.
+
+### Windows installation
+
+Download **HackDex Manager Setup.exe** from the GitHub release and run the installer.
+
+The default installation location is:
+
+```text
+C:\Users\<username>\HackDex-Manager\
+|-- HackDex Manager.exe
+|-- _internal\
+|-- Data\
+|-- Staging\
+|-- Logs\
+`-- Backups\
+```
+
+The installation directory can be changed during setup.
+
+HackDex Manager stores its Windows runtime data beside the application:
+
+- `Data` - database and application data
+- `Staging` - temporary patch/install transaction data
+- `Logs` - application logs
+- `Backups` - application-managed backups
+
+### Windows requirements
+
+- Windows 10 or Windows 11, 64-bit
+- Microsoft Edge WebView2 Runtime
+- Read/write access to the selected HackDex Manager installation folder
+- Access to the ROM and Base ROM locations configured in HackDex Manager
+
+Python, Docker, PowerShell, and a web browser are not required to run the packaged Windows application.
+
+### Windows security note
+
+The current Windows v1.0.0 binaries are not Authenticode-signed. Windows may therefore display an **Unknown Publisher** or Microsoft Defender SmartScreen warning when first launching the installer.
+
+SHA-256 hashes can be published with the release so downloaded binaries can be verified.
+<!-- HACKDEX_WINDOWS_END -->
+
+## Docker
+
+HackDex Manager continues to support Docker deployment.
+
+The Docker edition uses the same core application UI, matching engine, readiness logic, patch workflow, and HackDex Manager branding as the Windows edition.
+
+Existing Docker users can continue using the published container image and their current persistent data volumes. The Windows desktop edition is an additional deployment option; it does not replace Docker support.
