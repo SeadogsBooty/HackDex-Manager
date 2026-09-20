@@ -992,6 +992,10 @@ class HackParentSetup(BaseModel):
     apply: bool = False
 
 
+class BaseRomRootSetup(BaseModel):
+    path: str
+
+
 
 @app.get("/library-health")
 def library_health_page(
@@ -2042,18 +2046,56 @@ def setup_page(request: Request):
 
 @app.get("/api/setup/status")
 def api_setup_status():
+    from desktop_storage import desktop_mode
+    from platform_paths import (
+        data_dir,
+        staging_dir,
+    )
+
     settings = get_settings()
+
+    is_desktop = desktop_mode()
 
     rom_root = settings.get(
         "base_rom_root",
         "/roms",
     )
 
+    if (
+        is_desktop
+        and rom_root == "/roms"
+    ):
+        rom_root = ""
+
+    hack_parent = settings.get(
+        "hack_parent_root",
+        "/hacks",
+    )
+
+    if (
+        is_desktop
+        and hack_parent == "/hacks"
+    ):
+        hack_parent = ""
+
     def directory_state(path):
         import os
         from pathlib import Path
 
-        target = Path(path)
+        raw = str(
+            path or ""
+        ).strip()
+
+        if not raw:
+            return {
+                "path": "",
+                "exists": False,
+                "directory": False,
+                "readable": False,
+                "writable": False,
+            }
+
+        target = Path(raw)
 
         return {
             "path":
@@ -2090,6 +2132,9 @@ def api_setup_status():
         "setup_completed":
             setup_is_complete(),
 
+        "desktop_mode":
+            is_desktop,
+
         "rom":
             directory_state(
                 rom_root
@@ -2097,19 +2142,16 @@ def api_setup_status():
 
         "data":
             directory_state(
-                "/data"
+                data_dir()
             ),
 
         "staging":
             directory_state(
-                "/staging"
+                staging_dir()
             ),
 
         "hack_parent":
-            settings.get(
-                "hack_parent_root",
-                "/hacks",
-            ),
+            hack_parent,
 
         "hack_locations":
             list_locations(
@@ -2121,6 +2163,60 @@ def api_setup_status():
 
         "catalog":
             get_catalog_stats(),
+    }
+
+
+@app.post("/api/setup/base-rom-root")
+def api_setup_base_rom_root(
+    payload: BaseRomRootSetup,
+):
+    from desktop_storage import (
+        validate_library_location,
+    )
+
+    path = str(
+        payload.path or ""
+    ).strip()
+
+    if not path:
+        return {
+            "success": False,
+            "message":
+                "Select a Base ROM library folder.",
+        }
+
+    validation = (
+        validate_library_location(
+            path,
+            require_write=False,
+            probe=True,
+        )
+    )
+
+    if not validation.get(
+        "available"
+    ):
+        return {
+            "success": False,
+            "message":
+                validation.get(
+                    "message"
+                )
+                or (
+                    "The selected Base ROM "
+                    "library is unavailable."
+                ),
+        }
+
+    update_settings({
+        "base_rom_root":
+            path,
+    })
+
+    return {
+        "success": True,
+        "path": path,
+        "state": validation,
     }
 
 

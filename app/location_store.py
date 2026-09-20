@@ -3,6 +3,10 @@ from pathlib import Path
 
 from database import SessionLocal
 from models import LibraryLocation
+from platform_paths import (
+    running_as_desktop,
+    validate_library_path_syntax,
+)
 
 
 DEFAULT_HACK_LOCATIONS = [
@@ -28,6 +32,38 @@ DEFAULT_HACK_LOCATIONS = [
     },
 ]
 
+
+
+def validate_absolute_location_path(
+    value,
+    *,
+    description="Location",
+):
+    path = str(
+        value or ""
+    ).strip()
+
+    if running_as_desktop():
+        valid, message = (
+            validate_library_path_syntax(
+                path
+            )
+        )
+
+        if not valid:
+            raise ValueError(
+                str(message)
+            )
+
+        return path
+
+    if not path.startswith("/"):
+        raise ValueError(
+            f"{description} must be an absolute "
+            "container path."
+        )
+
+    return path
 
 
 HACK_PARENT_CANDIDATES = {
@@ -65,15 +101,12 @@ def discover_hack_parent(
     Both concise platform folders (gba) and traditional
     Batocera-style hack folders (gba-hacks) are supported.
     """
-    parent_path = str(
-        parent_path
-    ).strip()
-
-    if not parent_path.startswith("/"):
-        raise ValueError(
-            "Hack parent must be an absolute "
-            "container path."
+    parent_path = (
+        validate_absolute_location_path(
+            parent_path,
+            description="Hack parent",
         )
+    )
 
     parent = Path(parent_path)
 
@@ -415,11 +448,12 @@ def add_location(
             "Invalid platform."
         )
 
-    if not path.startswith("/"):
-        raise ValueError(
-            "Location must be an absolute "
-            "container path."
+    path = (
+        validate_absolute_location_path(
+            path,
+            description="Location",
         )
+    )
 
     db = SessionLocal()
 

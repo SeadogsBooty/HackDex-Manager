@@ -3750,33 +3750,26 @@ const enabled =
                     <div
                         class="
                             hd-rich-description
-                            ${
-                                detailDescriptionIsLong(item)
-                                ? "is-collapsed"
-                                : ""
-                            }
+                            is-collapsed
                         "
+                        data-detail-description
                     >
                         ${richDescriptionMarkup(item)}
                     </div>
 
-                    ${
-                        detailDescriptionIsLong(item)
-                        ? `
-                        <button
-                            type="button"
-                            class="hd-about-toggle"
-                            onclick="
-                                toggleDetailDescription(
-                                    this
-                                )
-                            "
-                        >
-                            Show more
-                        </button>
-                        `
-                        : ""
-                    }
+                    <button
+                        type="button"
+                        class="hd-about-toggle"
+                        data-detail-description-toggle
+                        onclick="
+                            toggleDetailDescription(
+                                this
+                            )
+                        "
+                        hidden
+                    >
+                        Show more
+                    </button>
 
                 </section>
 
@@ -3965,6 +3958,68 @@ const enabled =
                         </strong>
                     </div>
 
+
+                    <div>
+                        <span>
+                            Author
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                (
+                                    item.creator
+                                    && item.creator.username
+                                )
+                                || item.author
+                                || "Unknown"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Language
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.language
+                                || "Unknown"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Completion
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.completion_status
+                                || "Unknown"
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <span>
+                            Downloads
+                        </span>
+
+                        <strong>
+                            ${escapeHtml(
+                                String(
+                                    item.downloads
+                                    ?? 0
+                                )
+                            )}
+                        </strong>
+                    </div>
+
                 </section>
 
 
@@ -4140,6 +4195,53 @@ const enabled =
         )
         .style
         .display = "flex";
+
+    /*
+     * Decide whether the About text needs expansion only after
+     * the browser has laid out the real rendered description.
+     * Character-count heuristics cannot reliably predict wrapping.
+     */
+    requestAnimationFrame(
+        () => {
+            const description =
+                modal.querySelector(
+                    "[data-detail-description]"
+                );
+
+            const toggle =
+                modal.querySelector(
+                    "[data-detail-description-toggle]"
+                );
+
+            if (
+                description
+                && toggle
+            ) {
+                const textLength =
+                    description.textContent
+                    .trim()
+                    .length;
+
+                const overflowed =
+                    description.scrollHeight
+                    > description.clientHeight + 2;
+
+                const expandable =
+                    overflowed
+                    || textLength > 260;
+
+                if (expandable) {
+                    toggle.hidden = false;
+                } else {
+                    description.classList.remove(
+                        "is-collapsed"
+                    );
+
+                    toggle.hidden = true;
+                }
+            }
+        }
+    );
 
     if (shouldCheckReadiness) {
         void checkReadinessOnDemand(

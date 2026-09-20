@@ -43365,3 +43365,1035 @@ strong {
     color:
         #eefcf4 !important;
 }
+
+
+/* ============================================================
+   Windows Desktop Phase 6
+   Base ROM Settings + reliable expandable descriptions
+   ============================================================ */
+
+body.hd-settings-page
+.hd-base-root-setting-row {
+    align-items:
+        end;
+}
+
+
+body.hd-settings-page
+.hd-base-root-setting-control {
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        8px;
+
+    width:
+        min(100%, 720px);
+
+    max-width:
+        720px;
+}
+
+
+body.hd-settings-page
+.hd-base-root-setting-control
+input {
+    flex:
+        1 1 auto;
+
+    min-width:
+        260px;
+
+    max-width:
+        600px;
+}
+
+
+body.hd-settings-page
+#base-rom-root-browse {
+    flex:
+        0 0 auto;
+
+    min-height:
+        36px;
+
+    white-space:
+        nowrap;
+}
+
+
+.hd-detail-about-media
+.hd-about-toggle[hidden] {
+    display:
+        none !important;
+}
+
+
+.hd-detail-about-media
+.hd-rich-description:not(.is-collapsed) {
+    max-height:
+        none !important;
+
+    overflow:
+        visible !important;
+}
+
+
+@media (max-width: 700px) {
+
+    body.hd-settings-page
+    .hd-base-root-setting-control {
+        width:
+            100%;
+
+        max-width:
+            none;
+    }
+
+    body.hd-settings-page
+    .hd-base-root-setting-control
+    input {
+        min-width:
+            0;
+
+        max-width:
+            none;
+    }
+}
+
+
+/* ============================================================
+   Windows Desktop Phase 6B
+   Settings regression + responsive detail modal
+   ============================================================ */
+
+
+/* Base ROM root should be compact, not page-width. */
+
+body.hd-settings-page
+.hd-base-root-setting-control {
+    width:
+        min(100%, 560px) !important;
+
+    max-width:
+        560px !important;
+}
+
+
+body.hd-settings-page
+.hd-base-root-setting-control
+input {
+    min-width:
+        260px !important;
+
+    max-width:
+        430px !important;
+}
+
+
+/* Give expandable descriptions a deliberately compact preview. */
+
+.hd-detail-about-media
+.hd-rich-description.is-collapsed {
+    max-height:
+        112px !important;
+
+    overflow:
+        hidden !important;
+}
+
+
+.hd-detail-about-media
+.hd-about-toggle {
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    margin-top:
+        10px;
+
+    min-height:
+        30px;
+
+    padding:
+        5px 10px;
+
+    border:
+        1px solid var(--hd-border);
+
+    border-radius:
+        7px;
+
+    background:
+        var(--hd-surface-2);
+
+    color:
+        var(--hd-text);
+
+    cursor:
+        pointer;
+
+    font-size:
+        10px;
+
+    font-weight:
+        800;
+}
+
+
+/*
+ * A resized desktop window still has a sidebar and window chrome,
+ * so the existing ~980px breakpoint is much too late.
+ *
+ * Switch the details view to one column before either side becomes
+ * cramped. The modal remains scrollable and centered.
+ */
+
+@media (max-width: 1500px) {
+
+    #modal-backdrop {
+        padding:
+            18px !important;
+    }
+
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                900px,
+                calc(100vw - 36px)
+            ) !important;
+
+        max-width:
+            900px !important;
+
+        max-height:
+            calc(100vh - 36px) !important;
+
+        overflow-y:
+            auto !important;
+
+        overflow-x:
+            hidden !important;
+    }
+
+    .hd-detail-view {
+        grid-template-columns:
+            minmax(0, 1fr)
+            !important;
+
+        min-height:
+            0 !important;
+    }
+
+    .hd-detail-media {
+        border-right:
+            0 !important;
+
+        border-bottom:
+            1px solid
+            var(--hd-border) !important;
+
+        overflow:
+            visible !important;
+    }
+
+    .hd-detail-cover {
+        min-height:
+            0 !important;
+    }
+
+    .hd-detail-cover
+    .cover {
+        max-width:
+            650px !important;
+
+        max-height:
+            420px !important;
+    }
+
+    .hd-detail-content {
+        width:
+            100% !important;
+
+        max-width:
+            none !important;
+    }
+}
+
+
+/* Return to the richer two-column desktop view when space allows. */
+
+@media (min-width: 1501px) {
+
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                1120px,
+                calc(100vw - 60px)
+            ) !important;
+
+        max-width:
+            1120px !important;
+    }
+}
+
+
+/* ============================================================
+   Windows Desktop Phase 6C
+   Fluid Hack Details layout
+   ============================================================ */
+
+
+/*
+ * Wide desktop window.
+ *
+ * Account for HackDex's navigation rail rather than sizing the
+ * dialog against the entire physical desktop width.
+ */
+
+@media (min-width: 1201px) {
+
+    #modal-backdrop {
+        padding:
+            24px !important;
+    }
+
+
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                1120px,
+                calc(100vw - 310px)
+            ) !important;
+
+        max-width:
+            1120px !important;
+
+        min-width:
+            860px !important;
+
+        max-height:
+            calc(100vh - 48px) !important;
+
+        overflow-y:
+            auto !important;
+
+        overflow-x:
+            hidden !important;
+    }
+
+
+    .hd-detail-view {
+        display:
+            grid !important;
+
+        grid-template-columns:
+            minmax(0, 1.08fr)
+            minmax(0, .92fr)
+            !important;
+
+        min-height:
+            0 !important;
+    }
+
+
+    .hd-detail-media {
+        display:
+            block !important;
+
+        border-right:
+            1px solid
+            var(--hd-border) !important;
+
+        border-bottom:
+            0 !important;
+
+        overflow:
+            hidden !important;
+    }
+
+
+    .hd-detail-content {
+        width:
+            auto !important;
+
+        max-width:
+            100% !important;
+    }
+}
+
+
+/*
+ * Resized / smaller Windows application.
+ *
+ * Use a genuinely compact dialog instead of turning the 900px+
+ * two-column dialog into a giant vertically stacked sheet.
+ */
+
+@media (max-width: 1200px) {
+
+    #modal-backdrop {
+        padding:
+            16px !important;
+    }
+
+
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                720px,
+                calc(100vw - 48px)
+            ) !important;
+
+        max-width:
+            720px !important;
+
+        min-width:
+            0 !important;
+
+        max-height:
+            calc(100vh - 32px)
+            !important;
+
+        overflow-y:
+            auto !important;
+
+        overflow-x:
+            hidden !important;
+    }
+
+
+    .hd-detail-view {
+        display:
+            grid !important;
+
+        grid-template-columns:
+            minmax(0, 1fr)
+            !important;
+
+        min-height:
+            0 !important;
+    }
+
+
+    .hd-detail-media {
+        display:
+            block !important;
+
+        padding:
+            18px !important;
+
+        border-right:
+            0 !important;
+
+        border-bottom:
+            1px solid
+            var(--hd-border) !important;
+
+        overflow:
+            visible !important;
+    }
+
+
+    .hd-detail-content {
+        width:
+            100% !important;
+
+        max-width:
+            none !important;
+
+        padding:
+            20px !important;
+    }
+
+
+    .hd-rich-gallery-main {
+        min-height:
+            0 !important;
+    }
+
+
+    .hd-rich-gallery-main
+    img,
+    .hd-detail-cover
+    .cover {
+        width:
+            auto !important;
+
+        max-width:
+            100% !important;
+
+        max-height:
+            320px !important;
+
+        margin:
+            0 auto;
+    }
+
+
+    .hd-detail-about-media {
+        margin-top:
+            14px !important;
+    }
+
+
+    .hd-detail-meta-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            ) !important;
+    }
+}
+
+
+/*
+ * Very narrow application window.
+ */
+
+@media (max-width: 700px) {
+
+    #modal-backdrop {
+        padding:
+            8px !important;
+    }
+
+
+    #modal-backdrop
+    .modal-content {
+        width:
+            calc(100vw - 16px)
+            !important;
+
+        max-height:
+            calc(100vh - 16px)
+            !important;
+    }
+
+
+    .hd-detail-meta-grid {
+        grid-template-columns:
+            minmax(0, 1fr)
+            !important;
+    }
+
+
+    .hd-detail-media,
+    .hd-detail-content {
+        padding:
+            14px !important;
+    }
+}
+
+
+
+
+/* ============================================================
+   Windows Desktop
+   Final responsive Hack Details layout
+   ============================================================ */
+
+
+/*
+ * HackDex desktop uses a fixed navigation rail and top bar.
+ * Keep the modal inside the usable content viewport rather
+ * than centering it against the entire WebView.
+ */
+
+body.hd-shell-active
+#modal-backdrop {
+    position:
+        fixed !important;
+
+    left:
+        var(--hd-sidebar-width)
+        !important;
+
+    top:
+        var(--hd-topbar-height)
+        !important;
+
+    right:
+        0 !important;
+
+    bottom:
+        0 !important;
+
+    width:
+        auto !important;
+
+    height:
+        auto !important;
+
+    box-sizing:
+        border-box !important;
+
+    align-items:
+        center !important;
+
+    justify-content:
+        center !important;
+
+    padding:
+        22px !important;
+
+    overflow:
+        hidden !important;
+}
+
+
+body.hd-shell-active
+#modal-backdrop
+.modal-content {
+    box-sizing:
+        border-box !important;
+
+    min-width:
+        0 !important;
+
+    margin:
+        0 !important;
+
+    overflow-x:
+        hidden !important;
+
+    overflow-y:
+        auto !important;
+
+    border-radius:
+        16px !important;
+}
+
+
+/*
+ * Full desktop / maximized window.
+ * Preserve the established two-column HackDex detail design.
+ */
+
+@media (min-width: 1501px) {
+
+    body.hd-shell-active
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                1120px,
+                calc(
+                    100vw
+                    - var(--hd-sidebar-width)
+                    - 48px
+                )
+            )
+            !important;
+
+        max-width:
+            1120px !important;
+
+        max-height:
+            calc(
+                100vh
+                - var(--hd-topbar-height)
+                - 44px
+            )
+            !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-view {
+        display:
+            grid !important;
+
+        grid-template-columns:
+            minmax(0, 1.08fr)
+            minmax(0, .92fr)
+            !important;
+
+        min-height:
+            0 !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-media {
+        display:
+            block !important;
+
+        min-width:
+            0 !important;
+
+        overflow:
+            hidden !important;
+
+        border-right:
+            1px solid
+            var(--hd-border)
+            !important;
+
+        border-bottom:
+            0 !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-content {
+        min-width:
+            0 !important;
+
+        width:
+            auto !important;
+    }
+}
+
+
+/*
+ * Resized desktop window.
+ *
+ * Keep Details looking like a modal instead of turning it into
+ * a page-sized sheet.
+ */
+
+@media (max-width: 1500px) {
+
+    body.hd-shell-active
+    #modal-backdrop {
+        padding:
+            28px !important;
+    }
+
+
+    body.hd-shell-active
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                660px,
+                calc(
+                    100vw
+                    - var(--hd-sidebar-width)
+                    - 56px
+                )
+            )
+            !important;
+
+        max-width:
+            660px !important;
+
+        height:
+            auto !important;
+
+        max-height:
+            min(
+                78vh,
+                calc(
+                    100vh
+                    - var(--hd-topbar-height)
+                    - 56px
+                )
+            )
+            !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-view {
+        display:
+            block !important;
+
+        width:
+            100% !important;
+
+        min-height:
+            0 !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-media {
+        box-sizing:
+            border-box !important;
+
+        display:
+            block !important;
+
+        width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        padding:
+            16px 18px
+            14px !important;
+
+        overflow:
+            visible !important;
+
+        border-right:
+            0 !important;
+
+        border-bottom:
+            1px solid
+            var(--hd-border)
+            !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-content {
+        box-sizing:
+            border-box !important;
+
+        width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        max-width:
+            none !important;
+
+        padding:
+            18px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-gallery,
+    body.hd-shell-active
+    .hd-rich-gallery-main {
+        width:
+            100% !important;
+
+        min-width:
+            0 !important;
+
+        max-width:
+            100% !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-gallery-main {
+        min-height:
+            0 !important;
+
+        max-height:
+            280px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-gallery-main
+    img,
+    body.hd-shell-active
+    .hd-detail-cover
+    .cover {
+        display:
+            block !important;
+
+        width:
+            auto !important;
+
+        height:
+            auto !important;
+
+        max-width:
+            100% !important;
+
+        max-height:
+            260px !important;
+
+        margin:
+            0 auto !important;
+
+        object-fit:
+            contain !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-gallery-thumbs {
+        max-width:
+            100% !important;
+
+        margin-top:
+            10px !important;
+
+        padding-bottom:
+            2px !important;
+
+        overflow-x:
+            auto !important;
+
+        overflow-y:
+            hidden !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-gallery-thumb {
+        width:
+            54px !important;
+
+        height:
+            42px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-about-media {
+        box-sizing:
+            border-box !important;
+
+        width:
+            100% !important;
+
+        max-width:
+            100% !important;
+
+        margin:
+            12px 0 0 !important;
+
+        padding:
+            14px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-about-media
+    .hd-rich-description.is-collapsed {
+        max-height:
+            92px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-title-row
+    h2 {
+        font-size:
+            24px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-meta-grid {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            )
+            !important;
+
+        gap:
+            8px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-meta-grid
+    > div {
+        min-height:
+            56px !important;
+
+        padding:
+            10px 12px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-rich-section,
+    body.hd-shell-active
+    .hd-detail-readiness,
+    body.hd-shell-active
+    .obtain-options {
+        margin-top:
+            12px !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-primary-action {
+        position:
+            sticky !important;
+
+        bottom:
+            0 !important;
+
+        padding-top:
+            10px !important;
+
+        background:
+            var(--hd-surface)
+            !important;
+    }
+}
+
+
+/*
+ * Very narrow application window.
+ */
+
+@media (max-width: 850px) {
+
+    body.hd-shell-active
+    #modal-backdrop {
+        left:
+            0 !important;
+
+        padding:
+            14px !important;
+    }
+
+
+    body.hd-shell-active
+    #modal-backdrop
+    .modal-content {
+        width:
+            min(
+                620px,
+                calc(100vw - 28px)
+            )
+            !important;
+
+        max-width:
+            620px !important;
+
+        max-height:
+            calc(
+                100vh
+                - var(--hd-topbar-height)
+                - 28px
+            )
+            !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-meta-grid {
+        grid-template-columns:
+            minmax(0, 1fr)
+            !important;
+    }
+
+
+    body.hd-shell-active
+    .hd-detail-media,
+    body.hd-shell-active
+    .hd-detail-content {
+        padding:
+            14px !important;
+    }
+}

@@ -577,6 +577,17 @@ def scan_base_roms():
             root,
         )
 
+        #
+        # Persist the Base ROM location before starting expensive
+        # filesystem enumeration / archive inspection / hashing.
+        #
+        # ensure_location() may mutate LibraryLocation. Without this
+        # commit, the next ORM query can autoflush that change and
+        # hold SQLite's write transaction throughout the scan.
+        #
+        db.commit()
+        db.refresh(location)
+
         keys = required_base_keys(db)
 
         #

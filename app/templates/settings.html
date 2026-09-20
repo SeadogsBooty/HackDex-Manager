@@ -928,15 +928,35 @@
             Batocera platform folders are needed.
         </p>
 
-        <div class="row">
+        <div
+            class="
+                row
+                hd-base-root-setting-row
+            "
+        >
             <label>
                 Clean ROM Root
             </label>
 
-            <input
-                data-key="base_rom_root"
-                placeholder="/roms"
-            >
+            <div class="hd-base-root-setting-control">
+                <input
+                    id="base-rom-root-setting"
+                    data-key="base_rom_root"
+                    placeholder="/roms"
+                >
+
+                <button
+                    type="button"
+                    id="base-rom-root-browse"
+                    class="secondary"
+                    onclick="
+                        browseBaseRomRootSetting()
+                    "
+                    hidden
+                >
+                    Change Folder
+                </button>
+            </div>
         </div>
 
         <p class="help">
@@ -1932,6 +1952,193 @@ if (SETTINGS_PAGE === "about") {
 
 <script>
 let libraryLocations = [];
+
+
+function desktopFolderPickerAvailable() {
+    return Boolean(
+        window.pywebview
+        && window.pywebview.api
+        && window.pywebview.api.select_folder
+    );
+}
+
+
+function refreshDesktopSettingsControls() {
+    const button =
+        document.getElementById(
+            "base-rom-root-browse"
+        );
+
+    if (!button) {
+        return;
+    }
+
+    button.hidden =
+        !desktopFolderPickerAvailable();
+
+    if (desktopFolderPickerAvailable()) {
+        const hackSection =
+            Array.from(
+                document.querySelectorAll(
+                    "main section"
+                )
+            ).find(
+                section =>
+                    section.textContent.includes(
+                        "Hack Locations"
+                    )
+            );
+
+        if (hackSection) {
+            const description =
+                hackSection.querySelector(
+                    "p"
+                );
+
+            if (description) {
+                description.textContent =
+                    "Locations containing patched ROM hacks. "
+                    + "Local folders, mapped drives, and "
+                    + "network shares are supported.";
+            }
+        }
+
+        const baseSection =
+            Array.from(
+                document.querySelectorAll(
+                    "main section"
+                )
+            ).find(
+                section =>
+                    section.textContent.includes(
+                        "Base ROM Source"
+                    )
+            );
+
+        if (baseSection) {
+            const paragraphs =
+                baseSection.querySelectorAll(
+                    "p"
+                );
+
+            paragraphs.forEach(
+                paragraph => {
+                    if (
+                        paragraph.textContent.includes(
+                            "/roms/"
+                        )
+                    ) {
+                        paragraph.textContent =
+                            "HackDex uses the selected clean-ROM "
+                            + "root to locate the required platform "
+                            + "folders. You can change this folder "
+                            + "at any time.";
+                    }
+                }
+            );
+        }
+    }
+}
+
+
+async function browseBaseRomRootSetting() {
+    if (!desktopFolderPickerAvailable()) {
+        return;
+    }
+
+    const input =
+        document.getElementById(
+            "base-rom-root-setting"
+        );
+
+    if (!input) {
+        return;
+    }
+
+    const result =
+        await window.pywebview.api.select_folder(
+            input.value.trim() || null
+        );
+
+    if (
+        !result
+        || !result.selected
+        || !result.path
+    ) {
+        return;
+    }
+
+    const response =
+        await fetch(
+            "/api/setup/base-rom-root",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                },
+
+                body: JSON.stringify({
+                    path:
+                        result.path,
+                }),
+            }
+        );
+
+    const data =
+        await response.json();
+
+    if (
+        !response.ok
+        || !data.success
+    ) {
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+        if (message) {
+            message.textContent =
+                data.message
+                || "Unable to change Base ROM folder.";
+        }
+
+        return;
+    }
+
+    input.value =
+        data.path;
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+    if (message) {
+        message.textContent =
+            "Base ROM folder updated.";
+    }
+
+    /*
+     * Refresh the page so the platform paths and inventory
+     * summaries immediately reflect the newly selected root.
+     */
+    window.location.reload();
+}
+
+
+window.addEventListener(
+    "pywebviewready",
+    refreshDesktopSettingsControls
+);
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    refreshDesktopSettingsControls
+);
+
 
 function escapeLocationHtml(value) {
     return String(value ?? "")

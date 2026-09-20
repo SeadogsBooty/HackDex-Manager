@@ -1,13 +1,12 @@
 import json
-from pathlib import Path
 from platform_paths import data_path
 
 from database import SessionLocal
 from models import Hack, HackMatch, Rom
 
 
-RICH_CACHE_PATH = Path(
-    "/data/hackdex-catalog.json"
+RICH_CACHE_PATH = data_path(
+    "hackdex-catalog.json"
 )
 
 

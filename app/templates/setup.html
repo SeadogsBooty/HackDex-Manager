@@ -1232,7 +1232,7 @@
                     Verify storage
                 </h2>
 
-                <p>
+                <p id="storage-description">
                     These are container-visible
                     paths. Host paths are configured
                     in Docker Compose, Komodo, or
@@ -1268,7 +1268,7 @@
                     Configure your ROM hack library
                 </h2>
 
-                <p>
+                <p id="hack-library-description">
                     Use your current configured
                     locations, or detect a different
                     container-visible parent.
@@ -1325,7 +1325,10 @@
                 Configure a different parent
             </div>
 
-            <div class="hd-setup-detect-subtitle">
+            <div
+                id="hack-parent-description"
+                class="hd-setup-detect-subtitle"
+            >
                 New deployments are recommended
                 to mount one writable parent at
                 <code>/hacks</code>.
@@ -1342,6 +1345,19 @@
                     autocomplete="off"
                     spellcheck="false"
                 >
+
+                <button
+                    type="button"
+                    id="browse-hack-parent"
+                    class="
+                        hd-setup-button
+                        secondary
+                    "
+                    onclick="browseHackParent()"
+                    hidden
+                >
+                    Browse
+                </button>
 
                 <button
                     type="button"
@@ -1397,7 +1413,10 @@
                 Add a location manually
             </div>
 
-            <div class="hd-setup-detect-subtitle">
+            <div
+                id="manual-location-description"
+                class="hd-setup-detect-subtitle"
+            >
                 Use this when your ROM hacks are not
                 arranged beneath one common parent.
                 Enter paths as they appear inside the
@@ -1429,14 +1448,31 @@
                 </label>
 
                 <label class="hd-setup-manual-path">
-                    <span>Container path</span>
+                    <span id="manual-path-label">
+                        Container path
+                    </span>
 
-                    <input
-                        id="manual-path"
-                        placeholder="/hacks/gba"
-                        autocomplete="off"
-                        spellcheck="false"
-                    >
+                    <div class="hd-setup-input-row">
+                        <input
+                            id="manual-path"
+                            placeholder="/hacks/gba"
+                            autocomplete="off"
+                            spellcheck="false"
+                        >
+
+                        <button
+                            type="button"
+                            id="browse-manual-path"
+                            class="
+                                hd-setup-button
+                                secondary
+                            "
+                            onclick="browseManualPath()"
+                            hidden
+                        >
+                            Browse
+                        </button>
+                    </div>
                 </label>
 
                 <label>
@@ -1968,9 +2004,17 @@ async function loadSetupStatus() {
             lockSetupNavigation();
         }
 
-        document.getElementById(
-            "storage-status"
-        ).innerHTML =
+        const desktop =
+            Boolean(
+                setupStatus.desktop_mode
+            );
+
+        const storage =
+            document.getElementById(
+                "storage-status"
+            );
+
+        storage.innerHTML =
             storageCard(
                 "Base ROM library",
                 setupStatus.rom,
@@ -1986,6 +2030,89 @@ async function loadSetupStatus() {
                 setupStatus.staging,
                 true
             );
+
+        if (desktop) {
+            document.getElementById(
+                "storage-description"
+            ).textContent =
+                "Choose the folders HackDex Manager "
+                + "should use on this Windows PC. "
+                + "Local drives, mapped drives, and "
+                + "network shares are supported.";
+
+            const baseCard =
+                storage.querySelector(
+                    ".hd-setup-status-card"
+                );
+
+            if (baseCard) {
+                const action =
+                    document.createElement(
+                        "button"
+                    );
+
+                action.type = "button";
+                action.className =
+                    "hd-setup-button secondary";
+
+                action.textContent =
+                    setupStatus.rom.path
+                    ? "Change Folder"
+                    : "Browse";
+
+                action.addEventListener(
+                    "click",
+                    browseBaseRomRoot
+                );
+
+                baseCard.appendChild(
+                    action
+                );
+            }
+
+            document.getElementById(
+                "hack-library-description"
+            ).textContent =
+                "Choose the folder that contains "
+                + "your ROM hack libraries. Local "
+                + "folders, mapped drives, and "
+                + "network shares are supported.";
+
+            document.getElementById(
+                "hack-parent-description"
+            ).innerHTML =
+                "Select the parent folder containing "
+                + "your hack platform folders. "
+                + "HackDex Manager supports both "
+                + "<code>gba</code> and "
+                + "<code>gba-hacks</code>-style "
+                + "folder layouts.";
+
+            document.getElementById(
+                "manual-location-description"
+            ).textContent =
+                "Use this when your ROM hacks are "
+                + "not arranged beneath one common "
+                + "parent folder.";
+
+            document.getElementById(
+                "manual-path-label"
+            ).textContent =
+                "Folder";
+
+            document.getElementById(
+                "manual-path"
+            ).placeholder =
+                String.raw`D:\ROM Hacks\gba`;
+
+            document.getElementById(
+                "browse-hack-parent"
+            ).hidden = false;
+
+            document.getElementById(
+                "browse-manual-path"
+            ).hidden = false;
+        }
 
         const configured =
             setupStatus.hack_locations
@@ -2069,7 +2196,11 @@ async function loadSetupStatus() {
         ).value =
             inferred
             || setupStatus.hack_parent
-            || "/hacks";
+            || (
+                desktop
+                ? ""
+                : "/hacks"
+            );
 
         const catalog =
             setupStatus.catalog || {};
@@ -2153,6 +2284,130 @@ function showAlternativeLocationSetup() {
     document.getElementById(
         "hack-parent"
     ).focus();
+}
+
+
+function isDesktopSetup() {
+    return Boolean(
+        setupStatus
+        && setupStatus.desktop_mode
+    );
+}
+
+
+async function selectDesktopFolder(
+    currentPath = ""
+) {
+    if (
+        !window.pywebview
+        || !window.pywebview.api
+        || !window.pywebview.api.select_folder
+    ) {
+        return null;
+    }
+
+    const result =
+        await window.pywebview.api.select_folder(
+            currentPath || null
+        );
+
+    if (
+        !result
+        || !result.selected
+        || !result.path
+    ) {
+        return null;
+    }
+
+    return result.path;
+}
+
+
+async function browseBaseRomRoot() {
+    const current =
+        setupStatus
+        && setupStatus.rom
+        ? setupStatus.rom.path || ""
+        : "";
+
+    const selected =
+        await selectDesktopFolder(
+            current
+        );
+
+    if (!selected) {
+        return;
+    }
+
+    const response = await fetch(
+        "/api/setup/base-rom-root",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+
+            body: JSON.stringify({
+                path: selected,
+            }),
+        }
+    );
+
+    const data =
+        await response.json();
+
+    if (!data.success) {
+        alert(
+            data.message
+            || "Unable to use this Base ROM folder."
+        );
+
+        return;
+    }
+
+    await loadSetupStatus();
+}
+
+
+async function browseHackParent() {
+    const input =
+        document.getElementById(
+            "hack-parent"
+        );
+
+    const selected =
+        await selectDesktopFolder(
+            input.value.trim()
+        );
+
+    if (!selected) {
+        return;
+    }
+
+    input.value = selected;
+
+    await detectHackParent();
+}
+
+
+async function browseManualPath() {
+    const input =
+        document.getElementById(
+            "manual-path"
+        );
+
+    const selected =
+        await selectDesktopFolder(
+            input.value.trim()
+        );
+
+    if (!selected) {
+        return;
+    }
+
+    input.value = selected;
 }
 
 
@@ -2250,10 +2505,20 @@ async function detectHackParent() {
                 "hd-setup-message warning";
 
             message.textContent =
-                path
-                + " is not mounted in this container. "
-                + "Add the host-to-container mount "
-                + "in Docker or Komodo, then Detect again.";
+                isDesktopSetup()
+                ? (
+                    path
+                    + " is not currently available. "
+                    + "If this is a network share or "
+                    + "mapped drive, confirm Windows "
+                    + "can access it and try again."
+                )
+                : (
+                    path
+                    + " is not mounted in this container. "
+                    + "Add the host-to-container mount "
+                    + "in Docker or Komodo, then Detect again."
+                );
 
             return;
         }
@@ -2420,7 +2685,9 @@ async function addManualLocation() {
             "hd-setup-message warning";
 
         message.textContent =
-            "Enter a container-visible library path.";
+            isDesktopSetup()
+            ? "Choose or enter a library folder."
+            : "Enter a container-visible library path.";
 
         return;
     }

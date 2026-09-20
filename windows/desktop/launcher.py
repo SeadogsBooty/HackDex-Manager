@@ -56,6 +56,70 @@ APP_TITLE = "HackDex Manager"
 HOST = "127.0.0.1"
 
 
+class DesktopBridge:
+    """Native functionality exposed only to the desktop WebView."""
+
+    def select_folder(
+        self,
+        directory: str | None = None,
+    ) -> dict:
+        """Open the native Windows folder picker."""
+        try:
+            if not webview.windows:
+                return {
+                    "selected": False,
+                    "path": "",
+                    "error":
+                        "Desktop window is not available.",
+                }
+
+            window = webview.windows[0]
+
+            result = (
+                window.create_file_dialog(
+                    webview.FileDialog.FOLDER,
+                    directory=directory or "",
+                    allow_multiple=False,
+                )
+            )
+
+            if not result:
+                return {
+                    "selected": False,
+                    "path": "",
+                    "error": "",
+                }
+
+            if isinstance(
+                result,
+                (tuple, list),
+            ):
+                selected = (
+                    str(result[0])
+                    if result
+                    else ""
+                )
+            else:
+                selected = str(result)
+
+            return {
+                "selected":
+                    bool(selected),
+
+                "path":
+                    selected,
+
+                "error":
+                    "",
+            }
+
+        except Exception as exc:
+            return {
+                "selected": False,
+                "path": "",
+                "error": str(exc),
+            }
+
 def reserve_port() -> int:
     """Ask Windows for a currently unused loopback TCP port."""
     with contextlib.closing(
@@ -133,6 +197,8 @@ def main() -> int:
     try:
         server.start()
 
+        bridge = DesktopBridge()
+
         window = webview.create_window(
             APP_TITLE,
             server.url,
@@ -141,6 +207,7 @@ def main() -> int:
             min_size=(1100, 700),
             resizable=True,
             text_select=True,
+            js_api=bridge,
         )
 
         webview.start(

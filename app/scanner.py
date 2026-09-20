@@ -6,6 +6,8 @@ from pathlib import Path
 from database import SessionLocal
 from models import Rom, LibraryLocation
 from parser import parse_filename
+from platform_paths import running_as_desktop
+from settings_store import get_settings
 
 
 SUPPORTED_EXTENSIONS = {
@@ -43,6 +45,32 @@ def calculate_hashes(path: Path):
     return sha1.hexdigest(), sha256.hexdigest()
 
 
+def configured_rom_root():
+    if running_as_desktop():
+        configured = str(
+            get_settings().get(
+                "base_rom_root",
+                "",
+            )
+            or ""
+        ).strip()
+
+        if (
+            configured
+            and configured != "/roms"
+        ):
+            return Path(
+                configured
+            )
+
+    return Path(
+        os.environ.get(
+            "ROM_PATH",
+            "/roms",
+        )
+    )
+
+
 def get_libraries(db):
     return (
         db.query(LibraryLocation)
@@ -69,14 +97,14 @@ def scan_roms():
     discovery. Hashes are populated lazily only when an
     operation requires integrity verification.
     """
-    rom_root = Path(
-        os.environ.get(
-            "ROM_PATH",
-            "/roms",
-        )
+    rom_root = (
+        configured_rom_root()
     )
 
-    if not rom_root.exists():
+    if (
+        not rom_root.exists()
+        and not running_as_desktop()
+    ):
         return {
             "error":
                 f"ROM root does not exist: {rom_root}"
