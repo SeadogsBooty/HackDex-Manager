@@ -134,7 +134,7 @@ jobs:
           chmod 0777 "$data_dir" "$staging_dir" "$backups_dir"
 
           cid="$(docker run -d \
-            -p 127.0.0.1::8095 \
+            -p 127.0.0.1::8080 \
             -v "$data_dir:/data" \
             -v "$staging_dir:/staging" \
             -v "$backups_dir:/backups" \
@@ -142,7 +142,7 @@ jobs:
 
           trap 'docker logs "$cid" || true; docker rm -f "$cid" >/dev/null 2>&1 || true' EXIT
 
-          host_port="$(docker port "$cid" 8095/tcp | head -n1 | awk -F: '{print $NF}')"
+          host_port="$(docker port "$cid" 8080/tcp | head -n1 | awk -F: '{print $NF}')"
 
           for i in $(seq 1 30); do
             if curl --fail --silent "http://127.0.0.1:${host_port}/" >/dev/null; then
