@@ -1,0 +1,7 @@
+﻿# Windows desktop-only Python dependencies.
+#
+# The application's normal Python dependencies remain in the root
+# requirements.txt file.
+
+pywebview>=5.4,<7
+pyinstaller>=6.10,<7

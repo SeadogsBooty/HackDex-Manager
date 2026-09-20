@@ -8,6 +8,7 @@ import sys
 from contextvars import ContextVar
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from platform_paths import logs_dir
 
 
 APP_LOGGER_NAME = "hackdex"
@@ -15,7 +16,7 @@ APP_LOGGER_NAME = "hackdex"
 LOG_DIR = Path(
     os.getenv(
         "HACKDEX_LOG_DIR",
-        "/data/logs",
+        str(logs_dir()),
     )
 )
 
