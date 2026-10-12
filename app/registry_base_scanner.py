@@ -20,8 +20,8 @@ from models import (
 )
 
 
-CACHE_PATH = Path(
-    "/data/base-rom-inventory-cache.json"
+CACHE_PATH = data_path(
+    "base-rom-inventory-cache.json"
 )
 
 

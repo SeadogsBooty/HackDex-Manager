@@ -1,4 +1,4 @@
-﻿param(
+param(
     [switch]$SkipAppBuild
 )
 
@@ -62,6 +62,66 @@ $Iss = Join-Path `
     $Repo `
     "windows\installer\HackDexManager.iss"
 
+
+# Keep the Windows installer version synchronized with the
+# authoritative HackDex Manager application version.
+$VersionFile = Join-Path `
+    $Repo `
+    "app\version.py"
+
+$VersionSource = Get-Content `
+    -LiteralPath $VersionFile `
+    -Raw
+
+$VersionMatch = [regex]::Match(
+    $VersionSource,
+    'APP_VERSION\s*=\s*"([^"]+)"'
+)
+
+if (-not $VersionMatch.Success) {
+    throw "Unable to read APP_VERSION from app\version.py."
+}
+
+$AppVersion = (
+    $VersionMatch
+        .Groups[1]
+        .Value
+)
+
+
+$InstallerSource = Get-Content `
+    -LiteralPath $Iss `
+    -Raw
+
+$InstallerVersionMatch = [regex]::Match(
+    $InstallerSource,
+    '#define\s+MyAppVersion\s+"([^"]+)"'
+)
+
+if (-not $InstallerVersionMatch.Success) {
+    throw "Unable to read MyAppVersion from HackDexManager.iss."
+}
+
+$InstallerVersion = (
+    $InstallerVersionMatch
+        .Groups[1]
+        .Value
+)
+
+if ($InstallerVersion -ne $AppVersion) {
+    throw (
+        "Windows installer version mismatch. "
+        + "app/version.py = "
+        + $AppVersion
+        + "; HackDexManager.iss = "
+        + $InstallerVersion
+    )
+}
+
+Write-Host ""
+Write-Host "HackDex Manager application version: $AppVersion"
+Write-Host "Windows installer version:          $InstallerVersion"
+Write-Host ""
 
 & $ISCC $Iss
 

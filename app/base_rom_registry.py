@@ -2,7 +2,6 @@ from version import APP_USER_AGENT
 import json
 import re
 from datetime import datetime
-from pathlib import Path
 from platform_paths import data_path
 
 import httpx
@@ -17,8 +16,8 @@ RAW_URL = (
     "main/src/data/baseRoms.ts"
 )
 
-CACHE_PATH = Path(
-    "/data/hackdex-base-roms.json"
+CACHE_PATH = data_path(
+    "hackdex-base-roms.json"
 )
 
 
