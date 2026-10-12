@@ -253,9 +253,60 @@ grep -q \
 
 echo "Setup Guide structure: PASS"
 
+echo
+echo "===== VERIFY THREE-STEP ONBOARDING ====="
+
+grep -q \
+    'id="base-rom-section"' \
+    "$ROOT/setup.html" \
+    || fail "Base ROM setup step missing."
+
+grep -q \
+    'id="hack-library-section" hidden' \
+    "$ROOT/setup.html" \
+    || fail "Progressive hack-library step missing."
+
+grep -q \
+    'id="finish-section" hidden' \
+    "$ROOT/setup.html" \
+    || fail "Progressive finish step missing."
+
+grep -q \
+    'Add Another Location' \
+    "$ROOT/setup.html" \
+    || fail "Add Another Location action missing."
+
+grep -q \
+    'Add a Location Manually' \
+    "$ROOT/setup.html" \
+    || fail "Manual location fallback missing."
+
+if grep -q \
+    'id="catalog-status"' \
+    "$ROOT/setup.html"
+then
+    fail "Standalone catalog setup card still exists."
+fi
+
+if grep -q \
+    'Return to HackDex Manager' \
+    "$ROOT/setup.html"
+then
+    fail "Incomplete-setup escape link still exists."
+fi
+
+if grep -q \
+    'setupCatalogTotal' \
+    "$ROOT/setup.html"
+then
+    fail "Old raw catalog readiness denominator remains."
+fi
+
+echo "Three-step onboarding structure: PASS"
+
 
 echo
-echo "===== VERIFY v0.9.5 READINESS-AWARE UI ====="
+echo "===== VERIFY PROGRESSIVE SETUP UI ====="
 
 sudo docker exec "$NAME" python - <<'PYUI'
 from pathlib import Path

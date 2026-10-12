@@ -1220,7 +1220,7 @@
 
 
 
-    <section class="hd-setup-card">
+    <section class="hd-setup-card" id="base-rom-section">
 
         <div class="hd-setup-card-head">
 
@@ -1256,7 +1256,7 @@
     </section>
 
 
-    <section class="hd-setup-card">
+    <section class="hd-setup-card" id="hack-library-section" hidden>
 
         <div class="hd-setup-card-head">
 
@@ -1310,7 +1310,7 @@
                     onclick="showAlternativeLocationSetup()"
                     hidden
                 >
-                    Change / Detect Different Locations
+                    Add Another Location
                 </button>
             </div>
         </div>
@@ -1397,6 +1397,15 @@
                     hidden
                 >
                     Use These Locations
+                </button>
+
+                <button
+                    type="button"
+                    id="manual-location-toggle"
+                    class="hd-setup-button secondary"
+                    onclick="showManualLocationSetup()"
+                >
+                    Add a Location Manually
                 </button>
 
             </div>
@@ -1511,48 +1520,15 @@
     </section>
 
 
-    <section class="hd-setup-card">
+
+
+
+    <section class="hd-setup-card" id="finish-section" hidden>
 
         <div class="hd-setup-card-head">
 
             <div class="hd-setup-card-index">
                 3
-            </div>
-
-            <div>
-                <h2>
-                    HackDex catalog
-                </h2>
-
-                <p>
-                    The normal HackDex provider is
-                    built in. A standard installation
-                    requires no provider URL or API
-                    configuration.
-                </p>
-            </div>
-
-        </div>
-
-        <div
-            id="catalog-status"
-            class="hd-setup-grid"
-        >
-            <div class="hd-setup-loading-card">
-                <span class="hd-setup-spinner"></span>
-                Loading HackDex catalog status…
-            </div>
-        </div>
-
-    </section>
-
-
-    <section class="hd-setup-card">
-
-        <div class="hd-setup-card-head">
-
-            <div class="hd-setup-card-index">
-                4
             </div>
 
             <div>
@@ -1605,12 +1581,9 @@
     <footer class="hd-setup-footer">
 
         <span>
+            Complete setup to unlock HackDex Manager.
             Settings can be changed later at any time.
         </span>
-
-        <a href="/">
-            Return to HackDex Manager
-        </a>
 
     </footer>
 
@@ -1620,7 +1593,6 @@
 <script>
 let setupStatus = null;
 let hackDiscovery = null;
-let setupCatalogTotal = 0;
 
 
 function escapeHtml(value) {
@@ -1963,14 +1935,6 @@ function showSetupLoadError(
         </div>
     `;
 
-    document.getElementById(
-        "catalog-status"
-    ).innerHTML = `
-        <div class="hd-setup-message warning">
-            ${safe}
-        </div>
-    `;
-
     const section =
         document.getElementById(
             "configured-section"
@@ -2047,10 +2011,10 @@ async function loadSetupStatus() {
             document.getElementById(
                 "storage-description"
             ).textContent =
-                "Choose the folders HackDex Manager "
-                + "should use on this Windows PC. "
-                + "Local drives, mapped drives, and "
-                + "network shares are supported.";
+                "Choose the folder that contains "
+                + "your Base ROMs. Local drives, "
+                + "mapped drives, and network shares "
+                + "are supported.";
 
             const baseCard =
                 storage.querySelector(
@@ -2195,11 +2159,13 @@ async function loadSetupStatus() {
             changeLocationsButton.hidden = true;
 
             detectParentBox.hidden = false;
-            manualLocationBox.hidden = false;
+            manualLocationBox.hidden = true;
         }
 
         const inferred =
-            commonConfiguredParent(
+            desktop
+            ? null
+            : commonConfiguredParent(
                 configured
             );
 
@@ -2214,52 +2180,32 @@ async function loadSetupStatus() {
                 : "/hacks"
             );
 
-        const catalog =
-            setupStatus.catalog || {};
-
-        const total =
-            Number(
-                catalog.total || 0
+        const baseReady =
+            Boolean(
+                setupStatus.rom
+                && setupStatus.rom.exists
+                && setupStatus.rom.directory
+                && setupStatus.rom.readable
             );
 
-        document.getElementById(
-            "catalog-status"
-        ).innerHTML = `
-            <div class="hd-setup-status-card">
+        const hackLibrarySection =
+            document.getElementById(
+                "hack-library-section"
+            );
 
-                <div class="hd-setup-status-title">
-                    Live catalog
-                </div>
+        const finishSection =
+            document.getElementById(
+                "finish-section"
+            );
 
-                <span class="hd-setup-path">
-                    HackDex
-                </span>
+        hackLibrarySection.hidden =
+            !baseReady;
 
-                <span
-                    class="
-                        hd-setup-state
-                        ${
-                            total > 0
-                            ? "ready"
-                            : "warn"
-                        }
-                    "
-                >
-                    ${
-                        total > 0
-                        ? "✓"
-                        : "!"
-                    }
-
-                    ${
-                        total > 0
-                        ? `${total} hacks available`
-                        : "Waiting for synchronization"
-                    }
-                </span>
-
-            </div>
-        `;
+        finishSection.hidden =
+            !(
+                baseReady
+                && readyConfigured.length > 0
+            );
 
     } catch (error) {
         showSetupLoadError(
@@ -2276,7 +2222,7 @@ function showAlternativeLocationSetup() {
 
     document.getElementById(
         "manual-location-box"
-    ).hidden = false;
+    ).hidden = true;
 
     document.getElementById(
         "change-locations-button"
@@ -2289,8 +2235,9 @@ function showAlternativeLocationSetup() {
 
     if (!summary.hidden) {
         summary.textContent =
-            "Your current locations remain active "
-            + "until you choose and apply replacements.";
+            "Your current locations remain active. "
+            + "Detect another library parent below, "
+            + "or add a location manually.";
     }
 
     document.getElementById(
@@ -2298,6 +2245,24 @@ function showAlternativeLocationSetup() {
     ).focus();
 }
 
+
+function showManualLocationSetup() {
+    const box =
+        document.getElementById(
+            "manual-location-box"
+        );
+
+    box.hidden = false;
+
+    const input =
+        document.getElementById(
+            "manual-path"
+        );
+
+    if (input) {
+        input.focus();
+    }
+}
 
 function isDesktopSetup() {
     return Boolean(
@@ -2787,7 +2752,6 @@ function sleepSetup(milliseconds) {
 
 
 async function waitForCatalogReadiness(
-    expectedTotal,
     progress
 ) {
     const deadline =
@@ -2866,8 +2830,6 @@ async function waitForCatalogReadiness(
                 "Core setup complete.\n\n"
                 + "Preparing HackDex catalog...\n"
                 + checked
-                + " / "
-                + expectedTotal
                 + " hacks evaluated.\n\n"
                 + (
                     status === "RUNNING"
@@ -2919,7 +2881,6 @@ async function waitForCatalogReadiness(
 function finishSetupSuccess(
     progress,
     readinessData,
-    catalogTotal,
     romResult = null,
     baseResult = null
 ) {
@@ -2962,8 +2923,7 @@ function finishSetupSuccess(
     message +=
         "Catalog readiness: "
         + evaluated
-        + " / "
-        + catalogTotal
+        + " hacks evaluated"
         + "\n\n"
         + "Opening HackDex Manager...";
 
@@ -3029,21 +2989,8 @@ async function retryCatalogReadiness() {
             );
         }
 
-        const catalogTotal =
-            setupCatalogTotal
-            || Number(
-                (
-                    setupStatus
-                    && setupStatus.catalog
-                    ? setupStatus.catalog.total
-                    : 0
-                )
-                || 0
-            );
-
         const readinessData =
             await waitForCatalogReadiness(
-                catalogTotal,
                 progress
             );
 
@@ -3051,8 +2998,7 @@ async function retryCatalogReadiness() {
 
         finishSetupSuccess(
             progress,
-            readinessData,
-            catalogTotal
+            readinessData
         );
 
     } catch (error) {
@@ -3085,8 +3031,6 @@ async function finishSetup() {
         );
 
     let coreSetupCompleted = false;
-
-    setupCatalogTotal = 0;
 
     retryButton.hidden = true;
     retryButton.disabled = false;
@@ -3132,42 +3076,20 @@ async function finishSetup() {
         const baseResult =
             data.base_roms || {};
 
-        const catalogTotal =
-            Number(
-                (
-                    data.catalog
-                    || {}
-                ).imported
-                || (
-                    setupStatus
-                    && setupStatus.catalog
-                    ? setupStatus.catalog.total
-                    : 0
-                )
-                || 0
-            );
-
-        setupCatalogTotal =
-            catalogTotal;
-
         progress.textContent =
             "Core setup complete.\n\n"
             + "Preparing HackDex catalog...\n"
-            + "0 / "
-            + catalogTotal
-            + " hacks evaluated.\n\n"
+            + "0 hacks evaluated.\n\n"
             + "Please keep this page open.";
 
         const readinessData =
             await waitForCatalogReadiness(
-                catalogTotal,
                 progress
             );
 
         finishSetupSuccess(
             progress,
             readinessData,
-            catalogTotal,
             romResult,
             baseResult
         );
