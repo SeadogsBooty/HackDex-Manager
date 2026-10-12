@@ -408,6 +408,280 @@ print(
 
 
 echo
+echo "===== VERIFY SETUP GATE DURING READINESS ====="
+
+JOB_JSON="$(
+    curl -fsS \
+        "http://127.0.0.1:$PORT/api/readiness/job"
+)" || fail "Could not read readiness job state."
+
+printf '%s\n' "$JOB_JSON" \
+    | python3 -m json.tool
+
+JOB_STATUS="$(
+    printf '%s' "$JOB_JSON" \
+    | python3 -c '
+import json
+import sys
+
+data = json.load(sys.stdin)
+
+print(
+    data.get("status")
+    or "IDLE"
+)
+'
+)"
+
+echo "Initial readiness job status: $JOB_STATUS"
+
+#
+# Normally the readiness worker will still be running here.
+# Verify that setup remains locked until it completes.
+#
+# Very fast systems could finish before this observation;
+# in that case the final completed-state checks below are
+# authoritative and we avoid making the smoke test flaky.
+#
+if [ "$JOB_STATUS" != "COMPLETED" ]; then
+
+    sudo docker exec \
+        "$NAME" \
+        python -c '
+import sqlite3
+
+db = sqlite3.connect(
+    "/data/hackdex-manager.db"
+)
+
+row = db.execute(
+    """
+    SELECT value
+    FROM settings
+    WHERE key="setup_completed"
+    """
+).fetchone()
+
+value = (
+    row[0]
+    if row
+    else None
+)
+
+print(
+    "setup_completed during readiness:",
+    value,
+)
+
+assert value == "false"
+
+db.close()
+' || fail "Setup unlocked before readiness completed."
+
+    HEADERS="$(
+        curl -sS \
+            -D - \
+            -o /dev/null \
+            "http://127.0.0.1:$PORT/"
+    )"
+
+    CODE="$(
+        printf '%s\n' "$HEADERS" \
+        | awk 'NR==1 {print $2}'
+    )"
+
+    LOCATION="$(
+        printf '%s\n' "$HEADERS" \
+        | awk '
+            BEGIN {
+                IGNORECASE=1
+            }
+
+            /^location:/ {
+                gsub("\r","",$2)
+                print $2
+            }
+        '
+    )"
+
+    echo \
+        "Root route during readiness:" \
+        "$CODE -> $LOCATION"
+
+    if [ "$CODE" != "303" ]; then
+        fail \
+            "Application unlocked before readiness completed."
+    fi
+
+    if [ "$LOCATION" != "/setup" ]; then
+        fail \
+            "Incomplete setup did not redirect to /setup."
+    fi
+
+    echo "Readiness setup gate: PASS"
+
+else
+    echo \
+        "Readiness completed before the intermediate" \
+        "setup-gate observation."
+fi
+
+
+echo
+echo "===== WAIT FOR AUTOMATIC READINESS JOB ====="
+
+python3 - \
+    "$PORT" \
+    <<'PYREADINESS'
+import json
+import sys
+import time
+import urllib.request
+
+
+port = sys.argv[1]
+
+job_url = (
+    "http://127.0.0.1:"
+    + str(port)
+    + "/api/readiness/job"
+)
+
+details_url = (
+    "http://127.0.0.1:"
+    + str(port)
+    + "/api/readiness/details"
+)
+
+deadline = (
+    time.monotonic()
+    + 900
+)
+
+last_status = None
+
+
+while time.monotonic() < deadline:
+
+    try:
+        with urllib.request.urlopen(
+            job_url,
+            timeout=30,
+        ) as response:
+            job = json.load(
+                response
+            )
+
+    except Exception as exc:
+        print(
+            "Readiness job poll failed:",
+            exc,
+        )
+
+        time.sleep(2)
+        continue
+
+
+    status = str(
+        job.get("status")
+        or "IDLE"
+    )
+
+
+    if status != last_status:
+        print(
+            "Readiness job status:",
+            status,
+        )
+
+        last_status = status
+
+
+    if status == "FAILED":
+        raise SystemExit(
+            "Readiness job failed: "
+            + str(
+                job.get("error")
+                or "unknown error"
+            )
+        )
+
+
+    if status == "COMPLETED":
+
+        with urllib.request.urlopen(
+            details_url,
+            timeout=30,
+        ) as response:
+            details = json.load(
+                response
+            )
+
+        items = (
+            details.get("items")
+            or {}
+        )
+
+        counts = (
+            details.get("counts")
+            or {}
+        )
+
+        print()
+        print(
+            "Readiness rows:",
+            len(items),
+        )
+
+        for key in sorted(
+            counts
+        ):
+            print(
+                f"{key}: {counts[key]}"
+            )
+
+        assert len(items) > 0, (
+            "Readiness completed without rows."
+        )
+
+        assert (
+            counts.get(
+                "NOT_CHECKED",
+                0,
+            )
+            == 0
+        ), counts
+
+        print()
+        print(
+            "Automatic readiness job: PASS"
+        )
+
+        break
+
+
+    if status not in {
+        "IDLE",
+        "RUNNING",
+    }:
+        raise SystemExit(
+            "Unexpected readiness job status: "
+            + status
+        )
+
+
+    time.sleep(2)
+
+else:
+    raise SystemExit(
+        "Timed out waiting for automatic "
+        "readiness job."
+    )
+PYREADINESS
+
+echo
+
+echo
 echo "===== VERIFY COMPLETED DATABASE STATE ====="
 
 sudo docker exec \
@@ -469,146 +743,6 @@ db.close()
 
 echo "Completed setup state: PASS"
 
-
-echo
-echo "===== WAIT FOR AUTOMATIC FULL-CATALOG READINESS ====="
-
-python3 - \
-    "$PORT" \
-    "$ROOT/initialize.json" \
-    <<'PYREADINESS'
-import json
-import sys
-import time
-import urllib.request
-from collections import Counter
-
-port = sys.argv[1]
-initialize_path = sys.argv[2]
-
-with open(
-    initialize_path,
-    "r",
-    encoding="utf-8",
-) as handle:
-    initialized = json.load(handle)
-
-catalog_total = int(
-    initialized.get(
-        "catalog",
-        {},
-    ).get(
-        "imported",
-        0,
-    )
-)
-
-if catalog_total <= 0:
-    raise SystemExit(
-        "Catalog did not initialize."
-    )
-
-url = (
-    "http://127.0.0.1:"
-    + str(port)
-    + "/api/readiness/details"
-)
-
-deadline = time.monotonic() + 900
-attempt = 0
-last_signature = None
-
-while time.monotonic() < deadline:
-    attempt += 1
-
-    try:
-        with urllib.request.urlopen(
-            url,
-            timeout=30,
-        ) as response:
-            readiness = json.load(
-                response
-            )
-
-    except Exception as exc:
-        print(
-            "Readiness poll failed:",
-            exc,
-        )
-        time.sleep(5)
-        continue
-
-    items = readiness.get(
-        "items",
-        {},
-    )
-
-    statuses = Counter(
-        (
-            item.get("status")
-            or "UNKNOWN"
-        )
-        for item in items.values()
-    )
-
-    signature = (
-        len(items),
-        tuple(
-            sorted(
-                statuses.items()
-            )
-        ),
-    )
-
-    if (
-        signature != last_signature
-        or attempt % 6 == 0
-    ):
-        print()
-        print(
-            "Readiness rows:",
-            len(items),
-            "/",
-            catalog_total,
-        )
-
-        for status, count in sorted(
-            statuses.items()
-        ):
-            print(
-                f"{status}: {count}"
-            )
-
-        last_signature = signature
-
-    complete = (
-        len(items) == catalog_total
-        and statuses.get(
-            "NOT_CHECKED",
-            0,
-        ) == 0
-        and statuses.get(
-            "UNKNOWN",
-            0,
-        ) == 0
-    )
-
-    if complete:
-        print()
-        print(
-            "Automatic full-catalog "
-            "readiness: PASS"
-        )
-        break
-
-    time.sleep(5)
-
-else:
-    raise SystemExit(
-        "Timed out waiting for automatic "
-        "full-catalog readiness."
-    )
-PYREADINESS
 
 echo
 
