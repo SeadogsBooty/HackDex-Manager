@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from desktop_api import router as desktop_router
 
 from catalog import get_catalog, get_catalog_stats
+from update_service import get_update_status
 from hackdex_provider import sync_catalog
 from matcher import run_matching
 from obtain_staging import stage_obtain
@@ -504,6 +505,70 @@ ensure_default_locations()
 ensure_setup_state()
 
 ensure_defaults()
+
+
+
+setup_progress_lock = threading.Lock()
+
+setup_progress_state = {
+    "running": False,
+    "phase": "IDLE",
+    "message": "",
+    "percent": 0,
+    "error": None,
+    "updated_at": None,
+}
+
+
+def update_setup_progress(
+    *,
+    running=None,
+    phase=None,
+    message=None,
+    percent=None,
+    error=None,
+):
+    with setup_progress_lock:
+        if running is not None:
+            setup_progress_state[
+                "running"
+            ] = bool(running)
+
+        if phase is not None:
+            setup_progress_state[
+                "phase"
+            ] = str(phase)
+
+        if message is not None:
+            setup_progress_state[
+                "message"
+            ] = str(message)
+
+        if percent is not None:
+            setup_progress_state[
+                "percent"
+            ] = max(
+                0,
+                min(
+                    100,
+                    int(percent),
+                ),
+            )
+
+        setup_progress_state[
+            "error"
+        ] = error
+
+        setup_progress_state[
+            "updated_at"
+        ] = time.time()
+
+
+def setup_progress_snapshot():
+    with setup_progress_lock:
+        return dict(
+            setup_progress_state
+        )
 
 
 scan_state = {
@@ -1115,6 +1180,7 @@ class LocationEnabled(BaseModel):
 class HackParentSetup(BaseModel):
     path: str
     apply: bool = False
+    platforms: list[str] | None = None
 
 
 class BaseRomRootSetup(BaseModel):
@@ -2140,6 +2206,15 @@ def api_catalog_stats():
     return get_catalog_stats()
 
 
+@app.get("/api/update/status")
+def api_update_status(
+    force: bool = False,
+):
+    return get_update_status(
+        force=force
+    )
+
+
 @app.get("/api/settings")
 def api_get_settings():
     return get_settings()
@@ -2367,7 +2442,8 @@ def api_setup_hack_parent(
         if payload.apply:
             result = (
                 configure_hack_parent(
-                    payload.path
+                    payload.path,
+                    platforms=payload.platforms,
                 )
             )
 
@@ -2396,97 +2472,184 @@ def api_setup_hack_parent(
         }
 
 
+@app.get("/api/setup/progress")
+def api_setup_progress():
+    return setup_progress_snapshot()
+
+
 @app.post("/api/setup/initialize")
 def api_setup_initialize():
     result = {
         "success": False,
     }
 
-    catalog_result = (
-        _run_logged_operation(
-            catalog_logger,
-            "setup_catalog_sync",
-            sync_catalog,
+    update_setup_progress(
+        running=True,
+        phase="CATALOG",
+        message=(
+            "Synchronizing HackDex catalog metadata..."
+        ),
+        percent=14,
+        error=None,
+    )
+
+    try:
+        catalog_result = (
+            _run_logged_operation(
+                catalog_logger,
+                "setup_catalog_sync",
+                sync_catalog,
+            )
         )
-    )
 
-    result["catalog"] = (
-        catalog_result
-    )
+        result["catalog"] = (
+            catalog_result
+        )
 
-    if not catalog_result.get(
-        "success"
-    ):
+        if not catalog_result.get(
+            "success"
+        ):
+            update_setup_progress(
+                running=False,
+                phase="FAILED",
+                message=(
+                    "HackDex catalog synchronization "
+                    "did not complete."
+                ),
+                percent=14,
+                error=(
+                    "Catalog synchronization failed."
+                ),
+            )
+
+            result["message"] = (
+                "HackDex catalog synchronization "
+                "did not complete."
+            )
+
+            return result
+
+        update_setup_progress(
+            running=True,
+            phase="BASE_ROMS",
+            message="Scanning Base ROM library...",
+            percent=29,
+        )
+
+        locations = list_locations(
+            kind="hack"
+        )
+
+        ready_locations = [
+            row
+            for row in locations
+            if (
+                row.get("enabled")
+                and row.get("state")
+                == "READY"
+            )
+        ]
+
+        if not ready_locations:
+            update_setup_progress(
+                running=False,
+                phase="FAILED",
+                message=(
+                    "No ready ROM hack library "
+                    "locations are configured."
+                ),
+                percent=15,
+                error=(
+                    "No ready hack library location."
+                ),
+            )
+
+            result["message"] = (
+                "At least one readable hack "
+                "library location is required."
+            )
+
+            return result
+
+        result["base_roms"] = (
+            _run_logged_operation(
+                base_rom_logger,
+                "setup_base_rom_scan",
+                scan_base_roms,
+            )
+        )
+
+        update_setup_progress(
+            running=True,
+            phase="HACK_LIBRARIES",
+            message=(
+                "Scanning configured ROM hack libraries..."
+            ),
+            percent=49,
+        )
+
+        result["roms"] = (
+            _run_logged_operation(
+                scan_logger,
+                "setup_rom_scan",
+                scan_roms,
+            )
+        )
+
+        update_setup_progress(
+            running=True,
+            phase="MATCHING",
+            message=(
+                "Matching local games to "
+                "the HackDex catalog..."
+            ),
+            percent=59,
+        )
+
+        result["matching"] = (
+            _run_logged_operation(
+                matcher_logger,
+                "setup_matching",
+                run_matching,
+            )
+        )
+
+        update_setup_progress(
+            running=True,
+            phase="READINESS",
+            message=(
+                "Preparing catalog readiness..."
+            ),
+            percent=60,
+        )
+
+        readiness = (
+            start_background_initial_readiness(
+                complete_setup=True,
+            )
+        )
+
+        result["readiness"] = readiness
+
+        result["success"] = True
         result["message"] = (
-            "HackDex catalog synchronization "
-            "did not complete."
+            "Core setup completed. "
+            "HackDex catalog readiness is being prepared."
         )
+
         return result
 
-    locations = list_locations(
-        kind="hack"
-    )
-
-    ready_locations = [
-        row
-        for row in locations
-        if (
-            row.get("enabled")
-            and row.get("state")
-            == "READY"
+    except Exception:
+        update_setup_progress(
+            running=False,
+            phase="FAILED",
+            message=(
+                "Setup encountered an unexpected error."
+            ),
+            error="Setup initialization failed.",
         )
-    ]
 
-    if not ready_locations:
-        result["message"] = (
-            "At least one readable hack "
-            "library location is required."
-        )
-        return result
-
-    result["base_roms"] = (
-        _run_logged_operation(
-            base_rom_logger,
-            "setup_base_rom_scan",
-            scan_base_roms,
-        )
-    )
-
-    result["roms"] = (
-        _run_logged_operation(
-            scan_logger,
-            "setup_rom_scan",
-            scan_roms,
-        )
-    )
-
-    result["matching"] = (
-        _run_logged_operation(
-            matcher_logger,
-            "setup_matching",
-            run_matching,
-        )
-    )
-
-    # Core setup is complete, but onboarding remains
-    # gated until the full readiness build succeeds.
-    # The background worker marks setup_completed=true
-    # only after readiness finishes successfully.
-    readiness = (
-        start_background_initial_readiness(
-            complete_setup=True,
-        )
-    )
-
-    result["readiness"] = readiness
-
-    result["success"] = True
-    result["message"] = (
-        "Core setup completed. "
-        "HackDex catalog readiness is being prepared."
-    )
-
-    return result
+        raise
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -2534,6 +2697,7 @@ def settings_subpage(
         "obtain",
         "catalog",
         "appearance",
+        "update",
         "about",
     }
 

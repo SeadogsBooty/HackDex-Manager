@@ -8,11 +8,16 @@ and uses a dynamically selected local port.
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import os
+import shutil
 import socket
+import subprocess
 import sys
+import tempfile
 import threading
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -125,8 +130,289 @@ APP_TITLE = "HackDex Manager"
 HOST = "127.0.0.1"
 
 
+
+def _safe_update_url(
+    value: str,
+) -> bool:
+    parsed = urllib.parse.urlparse(
+        str(value or "").strip()
+    )
+
+    if parsed.scheme in {
+        "https",
+        "file",
+    }:
+        return True
+
+    return (
+        parsed.scheme == "http"
+        and parsed.hostname
+        in {
+            "127.0.0.1",
+            "localhost",
+            "::1",
+        }
+    )
+
+
+def _powershell_literal(value) -> str:
+    return (
+        "'"
+        + str(value).replace(
+            "'",
+            "''",
+        )
+        + "'"
+    )
+
+
+def _download_update(
+    url: str,
+    destination: Path,
+) -> None:
+    parsed = urllib.parse.urlparse(
+        url
+    )
+
+    if parsed.scheme == "file":
+        local = urllib.request.url2pathname(
+            parsed.path
+        )
+
+        if parsed.netloc:
+            local = (
+                "//"
+                + parsed.netloc
+                + local
+            )
+
+        shutil.copy2(
+            local,
+            destination,
+        )
+        return
+
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent":
+                "HackDex-Manager-Updater",
+        },
+    )
+
+    with urllib.request.urlopen(
+        request,
+        timeout=60,
+    ) as response:
+        with destination.open("wb") as handle:
+            shutil.copyfileobj(
+                response,
+                handle,
+            )
+
+
 class DesktopBridge:
     """Native functionality exposed only to the desktop WebView."""
+
+    def install_update(
+        self,
+        url: str,
+        sha256: str,
+        version: str | None = None,
+    ) -> dict:
+        """Download, verify, apply, and relaunch a Windows installer."""
+
+        try:
+            if (
+                os.name != "nt"
+                or not getattr(
+                    sys,
+                    "frozen",
+                    False,
+                )
+            ):
+                return {
+                    "success": False,
+                    "error":
+                        "Automatic installation is available only "
+                        "in the packaged Windows edition.",
+                }
+
+            url = str(url or "").strip()
+            expected = str(
+                sha256 or ""
+            ).strip().lower()
+
+            if not _safe_update_url(url):
+                return {
+                    "success": False,
+                    "error":
+                        "The installer URL is not allowed.",
+                }
+
+            if (
+                len(expected) != 64
+                or any(
+                    character
+                    not in "0123456789abcdef"
+                    for character in expected
+                )
+            ):
+                return {
+                    "success": False,
+                    "error":
+                        "The installer SHA-256 is invalid.",
+                }
+
+            work = (
+                Path(tempfile.gettempdir())
+                / "HackDexManagerUpdate"
+            )
+
+            work.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+            installer = (
+                work
+                / "HackDex.Manager.Setup.exe"
+            )
+
+            _download_update(
+                url,
+                installer,
+            )
+
+            digest = hashlib.sha256()
+
+            with installer.open("rb") as handle:
+                for chunk in iter(
+                    lambda: handle.read(
+                        1024 * 1024
+                    ),
+                    b"",
+                ):
+                    digest.update(chunk)
+
+            actual = digest.hexdigest()
+
+            if actual != expected:
+                installer.unlink(
+                    missing_ok=True
+                )
+
+                return {
+                    "success": False,
+                    "error":
+                        "Installer verification failed. "
+                        "The downloaded SHA-256 did not match.",
+                }
+
+            current_exe = (
+                Path(sys.executable)
+                .resolve()
+            )
+
+            helper = (
+                work
+                / "apply-update.ps1"
+            )
+
+            helper.write_text(
+                "\n".join([
+                    "$ErrorActionPreference = 'Stop'",
+                    (
+                        "$installer = "
+                        + _powershell_literal(
+                            installer
+                        )
+                    ),
+                    (
+                        "$currentExe = "
+                        + _powershell_literal(
+                            current_exe
+                        )
+                    ),
+                    (
+                        "$pidToWait = "
+                        + str(os.getpid())
+                    ),
+                    (
+                        "while (Get-Process -Id $pidToWait "
+                        "-ErrorAction SilentlyContinue) { "
+                        "Start-Sleep -Milliseconds 250 }"
+                    ),
+                    (
+                        "$process = Start-Process -FilePath $installer "
+                        "-ArgumentList @('/VERYSILENT', "
+                        "'/SUPPRESSMSGBOXES', '/NORESTART', '/SP-') "
+                        "-Wait -PassThru"
+                    ),
+                    (
+                        "if ($process.ExitCode -ne 0) { "
+                        "exit $process.ExitCode }"
+                    ),
+                    (
+                        "if (Test-Path $currentExe) { "
+                        "Start-Process -FilePath $currentExe }"
+                    ),
+                ]),
+                encoding="utf-8",
+            )
+
+            creationflags = (
+                getattr(
+                    subprocess,
+                    "DETACHED_PROCESS",
+                    0,
+                )
+                | getattr(
+                    subprocess,
+                    "CREATE_NEW_PROCESS_GROUP",
+                    0,
+                )
+            )
+
+            subprocess.Popen(
+                [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-File",
+                    str(helper),
+                ],
+                close_fds=True,
+                creationflags=creationflags,
+            )
+
+            def close_application():
+                try:
+                    if webview.windows:
+                        webview.windows[0].destroy()
+                except Exception:
+                    pass
+
+            threading.Timer(
+                0.8,
+                close_application,
+            ).start()
+
+            return {
+                "success": True,
+                "version": str(
+                    version or ""
+                ),
+                "sha256": actual,
+            }
+
+        except Exception as exc:
+            return {
+                "success": False,
+                "error": str(exc),
+            }
+
 
     def select_folder(
         self,

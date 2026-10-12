@@ -462,12 +462,15 @@
 
                 <div class="hd-topbar-actions">
 
-                    <span
+                    <a
                         class="hd-shell-version"
                         id="hd-shell-version"
+                        hidden
+                        href="/settings/update"
+                        title="Application update status"
                     >
                         v…
-                    </span>
+                    </a>
 
                     <button
                         type="button"
@@ -495,6 +498,19 @@
             return;
         }
 
+        /*
+         * Hide only while we determine the running
+         * application version so the user never sees
+         * a temporary v… placeholder.
+         */
+        element.hidden = true;
+
+        element.classList.remove(
+            "update-available"
+        );
+
+        let version = "";
+
         try {
             const response =
                 await fetch(
@@ -505,23 +521,117 @@
                     }
                 );
 
-            const data =
-                await response.json();
+            if (response.ok) {
+                const data =
+                    await response.json();
 
-            const version =
-                String(
-                    data.version || ""
-                );
-
-            element.textContent =
-                version.startsWith("v")
-                ? version
-                : "v" + version;
+                version =
+                    String(
+                        data.version || ""
+                    ).trim();
+            }
 
         } catch {
-            element.textContent =
-                "v?";
+            /*
+             * Continue below. The update status may
+             * still provide the current version.
+             */
         }
+
+        let updateStatus = null;
+
+        try {
+            const response =
+                await fetch(
+                    "/api/update/status",
+                    {
+                        cache:
+                            "no-store",
+                    }
+                );
+
+            if (response.ok) {
+                updateStatus =
+                    await response.json();
+
+                if (!version) {
+                    version =
+                        String(
+                            updateStatus
+                                .current_version
+                            || ""
+                        ).trim();
+                }
+            }
+
+        } catch {
+            /*
+             * A failed update check must not hide
+             * the normal running-version badge.
+             */
+        }
+
+        const runningLabel =
+            version
+            ? (
+                version.startsWith("v")
+                ? version
+                : "v" + version
+            )
+            : "v?";
+
+        element.textContent =
+            runningLabel;
+
+        element.title =
+            version
+            ? (
+                "Running HackDex Manager "
+                + runningLabel
+            )
+            : (
+                "HackDex Manager version "
+                + "could not be determined"
+            );
+
+        /*
+         * The version is always visible.
+         * Only add the update treatment when a
+         * genuinely newer release is available.
+         */
+        if (
+            updateStatus
+            && updateStatus.update_available
+                === true
+        ) {
+            const latest =
+                String(
+                    updateStatus.latest_version
+                    || ""
+                ).trim();
+
+            element.classList.add(
+                "update-available"
+            );
+
+            element.textContent =
+                runningLabel
+                + " · Update";
+
+            element.title =
+                latest
+                ? (
+                    "HackDex Manager v"
+                    + latest
+                    + " is available"
+                )
+                : (
+                    "A HackDex Manager "
+                    + "update is available"
+                );
+        }
+
+        element.hidden = false;
     }
 
 

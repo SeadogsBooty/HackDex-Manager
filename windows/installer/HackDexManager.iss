@@ -1,5 +1,5 @@
 #define MyAppName "HackDex Manager"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "HackDex Manager"
 #define MyAppExeName "HackDex Manager.exe"
 

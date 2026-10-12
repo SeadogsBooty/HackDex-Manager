@@ -323,19 +323,38 @@ index = Path(
     encoding="utf-8"
 )
 
+settings = Path(
+    "/app/templates/settings.html"
+).read_text(
+    encoding="utf-8"
+)
+
+shell = Path(
+    "/app/static/hackdex-ui.js"
+).read_text(
+    encoding="utf-8"
+)
+
 required_setup = [
     "waitForCatalogReadiness",
     "Preparing HackDex catalog",
     "showAlternativeLocationSetup",
     "configured-summary",
     "change-locations-button",
-    "Use These Locations",
+    "Use Selected Locations",
+    "removeConfiguredLocation",
+    "resetHackLocations",
+    "cancelManualLocationSetup",
 ]
 
 required_index = [
     "readinessPendingCount",
     "pollReadinessAutomatically",
     "startReadinessAutoRefresh",
+    'id="sort-order"',
+    "Recently Added",
+    "Recently Patched",
+    "current_patch_updated_at",
 ]
 
 for marker in required_setup:
@@ -346,9 +365,23 @@ for marker in required_setup:
 
 for marker in required_index:
     assert marker in index, (
-        "Missing Library readiness marker: "
+        "Missing Library marker: "
         + marker
     )
+
+for marker in [
+    "Application Update",
+    "/api/update/status",
+    "Install Update & Restart",
+]:
+    assert marker in settings, (
+        "Missing Update settings marker: "
+        + marker
+    )
+
+assert "update-available" in shell, (
+    "Application update badge behavior missing."
+)
 
 assert (
     'id="apply-parent"' in setup

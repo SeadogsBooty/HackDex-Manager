@@ -575,6 +575,40 @@
     display: none !important;
 }
 
+
+.application-update-status {
+    margin: 14px 0;
+    padding: 14px;
+    border: 1px solid var(--hd-border, #303949);
+    border-radius: 10px;
+    background: var(--hd-surface-2, #111720);
+    font-weight: 750;
+}
+
+.application-update-status.available {
+    border-color: var(--hd-warning, #c98518);
+    color: var(--hd-warning, #c98518);
+}
+
+.application-update-status.current {
+    border-color: var(--hd-success, #21966a);
+    color: var(--hd-success, #21966a);
+}
+
+.application-update-detail {
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid var(--hd-border, #303949);
+    border-radius: 10px;
+    background: var(--hd-surface-2, #111720);
+    color: var(--hd-text-soft, #aab4c2);
+    line-height: 1.55;
+}
+
+.application-update-detail code {
+    overflow-wrap: anywhere;
+}
+
 </style>
 
 <link
@@ -713,6 +747,28 @@
                 <p>
                     Light, dark, system mode,
                     and application colors.
+                </p>
+            </div>
+        </a>
+
+
+        <a
+            class="settings-card"
+            data-settings-target="update"
+            href="/settings/update"
+        >
+            <div class="settings-card-icon">
+                ↑
+            </div>
+
+            <div>
+                <strong>
+                    Update
+                </strong>
+
+                <p>
+                    Application version, release notes,
+                    and update actions.
                 </p>
             </div>
         </a>
@@ -1194,6 +1250,87 @@
 
     
 
+    <section
+        data-settings-group-fixed="update"
+    >
+        <h2>Application Update</h2>
+
+        <p class="help">
+            HackDex Manager can check for newer application
+            releases. Docker installations are updated through
+            your container manager, while supported Windows
+            desktop updates can be installed here.
+        </p>
+
+        <div
+            id="application-update-state"
+            class="application-update-status"
+        >
+            Checking for updates…
+        </div>
+
+        <div class="row">
+            <label>Installed Version</label>
+            <strong id="application-current-version">—</strong>
+        </div>
+
+        <div class="row">
+            <label>Latest Version</label>
+            <strong id="application-latest-version">—</strong>
+        </div>
+
+        <div
+            id="application-update-release"
+            class="application-update-detail"
+            hidden
+        >
+            <strong>Release notes</strong>
+            <p id="application-update-notes"></p>
+        </div>
+
+        <div
+            id="application-update-docker"
+            class="application-update-detail"
+            hidden
+        >
+            <strong>Docker deployment</strong>
+
+            <p>
+                Docker installations are updated through
+                your container manager. Pull the release
+                image below and redeploy HackDex Manager
+                while preserving your existing persistent
+                data and library mounts.
+            </p>
+
+            <div>
+                Release image:
+                <code id="application-update-image">—</code>
+            </div>
+        </div>
+
+        <div class="romm-actions">
+            <button
+                type="button"
+                class="secondary-button"
+                onclick="checkApplicationUpdate(true)"
+            >
+                Check Again
+            </button>
+
+            <button
+                type="button"
+                class="primary"
+                id="application-update-install"
+                onclick="installApplicationUpdate()"
+                hidden
+            >
+                Install Update & Restart
+            </button>
+        </div>
+    </section>
+
+
     <section>
         <h2>Install & Update Safety</h2>
 
@@ -1470,6 +1607,13 @@ const SETTINGS_PAGE_META = {
         description:
             "Choose display mode and the "
             + "HackDex Manager color palette.",
+    },
+
+    update: {
+        title: "Update",
+        description:
+            "Check the installed application version "
+            + "and apply supported updates.",
     },
 
     about: {
@@ -1749,7 +1893,8 @@ function applySettingsPageLayout() {
     // About is informational only.
     //
     const informational =
-        SETTINGS_PAGE === "about";
+        SETTINGS_PAGE === "about"
+        || SETTINGS_PAGE === "update";
 
     if (saveButton) {
         saveButton.style.display =
@@ -1942,11 +2087,316 @@ async function saveSettings() {
 }
 
 
+let applicationUpdateStatus = null;
+
+
+function desktopUpdateBridgeAvailable() {
+    return Boolean(
+        window.pywebview
+        && window.pywebview.api
+        && window.pywebview.api.install_update
+    );
+}
+
+
+function renderApplicationUpdate(data) {
+    applicationUpdateStatus = data;
+
+    const state =
+        document.getElementById(
+            "application-update-state"
+        );
+
+    const current =
+        document.getElementById(
+            "application-current-version"
+        );
+
+    const latest =
+        document.getElementById(
+            "application-latest-version"
+        );
+
+    const release =
+        document.getElementById(
+            "application-update-release"
+        );
+
+    const notes =
+        document.getElementById(
+            "application-update-notes"
+        );
+
+    const dockerBox =
+        document.getElementById(
+            "application-update-docker"
+        );
+
+    const image =
+        document.getElementById(
+            "application-update-image"
+        );
+
+    const install =
+        document.getElementById(
+            "application-update-install"
+        );
+
+    if (dockerBox) {
+        dockerBox.hidden = true;
+    }
+
+    if (install) {
+        install.hidden = true;
+    }
+
+    if (release) {
+        release.hidden = true;
+    }
+
+    if (current) {
+        const value =
+            String(
+                data?.current_version
+                || ""
+            ).trim();
+
+        current.textContent =
+            value
+            ? (
+                value.startsWith("v")
+                ? value
+                : "v" + value
+            )
+            : "Unknown";
+    }
+
+    if (latest) {
+        latest.textContent = "—";
+    }
+
+    if (notes) {
+        notes.textContent = "";
+    }
+
+    if (!state) {
+        return;
+    }
+
+    if (!data || data.error) {
+        state.className =
+            "application-update-status error";
+
+        state.textContent =
+            "Unable to check for updates.";
+
+        return;
+    }
+
+    /*
+     * No production feed yet:
+     * still show the installed version correctly.
+     */
+    if (!data.configured) {
+        state.className =
+            "application-update-status";
+
+        state.textContent =
+            "Automatic update checks are "
+            + "not configured for this build.";
+
+        return;
+    }
+
+    if (latest) {
+        const value =
+            String(
+                data.latest_version
+                || ""
+            ).trim();
+
+        latest.textContent =
+            value
+            ? (
+                value.startsWith("v")
+                ? value
+                : "v" + value
+            )
+            : "Unknown";
+    }
+
+    if (
+        release
+        && data.release_notes
+    ) {
+        release.hidden = false;
+    }
+
+    if (notes) {
+        notes.textContent =
+            data.release_notes || "";
+    }
+
+    if (!data.update_available) {
+        state.className =
+            "application-update-status current";
+
+        state.textContent =
+            "HackDex Manager is up to date.";
+
+        return;
+    }
+
+    state.className =
+        "application-update-status available";
+
+    state.textContent =
+        data.latest_version
+        ? (
+            "HackDex Manager v"
+            + data.latest_version
+            + " is available."
+        )
+        : (
+            "A HackDex Manager "
+            + "update is available."
+        );
+
+    if (
+        data.platform === "docker"
+        && dockerBox
+    ) {
+        dockerBox.hidden = false;
+
+        if (image) {
+            image.textContent =
+                data.docker?.image
+                || "See release documentation";
+        }
+    }
+
+    if (
+        install
+        && data.platform === "windows"
+        && data.can_apply
+        && desktopUpdateBridgeAvailable()
+    ) {
+        install.hidden = false;
+    }
+}
+
+
+async function checkApplicationUpdate(
+    force = false
+) {
+    const state =
+        document.getElementById(
+            "application-update-state"
+        );
+
+    if (state) {
+        state.className =
+            "application-update-status";
+        state.textContent =
+            "Checking for updates…";
+    }
+
+    try {
+        const response = await fetch(
+            "/api/update/status"
+            + (force ? "?force=true" : ""),
+            {
+                cache: "no-store",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Update check returned HTTP "
+                + response.status
+            );
+        }
+
+        renderApplicationUpdate(
+            await response.json()
+        );
+
+    } catch (error) {
+        if (state) {
+            state.textContent =
+                "Update check failed: "
+                + String(error);
+        }
+    }
+}
+
+
+async function installApplicationUpdate() {
+    const data =
+        applicationUpdateStatus;
+
+    const state =
+        document.getElementById(
+            "application-update-state"
+        );
+
+    const install =
+        document.getElementById(
+            "application-update-install"
+        );
+
+    if (
+        !data
+        || !data.update_available
+        || !data.can_apply
+        || !desktopUpdateBridgeAvailable()
+    ) {
+        return;
+    }
+
+    install.disabled = true;
+    state.textContent =
+        "Downloading and verifying the installer…";
+
+    try {
+        const result =
+            await window.pywebview.api.install_update(
+                data.windows.url,
+                data.windows.sha256,
+                data.latest_version
+            );
+
+        if (!result || !result.success) {
+            throw new Error(
+                result?.error
+                || "Unable to start the update."
+            );
+        }
+
+        state.textContent =
+            "Installer verified. HackDex Manager is restarting…";
+
+    } catch (error) {
+        state.textContent =
+            "Update failed: "
+            + String(
+                error?.message
+                || error
+            );
+        install.disabled = false;
+    }
+}
+
+
 applySettingsPageLayout();
 loadSettings();
 
 if (SETTINGS_PAGE === "about") {
     loadAboutVersion();
+}
+
+if (SETTINGS_PAGE === "update") {
+    checkApplicationUpdate(false);
 }
 </script>
 

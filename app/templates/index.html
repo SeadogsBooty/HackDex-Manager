@@ -1058,7 +1058,7 @@ input {
         placeholder="Search hacks..."
     >
 
-    <select id="platform">
+    <select id="platform" aria-label="Filter by system">
         <option value="">
             All Systems
         </option>
@@ -1066,6 +1066,18 @@ input {
         <option value="GBC">GBC</option>
         <option value="GBA">GBA</option>
         <option value="NDS">NDS</option>
+    </select>
+
+    <select id="sort-order" aria-label="Sort hacks">
+        <option value="alphabetical">
+            Alphabetical
+        </option>
+        <option value="recent-added">
+            Recently Added
+        </option>
+        <option value="recent-patched">
+            Recently Patched
+        </option>
     </select>
 
 </div>
@@ -1248,6 +1260,7 @@ let readinessCounts = {};
 let activeLibraryStatus = "";
 let activeReadiness = "";
 let activeCatalogView = null;
+let activeSort = "alphabetical";
 
 
 function escapeHtml(value) {
@@ -1794,7 +1807,12 @@ function versionPillMarkup(item) {
     }
 
     return `
-        <span class="hd-hack-version">
+        <span
+            class="hd-hack-version"
+            title="Latest version: v${escapeHtml(
+                item.latest_version
+            )}"
+        >
             v${escapeHtml(
                 item.latest_version
             )}
@@ -2344,6 +2362,98 @@ function libraryReadinessDockClass(status) {
 }
 
 
+function catalogSortTimestamp(value) {
+    if (!value) {
+        return null;
+    }
+
+    const timestamp =
+        Date.parse(
+            String(value)
+        );
+
+    return Number.isFinite(timestamp)
+        ? timestamp
+        : null;
+}
+
+
+function compareCatalogTitles(a, b) {
+    return String(
+        a.title || a.slug || ""
+    ).localeCompare(
+        String(
+            b.title || b.slug || ""
+        ),
+        undefined,
+        {
+            sensitivity: "base",
+            numeric: true,
+        }
+    );
+}
+
+
+function sortCatalogItems(items) {
+    const rows = [...items];
+
+    if (activeSort === "alphabetical") {
+        rows.sort(
+            compareCatalogTitles
+        );
+        return rows;
+    }
+
+    const field =
+        activeSort === "recent-added"
+        ? "created_at"
+        : "current_patch_updated_at";
+
+    rows.sort(
+        (a, b) => {
+            const left =
+                catalogSortTimestamp(
+                    a[field]
+                );
+
+            const right =
+                catalogSortTimestamp(
+                    b[field]
+                );
+
+            if (
+                left === null
+                && right !== null
+            ) {
+                return 1;
+            }
+
+            if (
+                left !== null
+                && right === null
+            ) {
+                return -1;
+            }
+
+            if (
+                left !== null
+                && right !== null
+                && left !== right
+            ) {
+                return right - left;
+            }
+
+            return compareCatalogTitles(
+                a,
+                b,
+            );
+        }
+    );
+
+    return rows;
+}
+
+
 function render() {
     const search = (
         document
@@ -2359,7 +2469,8 @@ function render() {
             .getElementById("platform")
             .value;
 
-    const items = catalog.filter(
+    const items = sortCatalogItems(
+        catalog.filter(
         item => {
             if (
                 activeLibraryStatus === "LOCAL"
@@ -2412,6 +2523,7 @@ function render() {
 
             return true;
         }
+        )
     );
 
     const grid =
@@ -2522,7 +2634,12 @@ function render() {
 
                         <div class="hd-hack-title-row">
 
-                            <div class="title">
+                            <div
+                                class="title"
+                                title="${escapeHtml(
+                                    item.title
+                                )}"
+                            >
                                 ${escapeHtml(
                                     item.title
                                 )}
@@ -6022,6 +6139,81 @@ document
             }
         );
     });
+
+
+function initializeCatalogSort() {
+    const control =
+        document.getElementById(
+            "sort-order"
+        );
+
+    if (!control) {
+        return;
+    }
+
+    const requested =
+        new URLSearchParams(
+            window.location.search
+        ).get("sort");
+
+    const allowed =
+        new Set([
+            "alphabetical",
+            "recent-added",
+            "recent-patched",
+        ]);
+
+    activeSort =
+        allowed.has(requested)
+        ? requested
+        : "alphabetical";
+
+    control.value =
+        activeSort;
+
+    control.addEventListener(
+        "change",
+        () => {
+            activeSort =
+                allowed.has(
+                    control.value
+                )
+                ? control.value
+                : "alphabetical";
+
+            const url =
+                new URL(
+                    window.location.href
+                );
+
+            if (
+                activeSort
+                === "alphabetical"
+            ) {
+                url.searchParams.delete(
+                    "sort"
+                );
+            } else {
+                url.searchParams.set(
+                    "sort",
+                    activeSort,
+                );
+            }
+
+            history.replaceState(
+                history.state,
+                "",
+                url.pathname
+                    + url.search,
+            );
+
+            render();
+        }
+    );
+}
+
+
+initializeCatalogSort();
 
 
 function scheduleFilterCountRefresh() {

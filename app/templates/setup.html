@@ -689,6 +689,98 @@
                 grid-column: 2;
             }
         }
+
+        /* Acceptance3: first-run progress presentation */
+
+        .hd-setup-progress {
+            white-space: normal;
+            font-family: inherit;
+        }
+
+        .hd-setup-progress-panel {
+            display: grid;
+            gap: 14px;
+        }
+
+        .hd-setup-progress-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: baseline;
+        }
+
+        .hd-setup-progress-phase {
+            color: var(--hd-text);
+            font-size: 14px;
+            font-weight: 850;
+        }
+
+        .hd-setup-progress-percent {
+            color: var(--hd-primary);
+            font-size: 13px;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hd-setup-progress-track {
+            position: relative;
+            overflow: hidden;
+
+            height: 12px;
+
+            border:
+                1px solid
+                var(--hd-border);
+
+            border-radius: 999px;
+
+            background:
+                var(--hd-surface-3);
+        }
+
+        .hd-setup-progress-fill {
+            height: 100%;
+            width: 0%;
+
+            border-radius: inherit;
+
+            background:
+                var(--hd-primary);
+
+            transition:
+                width .25s ease;
+        }
+
+
+        .hd-setup-progress-detail {
+            color:
+                var(--hd-text-soft);
+
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .hd-setup-progress-count {
+            color:
+                var(--hd-text-muted);
+
+            font-size: 12px;
+            font-weight: 750;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .hd-setup-progress-complete
+        .hd-setup-progress-fill {
+            background:
+                var(--hd-success);
+        }
+
+        .hd-setup-progress-error
+        .hd-setup-progress-fill {
+            background:
+                var(--hd-danger);
+        }
+
         /* 7E-8 compact setup layout */
 
         /*
@@ -1187,6 +1279,36 @@
         }
 
 
+        [hidden] {
+            display: none !important;
+        }
+
+        .hd-setup-runtime-note {
+            grid-column: 1 / -1;
+            padding: 10px 12px;
+            border: 1px solid var(--hd-border);
+            border-radius: var(--hd-radius-sm);
+            background: var(--hd-surface-2);
+            color: var(--hd-text-muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .hd-setup-location-select {
+            display: grid;
+            grid-template-columns: auto 54px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .hd-setup-location-select input[type="checkbox"] {
+            width: auto;
+            min-width: 0;
+            margin: 0;
+        }
+
+
     </style>
 </head>
 
@@ -1230,7 +1352,7 @@
 
             <div>
                 <h2>
-                    Verify storage
+                    Base ROM library
                 </h2>
 
                 <p id="storage-description">
@@ -1266,7 +1388,7 @@
 
             <div>
                 <h2>
-                    Configure your ROM hack library
+                    ROM hack libraries
                 </h2>
 
                 <p id="hack-library-description">
@@ -1323,7 +1445,7 @@
         >
 
             <div class="hd-setup-detect-title">
-                Configure a different parent
+                Choose ROM hack location
             </div>
 
             <div
@@ -1396,7 +1518,7 @@
                     disabled
                     hidden
                 >
-                    Use These Locations
+                    Use Selected Locations
                 </button>
 
                 <button
@@ -1726,6 +1848,80 @@ function renderLocationRows(
 }
 
 
+function renderDetectedLocationRows(
+    element,
+    rows
+) {
+    element.innerHTML =
+        rows.map(row => {
+            const selectable =
+                row.state === "READY";
+
+            return `
+                <label class="hd-setup-location hd-setup-location-select">
+                    <input
+                        type="checkbox"
+                        data-detected-platform="${escapeHtml(
+                            row.platform
+                        )}"
+                        ${selectable ? "checked" : "disabled"}
+                        onchange="refreshDetectedSelection()"
+                    >
+
+                    <div class="hd-setup-platform">
+                        ${escapeHtml(row.platform)}
+                    </div>
+
+                    <span class="hd-setup-path">
+                        ${escapeHtml(row.path)}
+                    </span>
+
+                    <span
+                        class="
+                            hd-setup-state
+                            ${stateClass(row.state)}
+                        "
+                    >
+                        ${selectable ? "✓" : "!"}
+                        ${escapeHtml(
+                            stateLabel(row.state)
+                        )}
+                    </span>
+                </label>
+            `;
+        }).join("");
+}
+
+
+function selectedDetectedPlatforms() {
+    return Array.from(
+        document.querySelectorAll(
+            "#detected-locations "
+            + "input[data-detected-platform]:checked"
+        )
+    ).map(
+        input =>
+            input.dataset.detectedPlatform
+    );
+}
+
+
+function refreshDetectedSelection() {
+    const apply =
+        document.getElementById(
+            "apply-parent"
+        );
+
+    if (!apply || apply.hidden) {
+        return;
+    }
+
+    apply.disabled =
+        selectedDetectedPlatforms()
+            .length === 0;
+}
+
+
 function renderConfiguredLocations(rows) {
     const section =
         document.getElementById(
@@ -1745,11 +1941,245 @@ function renderConfiguredLocations(rows) {
 
     section.hidden = false;
 
-    renderLocationRows(
-        container,
-        rows
-    );
+    container.innerHTML =
+        rows.map(row => {
+            const state =
+                String(
+                    row.state || "UNKNOWN"
+                );
+
+            return `
+                <div class="hd-setup-location">
+
+                    <div class="hd-setup-platform">
+                        ${escapeHtml(
+                            row.platform || "AUTO"
+                        )}
+                    </div>
+
+                    <span class="hd-setup-path">
+                        ${escapeHtml(row.path)}
+                    </span>
+
+                    <div
+                        style="
+                            display:flex;
+                            align-items:center;
+                            justify-content:flex-end;
+                            gap:9px;
+                            flex-wrap:wrap;
+                        "
+                    >
+                        <span
+                            class="
+                                hd-setup-state
+                                ${stateClass(state)}
+                            "
+                        >
+                            ${state === "READY" ? "✓" : "!"}
+                            ${escapeHtml(
+                                stateLabel(state)
+                            )}
+                        </span>
+
+                        <button
+                            type="button"
+                            class="hd-setup-button secondary"
+                            style="
+                                min-height:30px;
+                                padding:5px 9px;
+                                font-size:11px;
+                            "
+                            onclick="
+                                removeConfiguredLocation(
+                                    ${Number(row.id)}
+                                )
+                            "
+                        >
+                            Remove
+                        </button>
+                    </div>
+
+                </div>
+            `;
+        }).join("")
+        + `
+            <div
+                style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    flex-wrap:wrap;
+                    padding:12px 14px;
+                    border-top:
+                        1px solid var(--hd-border);
+                "
+            >
+                <button
+                    type="button"
+                    class="hd-setup-button secondary"
+                    onclick="resetHackLocations()"
+                >
+                    Reset Hack Locations
+                </button>
+
+                <span
+                    style="
+                        color:var(--hd-text-muted);
+                        font-size:11px;
+                        line-height:1.45;
+                    "
+                >
+                    Removes HackDex configuration only.
+                    ROM files and folders are not deleted.
+                </span>
+            </div>
+        `;
 }
+
+
+async function removeConfiguredLocation(
+    locationId
+) {
+    if (
+        !confirm(
+            "Remove this hack-library location "
+            + "from HackDex Manager?\n\n"
+            + "No ROM files or folders will be deleted."
+        )
+    ) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `/api/locations/${locationId}`,
+            {
+                method: "DELETE",
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok
+            || !data.success
+        ) {
+            throw new Error(
+                data.message
+                || "Unable to remove location."
+            );
+        }
+
+        await loadSetupStatus();
+
+    } catch (error) {
+        alert(
+            "Unable to remove location: "
+            + String(error)
+        );
+    }
+}
+
+
+async function resetHackLocations() {
+    const rows =
+        (
+            setupStatus
+            && setupStatus.hack_locations
+        )
+        || [];
+
+    if (!rows.length) {
+        return;
+    }
+
+    if (
+        !confirm(
+            "Reset all configured hack-library "
+            + "locations?\n\n"
+            + "This removes only HackDex Manager "
+            + "configuration records. "
+            + "No ROM files or folders will be deleted."
+        )
+    ) {
+        return;
+    }
+
+    try {
+        for (const row of rows) {
+            const response =
+                await fetch(
+                    `/api/locations/${row.id}`,
+                    {
+                        method: "DELETE",
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (
+                !response.ok
+                || !data.success
+            ) {
+                throw new Error(
+                    data.message
+                    || (
+                        "Unable to remove "
+                        + row.path
+                    )
+                );
+            }
+        }
+
+        await loadSetupStatus();
+
+        const parent =
+            document.getElementById(
+                "hack-parent"
+            );
+
+        if (
+            parent
+            && !isDesktopSetup()
+        ) {
+            parent.value = "/hacks";
+        }
+
+        const detected =
+            document.getElementById(
+                "detected-locations"
+            );
+
+        if (detected) {
+            detected.innerHTML = "";
+        }
+
+        const detectMessage =
+            document.getElementById(
+                "detect-message"
+            );
+
+        if (detectMessage) {
+            detectMessage.hidden = true;
+            detectMessage.textContent = "";
+        }
+
+        document.getElementById(
+            "detect-parent-box"
+        ).hidden = false;
+
+    } catch (error) {
+        alert(
+            "Unable to reset hack locations: "
+            + String(error)
+        );
+    }
+}
+
+
 
 
 function storageState(
@@ -1954,12 +2384,23 @@ function showSetupLoadError(
 
 async function loadSetupStatus() {
     try {
-        const response = await fetch(
-            "/api/setup/status",
-            {
-                cache: "no-store",
-            }
-        );
+        const [
+            response,
+            jobResponse,
+        ] = await Promise.all([
+            fetch(
+                "/api/setup/status",
+                {
+                    cache: "no-store",
+                }
+            ),
+            fetch(
+                "/api/readiness/job",
+                {
+                    cache: "no-store",
+                }
+            ),
+        ]);
 
         if (!response.ok) {
             throw new Error(
@@ -1970,6 +2411,99 @@ async function loadSetupStatus() {
 
         setupStatus =
             await response.json();
+
+        const readinessJob =
+            jobResponse.ok
+            ? await jobResponse.json()
+            : {
+                status: "IDLE",
+                running: false,
+            };
+
+        const reconfigure =
+            Boolean(
+                setupStatus.setup_completed
+            );
+
+        const heroEyebrow =
+            document.querySelector(
+                ".hd-setup-eyebrow"
+            );
+
+        const heroTitle =
+            document.querySelector(
+                ".hd-setup-hero h1"
+            );
+
+        const heroDescription =
+            document.querySelector(
+                ".hd-setup-hero > p"
+            );
+
+        const footerText =
+            document.querySelector(
+                ".hd-setup-footer span"
+            );
+
+        const finishButton =
+            document.getElementById(
+                "finish-button"
+            );
+
+        const retryButton =
+            document.getElementById(
+                "retry-readiness-button"
+            );
+
+        if (heroEyebrow) {
+            heroEyebrow.textContent =
+                reconfigure
+                ? "LIBRARY CONFIGURATION"
+                : "FIRST-RUN CONFIGURATION";
+        }
+
+        if (heroTitle) {
+            heroTitle.textContent =
+                reconfigure
+                ? "Reconfigure HackDex Manager"
+                : "Welcome to HackDex Manager";
+        }
+
+        if (heroDescription) {
+            heroDescription.textContent =
+                reconfigure
+                ? (
+                    "Review or change your Base ROM and "
+                    + "ROM hack locations. Rescan when you "
+                    + "want HackDex Manager to refresh "
+                    + "catalog, matching, and readiness."
+                )
+                : (
+                    "Choose your Base ROM library, connect "
+                    + "your ROM hack libraries, then scan "
+                    + "and prepare the HackDex catalog."
+                );
+        }
+
+        if (footerText) {
+            footerText.textContent =
+                reconfigure
+                ? (
+                    "Your current setup is active. Changes "
+                    + "can be rescanned here at any time."
+                )
+                : (
+                    "Complete setup to unlock HackDex Manager. "
+                    + "Settings can be changed later at any time."
+                );
+        }
+
+        if (finishButton) {
+            finishButton.textContent =
+                reconfigure
+                ? "Rescan Libraries"
+                : "Scan Libraries & Finish Setup";
+        }
 
         if (
             setupStatus.setup_completed
@@ -1990,22 +2524,30 @@ async function loadSetupStatus() {
                 "storage-status"
             );
 
+        const runtimeNote =
+            desktop
+            ? (
+                "HackDex Manager stores application data, "
+                + "staging files, logs, and backups in its "
+                + "managed Windows application folders."
+            )
+            : (
+                "Application data and staging are managed "
+                + "through the container mounts configured "
+                + "for HackDex Manager."
+            );
+
         storage.innerHTML =
             storageCard(
                 "Base ROM library",
                 setupStatus.rom,
                 false
             )
-            + storageCard(
-                "Application data",
-                setupStatus.data,
-                true
-            )
-            + storageCard(
-                "Staging",
-                setupStatus.staging,
-                true
-            );
+            + `
+                <div class="hd-setup-runtime-note">
+                    ${escapeHtml(runtimeNote)}
+                </div>
+            `;
 
         if (desktop) {
             document.getElementById(
@@ -2199,13 +2741,20 @@ async function loadSetupStatus() {
             );
 
         hackLibrarySection.hidden =
-            !baseReady;
+            reconfigure
+            ? false
+            : !baseReady;
 
         finishSection.hidden =
             !(
                 baseReady
                 && readyConfigured.length > 0
             );
+
+        retryButton.hidden =
+            readinessJob.status !== "FAILED";
+
+        retryButton.disabled = false;
 
     } catch (error) {
         showSetupLoadError(
@@ -2252,7 +2801,53 @@ function showManualLocationSetup() {
             "manual-location-box"
         );
 
+    const detectBox =
+        document.getElementById(
+            "detect-parent-box"
+        );
+
+    if (detectBox) {
+        detectBox.hidden = true;
+    }
+
     box.hidden = false;
+
+    let cancel =
+        document.getElementById(
+            "manual-location-cancel"
+        );
+
+    if (!cancel) {
+        cancel =
+            document.createElement(
+                "button"
+            );
+
+        cancel.type = "button";
+        cancel.id =
+            "manual-location-cancel";
+
+        cancel.className =
+            "hd-setup-button secondary";
+
+        cancel.textContent =
+            "Cancel";
+
+        cancel.addEventListener(
+            "click",
+            cancelManualLocationSetup
+        );
+
+        const actions =
+            box.querySelector(
+                ".hd-setup-actions"
+            );
+
+        (
+            actions
+            || box
+        ).appendChild(cancel);
+    }
 
     const input =
         document.getElementById(
@@ -2263,6 +2858,65 @@ function showManualLocationSetup() {
         input.focus();
     }
 }
+
+
+function cancelManualLocationSetup() {
+    const box =
+        document.getElementById(
+            "manual-location-box"
+        );
+
+    const detectBox =
+        document.getElementById(
+            "detect-parent-box"
+        );
+
+    box.hidden = true;
+
+    if (detectBox) {
+        detectBox.hidden = false;
+    }
+
+    const path =
+        document.getElementById(
+            "manual-path"
+        );
+
+    const label =
+        document.getElementById(
+            "manual-label"
+        );
+
+    const message =
+        document.getElementById(
+            "manual-message"
+        );
+
+    if (path) {
+        path.value = "";
+    }
+
+    if (label) {
+        label.value = "";
+    }
+
+    if (message) {
+        message.hidden = true;
+        message.textContent = "";
+    }
+
+    const parent =
+        document.getElementById(
+            "hack-parent"
+        );
+
+    if (parent) {
+        parent.focus();
+    }
+}
+
+
+
 
 function isDesktopSetup() {
     return Boolean(
@@ -2463,7 +3117,7 @@ async function detectHackParent() {
             hackDiscovery.locations
             || [];
 
-        renderLocationRows(
+        renderDetectedLocationRows(
             detected,
             rows
         );
@@ -2538,6 +3192,7 @@ async function detectHackParent() {
 
         apply.hidden = false;
         apply.disabled = false;
+        refreshDetectedSelection();
 
     } catch (error) {
         message.className =
@@ -2566,6 +3221,18 @@ async function applyHackParent() {
             "apply-parent"
         );
 
+    const selectedPlatforms =
+        selectedDetectedPlatforms();
+
+    if (!selectedPlatforms.length) {
+        message.hidden = false;
+        message.className =
+            "hd-setup-message warning";
+        message.textContent =
+            "Select at least one detected hack location.";
+        return;
+    }
+
     apply.disabled = true;
 
     try {
@@ -2582,6 +3249,8 @@ async function applyHackParent() {
                 body: JSON.stringify({
                     path,
                     apply: true,
+                    platforms:
+                        selectedPlatforms,
                 }),
             }
         );
@@ -2608,7 +3277,7 @@ async function applyHackParent() {
             "hd-setup-message success";
 
         message.textContent =
-            "Detected locations were added "
+            "Selected locations were added "
             + "to HackDex Manager.";
 
         hackDiscovery = null;
@@ -2740,6 +3409,307 @@ async function addManualLocation() {
 
 
 
+
+
+let setupCoreProgressTimer = null;
+let setupCoreProgressActive = false;
+let setupDisplayedPercent = 0;
+
+
+async function pollSetupCoreProgress(
+    progress
+) {
+    if (!setupCoreProgressActive) {
+        return;
+    }
+
+    try {
+        const response =
+            await fetch(
+                "/api/setup/progress",
+                {
+                    cache: "no-store",
+                }
+            );
+
+        if (response.ok) {
+            const data =
+                await response.json();
+
+            const target =
+                Math.max(
+                    0,
+                    Math.min(
+                        60,
+                        Number(
+                            data.percent || 0
+                        )
+                    )
+                );
+
+            if (
+                setupDisplayedPercent
+                < target
+            ) {
+                setupDisplayedPercent =
+                    Math.min(
+                        target,
+                        setupDisplayedPercent + 1
+                    );
+            }
+
+            renderSetupProgress(
+                progress,
+                {
+                    percent:
+                        setupDisplayedPercent,
+
+                    phase:
+                        data.phase === "CATALOG"
+                        ? "Synchronizing catalog"
+                        : data.phase === "BASE_ROMS"
+                            ? "Scanning Base ROMs"
+                        : data.phase === "HACK_LIBRARIES"
+                            ? "Scanning hack libraries"
+                        : data.phase === "MATCHING"
+                            ? "Matching library"
+                        : data.phase === "READINESS"
+                            ? "Preparing catalog readiness"
+                        : "Scanning libraries",
+
+                    detail:
+                        data.message
+                        || (
+                            "Preparing your "
+                            + "HackDex library..."
+                        ),
+                }
+            );
+        }
+
+    } catch (error) {
+        console.warn(
+            "Setup progress polling failed:",
+            error
+        );
+    }
+
+    if (setupCoreProgressActive) {
+        setupCoreProgressTimer =
+            setTimeout(
+                () =>
+                    pollSetupCoreProgress(
+                        progress
+                    ),
+                150
+            );
+    }
+}
+
+
+function startSetupCoreProgress(
+    progress
+) {
+    if (setupCoreProgressTimer) {
+        clearTimeout(
+            setupCoreProgressTimer
+        );
+    }
+
+    setupDisplayedPercent = 3;
+    setupCoreProgressActive = true;
+
+    renderSetupProgress(
+        progress,
+        {
+            percent: 3,
+            phase:
+                "Preparing scan",
+            detail:
+                "Starting HackDex Manager "
+                + "library preparation...",
+        }
+    );
+
+    pollSetupCoreProgress(
+        progress
+    );
+}
+
+
+function stopSetupCoreProgress() {
+    setupCoreProgressActive = false;
+
+    if (setupCoreProgressTimer) {
+        clearTimeout(
+            setupCoreProgressTimer
+        );
+
+        setupCoreProgressTimer = null;
+    }
+}
+
+
+async function finishCoreProgress(
+    progress
+) {
+    stopSetupCoreProgress();
+
+    while (
+        setupDisplayedPercent < 60
+    ) {
+        setupDisplayedPercent += 1;
+
+        renderSetupProgress(
+            progress,
+            {
+                percent:
+                    setupDisplayedPercent,
+
+                phase:
+                    "Core library scan complete",
+
+                detail:
+                    "Catalog synchronization, "
+                    + "library scanning, and "
+                    + "matching are complete.",
+            }
+        );
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    24
+                )
+        );
+    }
+}
+
+
+function renderSetupProgress(
+    progress,
+    {
+        percent = 0,
+        phase = "",
+        detail = "",
+        checked = null,
+        total = null,
+        indeterminate = false,
+        complete = false,
+        error = false,
+    } = {}
+) {
+    const safePercent =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Math.round(
+                    Number(percent) || 0
+                )
+            )
+        );
+
+    let panelClass =
+        "hd-setup-progress-panel";
+
+    if (complete) {
+        panelClass +=
+            " hd-setup-progress-complete";
+    }
+
+    if (error) {
+        panelClass +=
+            " hd-setup-progress-error";
+    }
+
+    const countText =
+        (
+            Number.isFinite(checked)
+            && Number.isFinite(total)
+            && total > 0
+        )
+        ? (
+            checked
+            + " / "
+            + total
+            + " hacks evaluated"
+        )
+        : "";
+
+    progress.hidden = false;
+
+    progress.innerHTML = `
+        <div class="${panelClass}">
+
+            <div class="hd-setup-progress-head">
+
+                <div class="hd-setup-progress-phase">
+                    ${escapeHtml(phase)}
+                </div>
+
+                <div class="hd-setup-progress-percent">
+                    ${
+                        indeterminate
+                        ? "Working…"
+                        : safePercent + "%"
+                    }
+                </div>
+
+            </div>
+
+            <div
+                class="hd-setup-progress-track"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="${
+                    indeterminate
+                    ? ""
+                    : safePercent
+                }"
+            >
+                <div
+                    class="
+                        hd-setup-progress-fill
+                        ${
+                            indeterminate
+                            ? "indeterminate"
+                            : ""
+                        }
+                    "
+                    style="
+                        ${
+                            indeterminate
+                            ? ""
+                            : "width:"
+                                + safePercent
+                                + "%;"
+                        }
+                    "
+                ></div>
+            </div>
+
+            <div class="hd-setup-progress-detail">
+                ${escapeHtml(detail)}
+            </div>
+
+            ${
+                countText
+                ? `
+                    <div class="hd-setup-progress-count">
+                        ${escapeHtml(countText)}
+                    </div>
+                `
+                : ""
+            }
+
+        </div>
+    `;
+}
+
+
 function sleepSetup(milliseconds) {
     return new Promise(
         resolve =>
@@ -2752,7 +3722,8 @@ function sleepSetup(milliseconds) {
 
 
 async function waitForCatalogReadiness(
-    progress
+    progress,
+    expectedTotal = 0
 ) {
     const deadline =
         Date.now()
@@ -2822,21 +3793,63 @@ async function waitForCatalogReadiness(
                 job.status || "IDLE"
             );
 
+        const total =
+            Math.max(
+                Number(expectedTotal) || 0,
+                checked
+            );
+
         if (
             checked !== lastChecked
             || status !== lastStatus
         ) {
-            progress.textContent =
-                "Core setup complete.\n\n"
-                + "Preparing HackDex catalog...\n"
-                + checked
-                + " hacks evaluated.\n\n"
-                + (
-                    status === "RUNNING"
-                    ? "Catalog preparation is running."
-                    : "Catalog preparation status: "
-                        + status
+            let percent = 60;
+
+            if (total > 0) {
+                percent =
+                    60
+                    + Math.floor(
+                        (
+                            checked
+                            / total
+                        )
+                        * 39
+                    );
+            }
+
+            percent =
+                Math.min(
+                    99,
+                    Math.max(
+                        60,
+                        percent
+                    )
                 );
+
+            renderSetupProgress(
+                progress,
+                {
+                    percent,
+                    phase:
+                        "Preparing catalog readiness",
+                    detail:
+                        status === "RUNNING"
+                        ? (
+                            "HackDex Manager is evaluating "
+                            + "the catalog against your "
+                            + "available Base ROMs."
+                        )
+                        : (
+                            "Catalog readiness status: "
+                            + status
+                        ),
+                    checked,
+                    total:
+                        total > 0
+                        ? total
+                        : null,
+                }
+            );
 
             lastChecked = checked;
             lastStatus = status;
@@ -2867,7 +3880,7 @@ async function waitForCatalogReadiness(
         }
 
         await sleepSetup(
-            1000
+            300
         );
     }
 
@@ -2895,46 +3908,73 @@ function finishSetupSuccess(
             || {}
         ).length;
 
-    let message =
-        "Setup complete.\n\n";
+    const localHacks =
+        romResult
+        ? (
+            romResult.discovered
+            || 0
+        )
+        : 0;
 
-    if (romResult) {
-        message +=
-            "Local hacks found: "
-            + (
-                romResult.discovered
-                || 0
-            )
-            + "\n";
+    const baseRoms =
+        baseResult
+        ? (
+            baseResult
+                .official_bases_found
+            ?? baseResult.discovered
+            ?? 0
+        )
+        : 0;
+
+    renderSetupProgress(
+        progress,
+        {
+            percent: 100,
+            phase:
+                "HackDex Manager is ready",
+            detail:
+                "Setup complete — opening "
+                + "your library.",
+            checked:
+                evaluated,
+            total:
+                evaluated || null,
+            complete: true,
+        }
+    );
+
+    const summary =
+        document.createElement(
+            "div"
+        );
+
+    summary.className =
+        "hd-setup-progress-count";
+
+    summary.textContent =
+        "Local hacks: "
+        + localHacks
+        + "  •  Base ROMs: "
+        + baseRoms
+        + "  •  Readiness: "
+        + evaluated;
+
+    const panel =
+        progress.querySelector(
+            ".hd-setup-progress-panel"
+        );
+
+    if (panel) {
+        panel.appendChild(
+            summary
+        );
     }
-
-    if (baseResult) {
-        message +=
-            "Base ROMs found: "
-            + (
-                baseResult
-                    .official_bases_found
-                ?? baseResult.discovered
-                ?? 0
-            )
-            + "\n";
-    }
-
-    message +=
-        "Catalog readiness: "
-        + evaluated
-        + " hacks evaluated"
-        + "\n\n"
-        + "Opening HackDex Manager...";
-
-    progress.textContent =
-        message;
 
     setTimeout(
         () => {
             window.location.href = "/";
         },
-        600
+        150
     );
 }
 
@@ -3020,101 +4060,90 @@ async function finishSetup() {
             "finish-button"
         );
 
-    const retryButton =
-        document.getElementById(
-            "retry-readiness-button"
-        );
-
     const progress =
         document.getElementById(
             "setup-progress"
         );
 
-    let coreSetupCompleted = false;
-
-    retryButton.hidden = true;
-    retryButton.disabled = false;
-
     button.disabled = true;
-    progress.hidden = false;
 
-    progress.textContent =
-        "Synchronizing HackDex catalog...\n"
-        + "Scanning Base ROMs...\n"
-        + "Scanning ROM hack libraries...\n"
-        + "Matching local games...\n\n"
-        + "Please keep this page open.";
+    startSetupCoreProgress(
+        progress
+    );
 
     try {
-        const response = await fetch(
-            "/api/setup/initialize",
-            {
-                method: "POST",
-            }
-        );
+        const response =
+            await fetch(
+                "/api/setup/initialize",
+                {
+                    method: "POST",
+                }
+            );
 
         const data =
             await response.json();
 
-        if (!data.success) {
-            progress.textContent =
-                "Setup could not complete:\n\n"
-                + (
-                    data.message
-                    || "Unknown error."
-                );
+        if (
+            !response.ok
+            || !data.success
+        ) {
+            stopSetupCoreProgress();
 
-            button.disabled = false;
-            return;
+            throw new Error(
+                data.message
+                || "Setup initialization failed."
+            );
         }
 
-        coreSetupCompleted = true;
+        await finishCoreProgress(
+            progress
+        );
 
-        const romResult =
-            data.roms || {};
-
-        const baseResult =
-            data.base_roms || {};
-
-        progress.textContent =
-            "Core setup complete.\n\n"
-            + "Preparing HackDex catalog...\n"
-            + "0 hacks evaluated.\n\n"
-            + "Please keep this page open.";
+        const expectedTotal =
+            Number(
+                (
+                    data.catalog
+                    && data.catalog.imported
+                )
+                || (
+                    data.matching
+                    && data.matching.catalog_hacks
+                )
+                || 0
+            );
 
         const readinessData =
             await waitForCatalogReadiness(
-                progress
+                progress,
+                expectedTotal
             );
 
         finishSetupSuccess(
             progress,
             readinessData,
-            romResult,
-            baseResult
+            data.roms || null,
+            data.base_roms || null
         );
 
     } catch (error) {
-        if (coreSetupCompleted) {
-            progress.textContent =
-                "Catalog preparation failed:\n\n"
-                + String(error)
-                + "\n\n"
-                + "Your library scan is preserved. "
-                + "Use Retry Catalog Preparation "
-                + "to try again.";
+        stopSetupCoreProgress();
 
-            retryButton.hidden = false;
-            retryButton.disabled = false;
-
-            return;
-        }
-
-        progress.textContent =
-            "Setup failed:\n\n"
-            + String(error);
+        renderSetupProgress(
+            progress,
+            {
+                percent:
+                    setupDisplayedPercent,
+                phase:
+                    "Setup needs attention",
+                detail:
+                    String(error),
+                error: true,
+            }
+        );
 
         button.disabled = false;
+
+        await loadSetupStatus();
     }
 }
 

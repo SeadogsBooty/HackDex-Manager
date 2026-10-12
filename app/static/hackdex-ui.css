@@ -44411,3 +44411,132 @@ body.hd-shell-active
   background: transparent url("/static/hackdex-logo.png") center / contain no-repeat !important;
 }
 /* HACKDEX_CANONICAL_BRANDING_END */
+
+
+/* v1.1.1 application update indicator */
+.hd-shell-version {
+    text-decoration: none;
+}
+
+.hd-shell-version.update-available {
+    border-color:
+        color-mix(
+            in srgb,
+            var(--hd-warning) 48%,
+            var(--hd-border)
+        ) !important;
+    background: var(--hd-warning-soft) !important;
+    color: var(--hd-warning) !important;
+}
+
+
+/* ============================================================
+   Acceptance 3.2 — catalog title/version layout
+   Give titles the full card width and keep version metadata
+   visually secondary.
+   ============================================================ */
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row {
+    display:
+        flex !important;
+
+    flex-direction:
+        column !important;
+
+    align-items:
+        stretch !important;
+
+    justify-content:
+        flex-start !important;
+
+    gap:
+        5px !important;
+
+    min-height:
+        59px !important;
+
+    width:
+        100% !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.title {
+    display:
+        -webkit-box !important;
+
+    -webkit-box-orient:
+        vertical !important;
+
+    -webkit-line-clamp:
+        2 !important;
+
+    width:
+        100% !important;
+
+    min-width:
+        0 !important;
+
+    min-height:
+        35px !important;
+
+    overflow:
+        hidden !important;
+
+    white-space:
+        normal !important;
+
+    text-overflow:
+        ellipsis !important;
+
+    overflow-wrap:
+        anywhere !important;
+
+    font-size:
+        14px !important;
+
+    line-height:
+        1.25 !important;
+}
+
+
+body.hd-shell-active
+article.hd-hackdex-discover-card
+.hd-hack-title-row
+.hd-hack-version {
+    align-self:
+        flex-start !important;
+
+    max-width:
+        100% !important;
+
+    overflow:
+        hidden !important;
+
+    text-overflow:
+        ellipsis !important;
+
+    white-space:
+        nowrap !important;
+
+    margin:
+        0 !important;
+
+    padding:
+        3px 7px !important;
+
+    font-size:
+        9px !important;
+
+    line-height:
+        1.2 !important;
+}
+
+/* v1.1.2 application update indicator */
+.hd-shell-version[hidden] {
+    display: none !important;
+}

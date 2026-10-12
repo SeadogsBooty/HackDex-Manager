@@ -243,15 +243,38 @@ def discover_hack_parent(
 
 def configure_hack_parent(
     parent_path,
+    platforms=None,
 ):
     discovery = discover_hack_parent(
         parent_path
+    )
+
+    selected_platforms = (
+        {
+            str(value or "")
+            .strip()
+            .upper()
+            for value in platforms
+        }
+        if platforms is not None
+        else None
     )
 
     added = []
     skipped = []
 
     for item in discovery["locations"]:
+
+        if (
+            selected_platforms is not None
+            and item["platform"]
+                not in selected_platforms
+        ):
+            skipped.append({
+                **item,
+                "reason": "NOT_SELECTED",
+            })
+            continue
 
         if (
             item["state"]
@@ -423,6 +446,59 @@ def list_locations(kind=None):
         db.close()
 
 
+def validate_location_availability(
+    value,
+    *,
+    require_write=False,
+):
+    """
+    Verify a user-selected library location without
+    creating, modifying, moving, or deleting anything.
+
+    This validation is intentionally read-only.
+    """
+    raw = str(
+        value or ""
+    ).strip()
+
+    target = Path(raw)
+
+    if not target.exists():
+        raise ValueError(
+            "That location does not exist inside "
+            "HackDex Manager. Check the path or "
+            "container mount and try again."
+        )
+
+    if not target.is_dir():
+        raise ValueError(
+            "That location is not a folder."
+        )
+
+    if not os.access(
+        target,
+        os.R_OK | os.X_OK,
+    ):
+        raise ValueError(
+            "HackDex Manager cannot read that folder."
+        )
+
+    if (
+        require_write
+        and not os.access(
+            target,
+            os.W_OK | os.X_OK,
+        )
+    ):
+        raise ValueError(
+            "HackDex Manager needs write access "
+            "to that hack-library folder."
+        )
+
+    return raw
+
+
+
 def add_location(
     kind,
     path,
@@ -453,6 +529,13 @@ def add_location(
             path,
             description="Location",
         )
+    )
+
+    path = validate_location_availability(
+        path,
+        require_write=(
+            kind == "hack"
+        ),
     )
 
     db = SessionLocal()
