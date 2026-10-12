@@ -1581,6 +1581,16 @@
                 Scan Libraries &amp; Finish Setup
             </button>
 
+            <button
+                type="button"
+                id="retry-readiness-button"
+                class="hd-setup-button secondary"
+                onclick="retryCatalogReadiness()"
+                hidden
+            >
+                Retry Catalog Preparation
+            </button>
+
         </div>
 
         <div
@@ -1610,6 +1620,7 @@
 <script>
 let setupStatus = null;
 let hackDiscovery = null;
+let setupCatalogTotal = 0;
 
 
 function escapeHtml(value) {
@@ -2788,24 +2799,51 @@ async function waitForCatalogReadiness(
         );
 
     let lastChecked = -1;
+    let lastStatus = "";
 
     while (Date.now() < deadline) {
-        const response = await fetch(
-            "/api/readiness/details",
-            {
-                cache: "no-store",
-            }
-        );
+        const responses =
+            await Promise.all([
+                fetch(
+                    "/api/readiness/job",
+                    {
+                        cache: "no-store",
+                    }
+                ),
 
-        if (!response.ok) {
+                fetch(
+                    "/api/readiness/details",
+                    {
+                        cache: "no-store",
+                    }
+                ),
+            ]);
+
+        const jobResponse =
+            responses[0];
+
+        const detailsResponse =
+            responses[1];
+
+        if (!jobResponse.ok) {
             throw new Error(
-                "Readiness status returned HTTP "
-                + response.status
+                "Readiness job status returned HTTP "
+                + jobResponse.status
             );
         }
 
+        if (!detailsResponse.ok) {
+            throw new Error(
+                "Readiness details returned HTTP "
+                + detailsResponse.status
+            );
+        }
+
+        const job =
+            await jobResponse.json();
+
         const data =
-            await response.json();
+            await detailsResponse.json();
 
         const items =
             data.items || {};
@@ -2815,16 +2853,15 @@ async function waitForCatalogReadiness(
                 items
             ).length;
 
-        const notChecked =
-            Number(
-                (
-                    data.counts
-                    || {}
-                ).NOT_CHECKED
-                || 0
+        const status =
+            String(
+                job.status || "IDLE"
             );
 
-        if (checked !== lastChecked) {
+        if (
+            checked !== lastChecked
+            || status !== lastStatus
+        ) {
             progress.textContent =
                 "Core setup complete.\n\n"
                 + "Preparing HackDex catalog...\n"
@@ -2832,17 +2869,39 @@ async function waitForCatalogReadiness(
                 + " / "
                 + expectedTotal
                 + " hacks evaluated.\n\n"
-                + "Please keep this page open.";
+                + (
+                    status === "RUNNING"
+                    ? "Catalog preparation is running."
+                    : "Catalog preparation status: "
+                        + status
+                );
 
             lastChecked = checked;
+            lastStatus = status;
+        }
+
+        if (status === "FAILED") {
+            throw new Error(
+                job.error
+                || (
+                    "HackDex catalog preparation "
+                    + "failed."
+                )
+            );
+        }
+
+        if (status === "COMPLETED") {
+            return data;
         }
 
         if (
-            expectedTotal > 0
-            && checked >= expectedTotal
-            && notChecked === 0
+            status === "IDLE"
+            && !job.running
         ) {
-            return data;
+            throw new Error(
+                "HackDex catalog preparation "
+                + "did not start."
+            );
         }
 
         await sleepSetup(
@@ -2857,8 +2916,76 @@ async function waitForCatalogReadiness(
 }
 
 
-async function finishSetup() {
-    const button =
+function finishSetupSuccess(
+    progress,
+    readinessData,
+    catalogTotal,
+    romResult = null,
+    baseResult = null
+) {
+    unlockSetupNavigation();
+
+    const evaluated =
+        Object.keys(
+            (
+                readinessData
+                && readinessData.items
+            )
+            || {}
+        ).length;
+
+    let message =
+        "Setup complete.\n\n";
+
+    if (romResult) {
+        message +=
+            "Local hacks found: "
+            + (
+                romResult.discovered
+                || 0
+            )
+            + "\n";
+    }
+
+    if (baseResult) {
+        message +=
+            "Base ROMs found: "
+            + (
+                baseResult
+                    .official_bases_found
+                ?? baseResult.discovered
+                ?? 0
+            )
+            + "\n";
+    }
+
+    message +=
+        "Catalog readiness: "
+        + evaluated
+        + " / "
+        + catalogTotal
+        + "\n\n"
+        + "Opening HackDex Manager...";
+
+    progress.textContent =
+        message;
+
+    setTimeout(
+        () => {
+            window.location.href = "/";
+        },
+        600
+    );
+}
+
+
+async function retryCatalogReadiness() {
+    const retryButton =
+        document.getElementById(
+            "retry-readiness-button"
+        );
+
+    const finishButton =
         document.getElementById(
             "finish-button"
         );
@@ -2867,6 +2994,102 @@ async function finishSetup() {
         document.getElementById(
             "setup-progress"
         );
+
+    retryButton.disabled = true;
+    finishButton.disabled = true;
+
+    progress.hidden = false;
+
+    progress.textContent =
+        "Retrying HackDex catalog preparation...\n\n"
+        + "Your completed library scan will be preserved.";
+
+    try {
+        const response = await fetch(
+            "/api/readiness/retry",
+            {
+                method: "POST",
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Retry returned HTTP "
+                + response.status
+            );
+        }
+
+        const data =
+            await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                data.message
+                || "Unable to restart catalog preparation."
+            );
+        }
+
+        const catalogTotal =
+            setupCatalogTotal
+            || Number(
+                (
+                    setupStatus
+                    && setupStatus.catalog
+                    ? setupStatus.catalog.total
+                    : 0
+                )
+                || 0
+            );
+
+        const readinessData =
+            await waitForCatalogReadiness(
+                catalogTotal,
+                progress
+            );
+
+        retryButton.hidden = true;
+
+        finishSetupSuccess(
+            progress,
+            readinessData,
+            catalogTotal
+        );
+
+    } catch (error) {
+        progress.textContent =
+            "Catalog preparation failed:\n\n"
+            + String(error)
+            + "\n\n"
+            + "You can retry without rescanning "
+            + "your libraries.";
+
+        retryButton.disabled = false;
+    }
+}
+
+
+async function finishSetup() {
+    const button =
+        document.getElementById(
+            "finish-button"
+        );
+
+    const retryButton =
+        document.getElementById(
+            "retry-readiness-button"
+        );
+
+    const progress =
+        document.getElementById(
+            "setup-progress"
+        );
+
+    let coreSetupCompleted = false;
+
+    setupCatalogTotal = 0;
+
+    retryButton.hidden = true;
+    retryButton.disabled = false;
 
     button.disabled = true;
     progress.hidden = false;
@@ -2901,6 +3124,8 @@ async function finishSetup() {
             return;
         }
 
+        coreSetupCompleted = true;
+
         const romResult =
             data.roms || {};
 
@@ -2922,6 +3147,9 @@ async function finishSetup() {
                 || 0
             );
 
+        setupCatalogTotal =
+            catalogTotal;
+
         progress.textContent =
             "Core setup complete.\n\n"
             + "Preparing HackDex catalog...\n"
@@ -2930,47 +3158,39 @@ async function finishSetup() {
             + " hacks evaluated.\n\n"
             + "Please keep this page open.";
 
-        await waitForCatalogReadiness(
+        const readinessData =
+            await waitForCatalogReadiness(
+                catalogTotal,
+                progress
+            );
+
+        finishSetupSuccess(
+            progress,
+            readinessData,
             catalogTotal,
-            progress
-        );
-
-        unlockSetupNavigation();
-
-        progress.textContent =
-            "Setup complete.\n\n"
-            + "Local hacks found: "
-            + (
-                romResult.discovered
-                || 0
-            )
-            + "\n"
-            + "Base ROMs found: "
-            + (
-                baseResult
-                    .official_bases_found
-                ?? baseResult.discovered
-                ?? 0
-            )
-            + "\n"
-            + "Catalog readiness: "
-            + catalogTotal
-            + " / "
-            + catalogTotal
-            + "\n\n"
-            + "Opening HackDex Manager...";
-
-        setTimeout(
-            () => {
-                window.location.href = "/";
-            },
-            600
+            romResult,
+            baseResult
         );
 
     } catch (error) {
+        if (coreSetupCompleted) {
+            progress.textContent =
+                "Catalog preparation failed:\n\n"
+                + String(error)
+                + "\n\n"
+                + "Your library scan is preserved. "
+                + "Use Retry Catalog Preparation "
+                + "to try again.";
+
+            retryButton.hidden = false;
+            retryButton.disabled = false;
+
+            return;
+        }
+
         progress.textContent =
             "Setup failed:\n\n"
-            + error;
+            + String(error);
 
         button.disabled = false;
     }

@@ -799,7 +799,44 @@ readiness_job_lock = threading.Lock()
 
 readiness_job_state = {
     "running": False,
+    "status": "IDLE",
+    "last_error": None,
+    "started_at": None,
+    "finished_at": None,
+    "setup_completion_pending": False,
 }
+
+
+def readiness_job_snapshot():
+    with readiness_job_lock:
+        return {
+            "running":
+                bool(
+                    readiness_job_state[
+                        "running"
+                    ]
+                ),
+
+            "status":
+                readiness_job_state[
+                    "status"
+                ],
+
+            "error":
+                readiness_job_state[
+                    "last_error"
+                ],
+
+            "started_at":
+                readiness_job_state[
+                    "started_at"
+                ],
+
+            "finished_at":
+                readiness_job_state[
+                    "finished_at"
+                ],
+        }
 
 
 def run_initial_readiness():
@@ -810,6 +847,32 @@ def run_initial_readiness():
     try:
         result = build_full_readiness()
 
+        with readiness_job_lock:
+            complete_setup = bool(
+                readiness_job_state.get(
+                    "setup_completion_pending"
+                )
+            )
+
+        if complete_setup:
+            update_settings({
+                "setup_completed":
+                    "true",
+            })
+
+        with readiness_job_lock:
+            readiness_job_state[
+                "status"
+            ] = "COMPLETED"
+
+            readiness_job_state[
+                "last_error"
+            ] = None
+
+            readiness_job_state[
+                "finished_at"
+            ] = time.time()
+
         catalog_logger.info(
             "Full catalog readiness build "
             "completed result=%s",
@@ -817,6 +880,19 @@ def run_initial_readiness():
         )
 
     except Exception as exc:
+        with readiness_job_lock:
+            readiness_job_state[
+                "status"
+            ] = "FAILED"
+
+            readiness_job_state[
+                "last_error"
+            ] = str(exc)
+
+            readiness_job_state[
+                "finished_at"
+            ] = time.time()
+
         catalog_logger.exception(
             "Full catalog readiness build failed: %s",
             exc,
@@ -828,38 +904,86 @@ def run_initial_readiness():
                 "running"
             ] = False
 
+            readiness_job_state[
+                "setup_completion_pending"
+            ] = False
 
-def start_background_initial_readiness():
+
+def start_background_initial_readiness(
+    *,
+    complete_setup=False,
+):
     with readiness_job_lock:
         if readiness_job_state[
             "running"
         ]:
+            if complete_setup:
+                readiness_job_state[
+                    "setup_completion_pending"
+                ] = True
+
             return {
                 "success": True,
                 "scheduled": False,
                 "running": True,
+                "status":
+                    readiness_job_state[
+                        "status"
+                    ],
                 "message":
                     "Full catalog readiness "
                     "refresh is already running.",
             }
 
-        readiness_job_state[
-            "running"
-        ] = True
+        readiness_job_state.update({
+            "running":
+                True,
+
+            "status":
+                "RUNNING",
+
+            "last_error":
+                None,
+
+            "started_at":
+                time.time(),
+
+            "finished_at":
+                None,
+
+            "setup_completion_pending":
+                bool(
+                    complete_setup
+                ),
+        })
 
     try:
         thread = threading.Thread(
             target=run_initial_readiness,
+            name="HackDexReadiness",
             daemon=True,
         )
 
         thread.start()
 
-    except Exception:
+    except Exception as exc:
         with readiness_job_lock:
-            readiness_job_state[
-                "running"
-            ] = False
+            readiness_job_state.update({
+                "running":
+                    False,
+
+                "status":
+                    "FAILED",
+
+                "last_error":
+                    str(exc),
+
+                "finished_at":
+                    time.time(),
+
+                "setup_completion_pending":
+                    False,
+            })
 
         raise
 
@@ -867,6 +991,7 @@ def start_background_initial_readiness():
         "success": True,
         "scheduled": True,
         "running": True,
+        "status": "RUNNING",
         "message":
             "Full catalog readiness "
             "refresh started.",
@@ -1425,6 +1550,20 @@ def api_stage_obtain(
 @app.get("/api/readiness/details")
 def api_readiness_details():
     return readiness_details()
+
+
+@app.get("/api/readiness/job")
+def api_readiness_job():
+    return readiness_job_snapshot()
+
+
+@app.post("/api/readiness/retry")
+def api_retry_readiness():
+    return start_background_initial_readiness(
+        complete_setup=(
+            not setup_is_complete()
+        ),
+    )
 
 
 @app.get("/api/base-roms/catalog")
@@ -2329,23 +2468,22 @@ def api_setup_initialize():
         )
     )
 
-    update_settings({
-        "setup_completed":
-            "true",
-    })
+    # Core setup is complete, but onboarding remains
+    # gated until the full readiness build succeeds.
+    # The background worker marks setup_completed=true
+    # only after readiness finishes successfully.
+    readiness = (
+        start_background_initial_readiness(
+            complete_setup=True,
+        )
+    )
 
-    # v0.9.4:
-    # Setup is not complete until the full HackDex
-    # catalog has an evaluated readiness state.
-    # v0.9.4:
-    # Do not hold the setup HTTP request open while every
-    # catalog hack is evaluated. Start the complete readiness
-    # build automatically in the background instead.
-    readiness = start_background_initial_readiness()
+    result["readiness"] = readiness
 
     result["success"] = True
     result["message"] = (
-        "HackDex Manager setup completed."
+        "Core setup completed. "
+        "HackDex catalog readiness is being prepared."
     )
 
     return result
