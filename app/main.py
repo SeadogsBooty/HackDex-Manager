@@ -1557,7 +1557,7 @@ def api_readiness_job():
     return readiness_job_snapshot()
 
 
-@app.post("/api/readiness/retry")
+@app.post("/api/readiness/job/retry")
 def api_retry_readiness():
     return start_background_initial_readiness(
         complete_setup=(

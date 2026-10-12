@@ -3006,7 +3006,7 @@ async function retryCatalogReadiness() {
 
     try {
         const response = await fetch(
-            "/api/readiness/retry",
+            "/api/readiness/job/retry",
             {
                 method: "POST",
             }
