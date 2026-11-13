@@ -5504,6 +5504,142 @@ function refreshFilterCounts() {
 
 
 
+/*
+ * Home Update Queue responsive capacity.
+ *
+ * Cards remain comfortably sized while the number shown adapts
+ * to the available panel width.
+ *
+ * Up to three rows are shown on the dashboard. The full update
+ * collection remains available through View all.
+ */
+
+const DASHBOARD_UPDATE_MIN_CARD_WIDTH =
+    360;
+
+const DASHBOARD_UPDATE_COLUMN_GAP =
+    10;
+
+const DASHBOARD_UPDATE_MAX_COLUMNS =
+    4;
+
+const DASHBOARD_UPDATE_ROWS =
+    3;
+
+let dashboardUpdateLayoutColumns =
+    0;
+
+let dashboardUpdateResizeObserver =
+    null;
+
+let dashboardUpdateResizeFallbackBound =
+    false;
+
+
+function dashboardUpdateColumns(
+    container
+) {
+    const width =
+        container
+            .getBoundingClientRect()
+            .width;
+
+    if (
+        !Number.isFinite(width)
+        || width <= 0
+    ) {
+        return 1;
+    }
+
+    const columns =
+        Math.floor(
+            (
+                width
+                + DASHBOARD_UPDATE_COLUMN_GAP
+            )
+            /
+            (
+                DASHBOARD_UPDATE_MIN_CARD_WIDTH
+                + DASHBOARD_UPDATE_COLUMN_GAP
+            )
+        );
+
+    return Math.max(
+        1,
+        Math.min(
+            DASHBOARD_UPDATE_MAX_COLUMNS,
+            columns
+        )
+    );
+}
+
+
+function ensureDashboardUpdateResizeTracking(
+    container
+) {
+    if (
+        dashboardUpdateResizeObserver
+        || dashboardUpdateResizeFallbackBound
+    ) {
+        return;
+    }
+
+
+    const refreshForResize =
+        () => {
+            const columns =
+                dashboardUpdateColumns(
+                    container
+                );
+
+            if (
+                columns
+                === dashboardUpdateLayoutColumns
+            ) {
+                return;
+            }
+
+            dashboardUpdateLayoutColumns =
+                columns;
+
+            window.requestAnimationFrame(
+                () =>
+                    renderDashboardUpdates()
+            );
+        };
+
+
+    if (
+        "ResizeObserver"
+        in window
+    ) {
+        dashboardUpdateResizeObserver =
+            new ResizeObserver(
+                refreshForResize
+            );
+
+        dashboardUpdateResizeObserver
+            .observe(
+                container
+            );
+
+        return;
+    }
+
+
+    window.addEventListener(
+        "resize",
+        refreshForResize,
+        {
+            passive: true,
+        }
+    );
+
+    dashboardUpdateResizeFallbackBound =
+        true;
+}
+
+
 function renderDashboardUpdates() {
     const container =
         document.getElementById(
@@ -5514,14 +5650,43 @@ function renderDashboardUpdates() {
         return;
     }
 
-    const updates =
+
+    const columns =
+        dashboardUpdateColumns(
+            container
+        );
+
+    dashboardUpdateLayoutColumns =
+        columns;
+
+    container.style.setProperty(
+        "--hd-update-columns",
+        String(columns)
+    );
+
+    ensureDashboardUpdateResizeTracking(
+        container
+    );
+
+
+    const allUpdates =
         catalog
             .filter(
                 item =>
                     item.library_status
                     === "UPDATE_AVAILABLE"
-            )
-            .slice(0, 4);
+            );
+
+    const capacity =
+        columns
+        * DASHBOARD_UPDATE_ROWS;
+
+    const updates =
+        allUpdates.slice(
+            0,
+            capacity
+        );
+
 
     if (!updates.length) {
         container.innerHTML = `
@@ -5545,6 +5710,7 @@ function renderDashboardUpdates() {
 
         return;
     }
+
 
     container.innerHTML =
         updates.map(
@@ -5617,7 +5783,6 @@ function renderDashboardUpdates() {
             `
         ).join("");
 }
-
 
 function renderDashboardHealth(data) {
     const container =

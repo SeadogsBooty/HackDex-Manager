@@ -1,8 +1,9 @@
 """Safe application-update feed handling for HackDex Manager.
 
-The application never embeds repository credentials. A release manifest can
-be supplied through HACKDEX_UPDATE_MANIFEST_URL, or a local manifest can be
-placed in the writable HackDex data directory as update-manifest.json.
+The application never embeds repository credentials. Normal installations
+use HackDex Manager's public release manifest. The remote feed can be overridden
+through HACKDEX_UPDATE_MANIFEST_URL, and a local update-manifest.json in the
+writable HackDex data directory always takes precedence.
 
 Docker deployments are notification/instruction only. Packaged Windows builds
 may use a public installer URL plus SHA-256 from the manifest.
@@ -21,6 +22,13 @@ from pathlib import Path
 
 from platform_paths import data_path, running_as_desktop
 from version import APP_VERSION
+
+
+_DEFAULT_UPDATE_MANIFEST_URL = (
+    "https://raw.githubusercontent.com/"
+    "SeadogsBooty/HackDex-Manager/"
+    "main/update-manifest.json"
+)
 
 
 _CACHE_LOCK = threading.Lock()
@@ -93,13 +101,16 @@ def _local_manifest_path() -> Path:
 
 
 def _remote_manifest_url() -> str:
-    return str(
-        os.environ.get(
-            "HACKDEX_UPDATE_MANIFEST_URL",
-            "",
-        )
-        or ""
-    ).strip()
+    if "HACKDEX_UPDATE_MANIFEST_URL" in os.environ:
+        return str(
+            os.environ.get(
+                "HACKDEX_UPDATE_MANIFEST_URL",
+                "",
+            )
+            or ""
+        ).strip()
+
+    return _DEFAULT_UPDATE_MANIFEST_URL
 
 
 def _safe_http_url(
@@ -283,7 +294,7 @@ def _normalize_manifest(
             "sha256": installer_sha,
             "filename": str(
                 windows_raw.get("filename")
-                or "HackDex Manager Setup.exe"
+                or "HackDex.Manager.Setup.exe"
             ).strip(),
         },
         "docker": {

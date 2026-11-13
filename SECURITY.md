@@ -17,7 +17,9 @@ The official Compose configuration:
 - mounts the general ROM library read-only
 - grants write access only to application storage, staging, and configured hack-library locations
 
-If exposing HackDex Manager outside a trusted local network, use HTTPS through an appropriately configured reverse proxy.
+HackDex Manager does not currently provide built-in user authentication.
+
+Do not expose HackDex Manager directly to the public Internet. For remote access, use an authenticated reverse proxy or a VPN, and protect browser traffic with HTTPS.
 
 ## Application Data
 

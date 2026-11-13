@@ -34,7 +34,7 @@ Create a `compose.yaml` file:
 ```yaml
 services:
   hackdex-manager:
-    image: ghcr.io/seadogsbooty/hackdex-manager:1.0.0
+    image: ghcr.io/seadogsbooty/hackdex-manager:latest
     container_name: hackdex-manager
     restart: unless-stopped
 
@@ -46,6 +46,7 @@ services:
     volumes:
       - /path/to/hackdex-manager/data:/data
       - /path/to/hackdex-manager/staging:/staging
+      - /path/to/hackdex-manager/backups:/backups
       - /path/to/roms:/roms:ro
       - /path/to/hacks:/hacks
 ```
@@ -89,6 +90,7 @@ HackDex Manager handles the supported-folder detection during setup.
 | --- | --- |
 | `/path/to/hackdex-manager/data:/data` | Database, settings, logs, and persistent application state |
 | `/path/to/hackdex-manager/staging:/staging` | Temporary patch and download workspace |
+| `/path/to/hackdex-manager/backups:/backups` | Persistent application-managed backups |
 | `/path/to/roms:/roms:ro` | Existing ROM collection, mounted read-only |
 | `/path/to/hacks:/hacks` | Writable ROM-hack library root |
 
@@ -114,6 +116,7 @@ The selected user must have write access to:
 
 - `/data`
 - `/staging`
+- `/backups`
 - configured writable hack-library folders
 
 The general `/roms` mount remains read-only.
@@ -260,12 +263,12 @@ HackDex Manager is available as a native Windows desktop application in addition
 
 ### Windows installation
 
-Download **HackDex Manager Setup.exe** from the GitHub release and run the installer.
+Download **HackDex.Manager.Setup.exe** from the [HackDex Manager Windows releases](https://github.com/SeadogsBooty/HackDex-Manager-Windows/releases/latest) and run the installer.
 
 The default installation location is:
 
 ```text
-C:\Users\<username>\HackDex-Manager\
+%USERPROFILE%\HackDex-Manager\
 |-- HackDex Manager.exe
 |-- _internal\
 |-- Data\
@@ -294,7 +297,7 @@ Python, Docker, PowerShell, and a web browser are not required to run the packag
 
 ### Windows security note
 
-The current Windows v1.0.0 binaries are not Authenticode-signed. Windows may therefore display an **Unknown Publisher** or Microsoft Defender SmartScreen warning when first launching the installer.
+Current Windows release binaries are not Authenticode-signed. Windows may therefore display an **Unknown Publisher** or Microsoft Defender SmartScreen warning when first launching the installer.
 
 SHA-256 hashes can be published with the release so downloaded binaries can be verified.
 <!-- HACKDEX_WINDOWS_END -->

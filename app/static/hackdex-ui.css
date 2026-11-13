@@ -44540,3 +44540,65 @@ article.hd-hackdex-discover-card
 .hd-shell-version[hidden] {
     display: none !important;
 }
+
+/* ============================================================
+   v1.1.3 — Responsive home Update Queue
+   ============================================================ */
+
+/*
+ * The dashboard decides how many columns comfortably fit.
+ * The queue then renders three rows worth of updates.
+ *
+ * Scope is intentionally limited to the Library home page
+ * Update Queue.
+ */
+
+body.hd-shell-active
+section.hd-dashboard-overview
+#dashboard-update-list {
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(
+            var(--hd-update-columns, 1),
+            minmax(0, 1fr)
+        ) !important;
+
+    column-gap:
+        10px;
+
+    row-gap:
+        8px;
+}
+
+
+body.hd-shell-active
+section.hd-dashboard-overview
+#dashboard-update-list
+.hd-update-row {
+    min-width:
+        0;
+
+    width:
+        100%;
+}
+
+
+/*
+ * Empty/loading messages should occupy the complete queue
+ * rather than one grid cell.
+ */
+
+body.hd-shell-active
+section.hd-dashboard-overview
+#dashboard-update-list
+> .hd-dashboard-empty,
+
+body.hd-shell-active
+section.hd-dashboard-overview
+#dashboard-update-list
+> .hd-dashboard-loading {
+    grid-column:
+        1 / -1;
+}

@@ -32,16 +32,95 @@ jobs:
         run: |
           python -m py_compile app/*.py
 
-      - name: Run matcher regression tests
+      - name: Run regression test suite
         working-directory: app
         run: |
-          python -m unittest -v test_matcher_identity
+          python -m unittest discover -v
 
       - name: Validate Docker Compose
         run: |
           cp .env.example .env
           docker compose config >/dev/null
 
+      - name: Run release audit
+        run: |
+          bash ./release-audit.sh
+
       - name: Build Docker image
         run: |
           docker build -t hackdex-manager:ci .
+
+      - name: Smoke test Docker image
+        shell: bash
+        run: |
+          data_dir="$RUNNER_TEMP/hackdex-data"
+          staging_dir="$RUNNER_TEMP/hackdex-staging"
+          backups_dir="$RUNNER_TEMP/hackdex-backups"
+
+          mkdir -p "$data_dir" "$staging_dir" "$backups_dir"
+          chmod 0777 "$data_dir" "$staging_dir" "$backups_dir"
+
+          cid="$(docker run -d \
+            --user 1000:1000 \
+            -e HACKDEX_UPDATE_MANIFEST_URL= \
+            -p 127.0.0.1::8080 \
+            --mount type=bind,src="$data_dir",dst=/data \
+            --mount type=bind,src="$staging_dir",dst=/staging \
+            --mount type=bind,src="$backups_dir",dst=/backups \
+            hackdex-manager:ci)"
+
+          cleanup() {
+            docker logs "$cid" || true
+            docker rm -f "$cid" >/dev/null 2>&1 || true
+
+            docker run --rm \
+              --user 0:0 \
+              --entrypoint sh \
+              --mount type=bind,src="$data_dir",dst=/cleanup-data \
+              --mount type=bind,src="$staging_dir",dst=/cleanup-staging \
+              --mount type=bind,src="$backups_dir",dst=/cleanup-backups \
+              hackdex-manager:ci \
+              -c 'rm -rf /cleanup-data/* /cleanup-staging/* /cleanup-backups/*' \
+              >/dev/null 2>&1 || true
+          }
+
+          trap cleanup EXIT
+
+          host_port="$(
+            docker port "$cid" 8080/tcp |
+            head -n1 |
+            awk -F: '{print $NF}'
+          )"
+
+          ready=0
+
+          for i in $(seq 1 30); do
+            if curl --fail --silent \
+              "http://127.0.0.1:${host_port}/health" \
+              >/dev/null
+            then
+              ready=1
+              break
+            fi
+
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Container did not become healthy."
+            exit 1
+          fi
+
+          curl --fail --silent \
+            "http://127.0.0.1:${host_port}/" \
+            >/dev/null
+
+          curl --fail --silent \
+            "http://127.0.0.1:${host_port}/api/update/status" \
+            >/dev/null
+
+          curl --fail --silent \
+            "http://127.0.0.1:${host_port}/api/settings" \
+            >/dev/null
+
+          echo "Docker smoke validation: PASS"

@@ -16,6 +16,7 @@ A `.env` file is not required.
 | Host port | `8095` | Port used to access HackDex Manager |
 | Data path | `./data` | Persistent application state |
 | Staging path | `./staging` | Temporary patch/download workspace |
+| Backups path | `./backups` | Persistent application-managed backups |
 | ROM path | `./roms` | General ROM collection mounted read-only |
 | Hacks path | `./hacks` | Writable ROM-hack library root |
 
@@ -72,6 +73,7 @@ LOG_LEVEL=INFO
 
 HACKDEX_DATA_PATH=./data
 HACKDEX_STAGING_PATH=./staging
+HACKDEX_BACKUPS_PATH=./backups
 
 ROM_PATH=./roms
 HACKDEX_HACKS_PATH=./hacks
@@ -88,6 +90,18 @@ Local `.env` files are ignored by Git and excluded from Docker builds.
 During first-run setup, HackDex Manager scans those mounted roots and identifies supported Base ROM and ROM-hack folders automatically.
 
 Unrelated systems and folders are ignored.
+
+## Application Update Feed
+
+Normal installations use the public HackDex Manager release manifest automatically.
+
+The built-in manifest location is:
+
+    https://raw.githubusercontent.com/SeadogsBooty/HackDex-Manager/main/update-manifest.json
+
+For development, mirrors, or troubleshooting, `HACKDEX_UPDATE_MANIFEST_URL` can override the remote manifest URL.
+
+Setting `HACKDEX_UPDATE_MANIFEST_URL` to an empty value disables the remote update feed. A local `/data/update-manifest.json` file takes precedence over the remote feed.
 
 ## Advanced Provider Overrides
 

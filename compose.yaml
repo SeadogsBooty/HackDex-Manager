@@ -1,6 +1,6 @@
 services:
   hackdex-manager:
-    image: ${HACKDEX_IMAGE:-ghcr.io/seadogsbooty/hackdex-manager:1.0.0}
+    image: ${HACKDEX_IMAGE:-ghcr.io/seadogsbooty/hackdex-manager:latest}
     restart: unless-stopped
 
     user: "${PUID:-1000}:${PGID:-1000}"
@@ -15,6 +15,7 @@ services:
     volumes:
       - ${HACKDEX_DATA_PATH:-./data}:/data:rw
       - ${HACKDEX_STAGING_PATH:-./staging}:/staging:rw
+      - ${HACKDEX_BACKUPS_PATH:-./backups}:/backups:rw
       - ${ROM_PATH:-./roms}:/roms:ro
       - ${HACKDEX_HACKS_PATH:-./hacks}:/hacks:rw
 

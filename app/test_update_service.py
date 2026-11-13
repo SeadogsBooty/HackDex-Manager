@@ -11,6 +11,56 @@ class UpdateServiceTests(unittest.TestCase):
     def tearDown(self):
         update_service.clear_update_cache()
 
+    def test_default_remote_manifest_url(self):
+        old_url = os.environ.pop(
+            "HACKDEX_UPDATE_MANIFEST_URL",
+            None,
+        )
+
+        try:
+            self.assertEqual(
+                update_service._remote_manifest_url(),
+                (
+                    "https://raw.githubusercontent.com/"
+                    "SeadogsBooty/HackDex-Manager/"
+                    "main/update-manifest.json"
+                ),
+            )
+
+        finally:
+            if old_url is not None:
+                os.environ[
+                    "HACKDEX_UPDATE_MANIFEST_URL"
+                ] = old_url
+
+
+    def test_empty_remote_override_disables_default(self):
+        old_url = os.environ.get(
+            "HACKDEX_UPDATE_MANIFEST_URL"
+        )
+
+        try:
+            os.environ[
+                "HACKDEX_UPDATE_MANIFEST_URL"
+            ] = ""
+
+            self.assertEqual(
+                update_service._remote_manifest_url(),
+                "",
+            )
+
+        finally:
+            if old_url is None:
+                os.environ.pop(
+                    "HACKDEX_UPDATE_MANIFEST_URL",
+                    None,
+                )
+            else:
+                os.environ[
+                    "HACKDEX_UPDATE_MANIFEST_URL"
+                ] = old_url
+
+
     def test_version_comparison(self):
         self.assertTrue(
             update_service.is_newer_version(
@@ -55,10 +105,10 @@ class UpdateServiceTests(unittest.TestCase):
             ) as handle:
                 json.dump(
                     {
-                        "version": "1.1.3",
+                        "version": "1.1.4",
                         "release_notes": "Test release",
                         "docker": {
-                            "image": "example/hackdex:1.1.2",
+                            "image": "example/hackdex:1.1.4",
                         },
                     },
                     handle,
@@ -101,7 +151,7 @@ class UpdateServiceTests(unittest.TestCase):
                 )
                 self.assertEqual(
                     status["latest_version"],
-                    "1.1.3",
+                    "1.1.4",
                 )
                 self.assertEqual(
                     status["platform"],

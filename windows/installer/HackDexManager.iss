@@ -1,5 +1,5 @@
 #define MyAppName "HackDex Manager"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "1.1.3"
 #define MyAppPublisher "HackDex Manager"
 #define MyAppExeName "HackDex Manager.exe"
 
@@ -15,7 +15,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=output
-OutputBaseFilename=HackDex Manager Setup
+OutputBaseFilename=HackDex.Manager.Setup
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern

@@ -82,11 +82,7 @@ if (-not $VersionMatch.Success) {
     throw "Unable to read APP_VERSION from app\version.py."
 }
 
-$AppVersion = (
-    $VersionMatch
-        .Groups[1]
-        .Value
-)
+$AppVersion = $VersionMatch.Groups[1].Value
 
 
 $InstallerSource = Get-Content `
@@ -102,11 +98,7 @@ if (-not $InstallerVersionMatch.Success) {
     throw "Unable to read MyAppVersion from HackDexManager.iss."
 }
 
-$InstallerVersion = (
-    $InstallerVersionMatch
-        .Groups[1]
-        .Value
-)
+$InstallerVersion = $InstallerVersionMatch.Groups[1].Value
 
 if ($InstallerVersion -ne $AppVersion) {
     throw (
@@ -132,7 +124,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $Setup = Join-Path `
     $Repo `
-    "windows\installer\output\HackDex Manager Setup.exe"
+    "windows\installer\output\HackDex.Manager.Setup.exe"
 
 
 if (-not (Test-Path $Setup)) {

@@ -45,7 +45,7 @@ class PlatformPathTests(
 
     def test_local_drive_path(self):
         value = (
-            r"C:\Users\Test\ROMs"
+            r"C:\Example\ROMs"
         )
 
         self.assertEqual(
@@ -93,7 +93,7 @@ class PlatformPathTests(
 
     def test_windows_desktop_data_path(self):
         root = (
-            r"C:\Users\Test\HackDex-Manager"
+            r"C:\Example\HackDex-Manager"
         )
 
         env = {

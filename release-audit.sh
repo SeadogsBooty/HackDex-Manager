@@ -32,7 +32,11 @@ for FILE in \
     .gitignore \
     .dockerignore \
     ENVIRONMENT.md \
-    SECURITY.md
+    SECURITY.md \
+    CONTRIBUTING.md \
+    CHANGELOG.md \
+    RELEASE.md \
+    update-manifest.json
 do
     if [ -s "$FILE" ]; then
         pass "$FILE"
@@ -227,6 +231,173 @@ if [ "$?" -eq 0 ]; then
     pass "tracked-file privacy scan"
 else
     fail "tracked-file privacy scan"
+fi
+
+echo
+echo "===== RELEASE VERSION CONSISTENCY ====="
+
+python3 - <<'PYVERSION'
+from pathlib import Path
+import json
+import re
+import sys
+
+
+def fail(message):
+    print(
+        f"VERSION AUDIT: FAIL - {message}"
+    )
+    sys.exit(1)
+
+
+version_text = Path(
+    "app/version.py"
+).read_text(
+    encoding="utf-8"
+)
+
+match = re.search(
+    r'APP_VERSION\s*=\s*"([^"]+)"',
+    version_text,
+)
+
+if not match:
+    fail(
+        "APP_VERSION was not found."
+    )
+
+app_version = match.group(1)
+
+
+installer_text = Path(
+    "windows/installer/HackDexManager.iss"
+).read_text(
+    encoding="utf-8-sig"
+)
+
+match = re.search(
+    r'#define\s+MyAppVersion\s+"([^"]+)"',
+    installer_text,
+)
+
+if not match:
+    fail(
+        "Windows installer version was not found."
+    )
+
+installer_version = match.group(1)
+
+
+manifest = json.loads(
+    Path(
+        "update-manifest.json"
+    ).read_text(
+        encoding="utf-8"
+    )
+)
+
+manifest_version = str(
+    manifest.get("version")
+    or ""
+).strip()
+
+
+if not (
+    app_version
+    == installer_version
+    == manifest_version
+):
+    fail(
+        "application, installer, and manifest "
+        "versions do not match."
+    )
+
+
+docker_image = str(
+    (
+        manifest.get("docker")
+        or {}
+    ).get("image")
+    or ""
+).strip()
+
+expected_image = (
+    "ghcr.io/seadogsbooty/"
+    f"hackdex-manager:{app_version}"
+)
+
+if docker_image != expected_image:
+    fail(
+        "manifest Docker image does not match "
+        "the application version."
+    )
+
+
+windows = (
+    manifest.get("windows")
+    or {}
+)
+
+filename = str(
+    windows.get("filename")
+    or ""
+).strip()
+
+if filename != "HackDex.Manager.Setup.exe":
+    fail(
+        "manifest Windows filename is unexpected."
+    )
+
+
+url = str(
+    windows.get("url")
+    or ""
+).strip()
+
+if (
+    url
+    and not url.startswith(
+        "https://"
+    )
+):
+    fail(
+        "manifest Windows URL must use HTTPS."
+    )
+
+
+sha256 = str(
+    windows.get("sha256")
+    or ""
+).strip()
+
+if (
+    sha256
+    and not re.fullmatch(
+        r"[0-9a-fA-F]{64}",
+        sha256,
+    )
+):
+    fail(
+        "manifest Windows SHA-256 is malformed."
+    )
+
+
+print(
+    "VERSION AUDIT: PASS "
+    f"(v{app_version})"
+)
+
+if not sha256:
+    print(
+        "VERSION AUDIT: Windows SHA-256 "
+        "pending final installer build."
+    )
+PYVERSION
+
+if [ "$?" -eq 0 ]; then
+    pass "release version consistency"
+else
+    fail "release version consistency"
 fi
 
 echo

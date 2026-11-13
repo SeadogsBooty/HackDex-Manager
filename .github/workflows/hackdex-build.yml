@@ -32,13 +32,13 @@ jobs:
           python -m venv .venv-windows
           .\.venv-windows\Scripts\python.exe -m pip install --upgrade pip
           .\.venv-windows\Scripts\python.exe -m pip install -r requirements.txt
-          .\.venv-windows\Scripts\python.exe -m pip install pyinstaller pywebview
+          .\.venv-windows\Scripts\python.exe -m pip install -r windows\requirements-windows.txt
 
       - name: Run regression tests
         shell: pwsh
         run: |
           Set-Location app
-          ..\.venv-windows\Scripts\python.exe -m unittest test_desktop_storage test_platform_paths test_matcher_identity
+          ..\.venv-windows\Scripts\python.exe -m unittest discover -v
 
       - name: Build Windows application
         shell: pwsh
@@ -59,14 +59,14 @@ jobs:
         shell: pwsh
         run: |
           $Root = "windows\dist\HackDex Manager"
-          $Setup = "windows\installer\output\HackDex Manager Setup.exe"
+          $Setup = "windows\installer\output\HackDex.Manager.Setup.exe"
 
           if (-not (Test-Path "$Root\HackDex Manager.exe")) {
             throw "HackDex Manager.exe missing."
           }
 
           if (-not (Test-Path $Setup)) {
-            throw "HackDex Manager Setup.exe missing."
+            throw "HackDex.Manager.Setup.exe missing."
           }
 
           foreach ($Name in @("Data","Staging","Logs","Backups",".preview-backups")) {
@@ -87,14 +87,14 @@ jobs:
         shell: pwsh
         run: |
           $Exe = "windows\dist\HackDex Manager\HackDex Manager.exe"
-          $Setup = "windows\installer\output\HackDex Manager Setup.exe"
+          $Setup = "windows\installer\output\HackDex.Manager.Setup.exe"
 
           $ExeHash = (Get-FileHash $Exe -Algorithm SHA256).Hash.ToLower()
           $SetupHash = (Get-FileHash $Setup -Algorithm SHA256).Hash.ToLower()
 
           @(
             "$ExeHash  HackDex Manager.exe"
-            "$SetupHash  HackDex Manager Setup.exe"
+            "$SetupHash  HackDex.Manager.Setup.exe"
           ) | Set-Content -Path "windows\installer\output\SHA256SUMS.txt" -Encoding ascii
 
       - name: Upload Windows installer
@@ -102,7 +102,7 @@ jobs:
         with:
           name: HackDex-Manager-Windows
           path: |
-            windows/installer/output/HackDex Manager Setup.exe
+            windows/installer/output/HackDex.Manager.Setup.exe
             windows/installer/output/SHA256SUMS.txt
           if-no-files-found: error
 
