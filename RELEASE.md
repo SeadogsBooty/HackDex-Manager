@@ -45,6 +45,17 @@ ghcr.io/seadogsbooty/hackdex-manager:latest
 
 Use the immutable version tag when reproducibility matters.
 
+## Windows Release Assets
+
+Windows and Docker releases use the same Git tag and GitHub release.
+
+Each stable GitHub release includes:
+
+- HackDex.Manager.Setup.exe
+- SHA256SUMS.txt
+
+The Windows installer is built from the windows/ directory in this repository.
+
 ## Update Manifest
 
 `update-manifest.json` is the stable public update feed used by normal HackDex Manager installations.

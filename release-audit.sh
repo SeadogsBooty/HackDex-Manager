@@ -365,6 +365,15 @@ if (
     )
 
 
+expected_windows_url = (
+    "https://github.com/SeadogsBooty/HackDex-Manager/"
+    "releases/latest/download/HackDex.Manager.Setup.exe"
+)
+
+if url != expected_windows_url:
+    fail("manifest Windows URL must use the main HackDex Manager release.")
+
+
 sha256 = str(
     windows.get("sha256")
     or ""

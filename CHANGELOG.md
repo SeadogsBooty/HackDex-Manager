@@ -12,6 +12,7 @@
 
 - Public Docker examples default to `latest` while still supporting immutable version pinning.
 - Windows installer artifact naming is standardized as `HackDex.Manager.Setup.exe`.
+- Windows installer and checksum assets are distributed from the same GitHub release as the source and Docker version.
 - Windows CI uses the repository's constrained Windows dependency requirements.
 - CI discovers and runs the complete regression-test suite.
 - Docker CI performs application-route smoke testing.

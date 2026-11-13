@@ -25,6 +25,28 @@ It scans your existing libraries, identifies installed hacks, matches them with 
 - Docker deployment
 - No commercial ROM or Base ROM files included
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/library-dark.png" alt="HackDex Manager Library dashboard in dark mode" width="49%">
+  <img src="docs/screenshots/library-light.png" alt="HackDex Manager Library dashboard in light mode" width="49%">
+</p>
+
+<p align="center"><em>Library dashboard in dark and light themes.</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/catalog.png" alt="HackDex Manager catalog browser" width="49%">
+  <img src="docs/screenshots/base-roms.png" alt="HackDex Manager Base ROM inventory" width="49%">
+</p>
+
+<p align="center"><em>Browse the HackDex catalog and verify Base ROM readiness.</em></p>
+
+<p align="center">
+  <img src="docs/screenshots/settings.png" alt="HackDex Manager download and naming settings" width="70%">
+</p>
+
+<p align="center"><em>Download, packaging, and naming preferences.</em></p>
+
 ## Quick Start
 
 Docker Compose is the recommended installation method.
@@ -72,6 +94,8 @@ http://your-server-ip:8095
 You do not need to manually configure every system folder in your collection.
 
 During first-run setup, HackDex Manager scans the mounted `/roms` and `/hacks` locations and identifies only the supported folders it needs.
+
+When selecting a ROM-hack library during setup, you can choose a top-level parent folder instead of adding each individual hack-library folder. HackDex Manager scans beneath the selected location and automatically detects only supported ROM-hack library folders. Unrelated systems and folders are ignored.
 
 The scan locates:
 
@@ -263,7 +287,7 @@ HackDex Manager is available as a native Windows desktop application in addition
 
 ### Windows installation
 
-Download **HackDex.Manager.Setup.exe** from the [HackDex Manager Windows releases](https://github.com/SeadogsBooty/HackDex-Manager-Windows/releases/latest) and run the installer.
+Download **HackDex.Manager.Setup.exe** from the [latest HackDex Manager release](https://github.com/SeadogsBooty/HackDex-Manager/releases/latest) and run the installer.
 
 The default installation location is:
 
@@ -299,7 +323,7 @@ Python, Docker, PowerShell, and a web browser are not required to run the packag
 
 Current Windows release binaries are not Authenticode-signed. Windows may therefore display an **Unknown Publisher** or Microsoft Defender SmartScreen warning when first launching the installer.
 
-SHA-256 hashes can be published with the release so downloaded binaries can be verified.
+SHA-256 hashes are published with the Windows release assets so downloaded binaries can be verified.
 <!-- HACKDEX_WINDOWS_END -->
 
 ## Docker
