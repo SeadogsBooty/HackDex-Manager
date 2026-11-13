@@ -4,7 +4,7 @@
   "release_notes": "Public-readiness maintenance release with responsive dashboard update presentation, deployment and documentation cleanup, persistent backup storage, Windows build fixes, and release-validation improvements.",
   "windows": {
     "url": "https://github.com/SeadogsBooty/HackDex-Manager-Windows/releases/latest/download/HackDex.Manager.Setup.exe",
-    "sha256": "",
+    "sha256": "da1713f7e05229a86f6911730668bbf9fd063972f0ce023db7c313971c017217",
     "filename": "HackDex.Manager.Setup.exe"
   },
   "docker": {
