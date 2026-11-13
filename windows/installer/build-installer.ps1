@@ -102,11 +102,9 @@ $InstallerVersion = $InstallerVersionMatch.Groups[1].Value
 
 if ($InstallerVersion -ne $AppVersion) {
     throw (
-        "Windows installer version mismatch. "
-        + "app/version.py = "
-        + $AppVersion
-        + "; HackDexManager.iss = "
-        + $InstallerVersion
+        "Windows installer version mismatch. app/version.py = {0}; HackDexManager.iss = {1}" -f `
+            $AppVersion, `
+            $InstallerVersion
     )
 }
 
