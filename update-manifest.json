@@ -1,6 +1,6 @@
 {
   "version": "1.1.3",
-  "published_at": "",
+  "published_at": "2026-11-13T05:25:34Z",
   "release_notes": "Public-readiness maintenance release with responsive dashboard update presentation, deployment and documentation cleanup, persistent backup storage, Windows build fixes, and release-validation improvements.",
   "windows": {
     "url": "https://github.com/SeadogsBooty/HackDex-Manager-Windows/releases/latest/download/HackDex.Manager.Setup.exe",
