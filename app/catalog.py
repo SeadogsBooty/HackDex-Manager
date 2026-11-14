@@ -4,6 +4,7 @@ from platform_paths import data_path
 from database import SessionLocal
 from models import Hack, HackMatch, Rom
 from patch_readiness import _patch_identity, direct_download_allowed
+from hackdex_access import upstream_enabled
 
 
 RICH_CACHE_PATH = data_path(
@@ -129,6 +130,7 @@ def get_catalog():
                     "patch_identity": _patch_identity(hack),
                     "patches_download_permission": hack.patches_download_permission,
                     "direct_download_allowed": direct_download_allowed(hack),
+                    "upstream_access_enabled": upstream_enabled(),
                     "completion_status": hack.completion_status,
                     "cover_url": hack.cover_url,
                     "approved": hack.approved,

@@ -23,6 +23,7 @@ from desktop_api import router as desktop_router
 from catalog import get_catalog, get_catalog_stats
 from update_service import get_update_status
 from hackdex_provider import sync_catalog
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 from matcher import run_matching
 from obtain_staging import stage_obtain
 from obtain_install import install_staged
@@ -1159,7 +1160,10 @@ def startup():
         "configured for 6 hours."
     )
 
-    start_background_catalog_bootstrap()
+    if upstream_enabled():
+        start_background_catalog_bootstrap()
+    else:
+        logger.info(LOCAL_ONLY_MESSAGE)
     start_background_scan()
     start_background_base_rom_bootstrap()
 
@@ -2562,20 +2566,12 @@ def api_setup_initialize():
             update_setup_progress(
                 running=False,
                 phase="FAILED",
-                message=(
-                    "HackDex catalog synchronization "
-                    "did not complete."
-                ),
+                message=catalog_result.get("message") or "Catalog synchronization failed.",
                 percent=14,
-                error=(
-                    "Catalog synchronization failed."
-                ),
+                error=catalog_result.get("message") or "Catalog synchronization failed.",
             )
 
-            result["message"] = (
-                "HackDex catalog synchronization "
-                "did not complete."
-            )
+            result["message"] = catalog_result.get("message") or "Catalog synchronization failed."
 
             return result
 
@@ -2714,7 +2710,7 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={},
+        context={"local_only": not upstream_enabled()},
     )
 
 

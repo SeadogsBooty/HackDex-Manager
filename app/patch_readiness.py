@@ -1,4 +1,5 @@
 from version import APP_USER_AGENT
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 import hashlib
 import os
 import shutil
@@ -145,6 +146,18 @@ def direct_download_allowed(hack):
     return getattr(hack, "patches_download_permission", None) in {"All", "Current"}
 
 
+def cached_patch_path(hack):
+    ext = hack.current_patch_format or "patch"
+    return PATCH_CACHE / f"{hack.current_patch}-{_patch_identity(hack)[:16]}.{ext}"
+
+
+def automatic_patch_available(hack):
+    if not direct_download_allowed(hack):
+        return False
+    cache = cached_patch_path(hack)
+    return upstream_enabled() or (cache.is_file() and cache.stat().st_size > 0)
+
+
 class PatchDownloadError(RuntimeError):
     def __init__(self, status, message):
         super().__init__(message)
@@ -174,8 +187,11 @@ def _download_patch(hack):
     # patch ID, so a new HackDex patch
     # automatically uses a different file.
     #
-    if cache.exists() and cache.stat().st_size:
+    if cache.is_file() and cache.stat().st_size:
         return cache
+
+    if not upstream_enabled():
+        raise PatchDownloadError("BROWSER_REQUIRED", LOCAL_ONLY_MESSAGE)
 
     url = (
         "https://hackdex.app/"
@@ -1998,7 +2014,9 @@ def readiness_details():
                     status,
 
                 "obtain_enabled":
-                    status == "READY" and direct_download_allowed(hack),
+                    status == "READY" and automatic_patch_available(hack),
+                "upstream_access_enabled": upstream_enabled(),
+                "cached_patch_available": cached_patch_path(hack).is_file() and cached_patch_path(hack).stat().st_size > 0,
 
                 "browser_import_enabled": status == "READY" and bool(readiness.base_rom_id),
                 "patches_download_permission": hack.patches_download_permission,

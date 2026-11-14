@@ -1,4 +1,5 @@
 from version import APP_USER_AGENT
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 import json
 import os
 from datetime import datetime
@@ -78,6 +79,8 @@ def parse_datetime(value):
 
 class HackDexSupabaseProvider:
     def __init__(self):
+        if not upstream_enabled():
+            raise RuntimeError(LOCAL_ONLY_MESSAGE)
         self.url = (
             os.environ.get(
                 "HACKDEX_SUPABASE_URL"
@@ -974,6 +977,21 @@ def import_catalog(rows):
 
 
 def sync_catalog():
+    if not upstream_enabled():
+        # Preserve the existing database; a missing network response must never
+        # deactivate local catalog rows or advance the last-sync timestamp.
+        db = SessionLocal()
+        try:
+            count = db.query(Hack).filter(Hack.approved.is_(True), Hack.is_archive.is_(False)).count()
+        finally:
+            db.close()
+        return {
+            "success": count > 0, "source": "local-only", "imported": count,
+            "changed": False, "cache_changed": False, "database_changed": False,
+            "matching_changed": False, "readiness_changed": False,
+            "message": LOCAL_ONLY_MESSAGE if count else
+                LOCAL_ONLY_MESSAGE + " No existing catalog is available; initial catalog setup requires authorized access.",
+        }
     try:
         rows = build_catalog()
 

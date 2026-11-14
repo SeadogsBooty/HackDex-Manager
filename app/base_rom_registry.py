@@ -1,4 +1,5 @@
 from version import APP_USER_AGENT
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 import json
 import re
 from datetime import datetime
@@ -124,6 +125,14 @@ def parse_registry(text):
 
 
 def sync_registry():
+    if not upstream_enabled():
+        cached = load_registry()
+        return {
+            "success": bool(cached),
+            "count": len(cached.get("roms", [])) if cached else 0,
+            "source": "local-only",
+            "message": LOCAL_ONLY_MESSAGE,
+        }
     response = httpx.get(
         RAW_URL,
         timeout=20,

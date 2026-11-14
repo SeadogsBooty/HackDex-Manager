@@ -130,7 +130,7 @@ class BrowserImportTests(unittest.TestCase):
                 hack = SimpleNamespace(slug="test", current_patch="123", current_patch_format="bps",
                                        current_patch_filename="test.bps", current_patch_updated_at=datetime.now(),
                                        patches_download_permission="All")
-                with patch("patch_readiness.PATCH_CACHE", Path(folder)), patch("patch_readiness.httpx.Client") as client:
+                with patch("patch_readiness.upstream_enabled", return_value=True), patch("patch_readiness.PATCH_CACHE", Path(folder)), patch("patch_readiness.httpx.Client") as client:
                     response = client.return_value.__enter__.return_value.stream.return_value.__enter__.return_value
                     response.status_code = status
                     with self.assertRaises(PatchDownloadError) as ctx:

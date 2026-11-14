@@ -1033,6 +1033,11 @@ input {
 </header>
 
 <main>
+{% if local_only %}
+<div class="hd-rich-section" role="status" style="margin:0 0 12px;padding:10px 14px;color:var(--hd-text-soft);font-size:13px">
+    <strong>Local-only mode</strong> · Automated HackDex requests are disabled. Existing catalog data, permitted cached patches and official website imports remain available.
+</div>
+{% endif %}
 
 <section class="hd-dashboard-hero">
     <div class="hd-dashboard-hero-copy">
@@ -2753,7 +2758,7 @@ function render() {
             const browserOnly = ready.browser_import_enabled && !ready.obtain_enabled;
             const enabled = ready.obtain_enabled || browserOnly;
 
-            const primaryAction = obtainActionLabel(item.library_status, browserOnly, item.patches_download_permission);
+            const primaryAction = obtainActionLabel(item.library_status, browserOnly, item.patches_download_permission, item.upstream_access_enabled);
 
             const unavailableAction =
                 item.library_status === "UPDATE_AVAILABLE"
@@ -4004,7 +4009,10 @@ function richCommunityMarkup(item) {
 
 
 
-function obtainActionLabel(status, viaHackDex, permission) {
+function obtainActionLabel(status, viaHackDex, permission, upstreamAccess) {
+    if (viaHackDex && upstreamAccess === false && ["All", "Current"].includes(permission)) {
+        return status === "UPDATE_AVAILABLE" ? "Update via HackDex" : status === "OWNED" ? "Reinstall via HackDex" : "Get ROM via HackDex";
+    }
     if (viaHackDex && !["None", "All", "Current"].includes(permission)) return "Check availability";
     if (status === "UPDATE_AVAILABLE") return viaHackDex ? "Update via HackDex" : "Update";
     if (status === "OWNED") return viaHackDex ? "Reinstall via HackDex" : "Reinstall";
@@ -4021,8 +4029,8 @@ function browserWorkflowMarkup(item, ready, browserOnly) {
         <section class="hd-rich-section hd-browser-card" aria-label="Patch on HackDex">
             <div class="hd-rich-section-title">ROM installation</div>
             <h3>${heading}</h3>
-            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : !["All", "Current"].includes(item.patches_download_permission) ? "Download permission not yet known" : "Patch on HackDex · Direct download not available") : "Patch on HackDex · Alternative to automatic download"}</div>
-            ${browserOnly && !["None", "All", "Current"].includes(item.patches_download_permission) ? '<p class="hd-browser-note">Refresh the catalog when connected to check automatic download availability. You can still use the official patcher below.</p>' : ""}
+            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : !["All", "Current"].includes(item.patches_download_permission) ? "Download permission not yet known" : (item.upstream_access_enabled === false ? "Local-only mode · No permitted cached patch" : "Patch on HackDex · Direct download not available")) : "Patch on HackDex · Alternative to automatic download"}</div>
+            ${browserOnly && !["None", "All", "Current"].includes(item.patches_download_permission) ? '<p class="hd-browser-note">Permission metadata is not available. A catalog refresh requires authorized upstream access. You can still use the official patcher below.</p>' : ""}
             <div class="hd-browser-versions">
                 ${item.installed_version ? `<span>Installed <strong>${escapeHtml(item.installed_version)}</strong></span><span aria-hidden="true">→</span>` : ""}
                 <span>Version <strong class="hd-browser-version-target">${target}</strong></span>
@@ -4256,7 +4264,7 @@ function openDetails(
                         "
                     >
                         ${escapeHtml(
-                            browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex" : !["All", "Current"].includes(item.patches_download_permission) ? "Permission unknown" : "Patch on HackDex") : readinessLabel(ready.status)
+                            browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex" : !["All", "Current"].includes(item.patches_download_permission) ? "Permission unknown" : item.upstream_access_enabled === false ? "Local-only mode" : "Patch on HackDex") : readinessLabel(ready.status)
                         )}
                     </span>
 
