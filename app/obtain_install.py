@@ -8,7 +8,7 @@ from pathlib import Path
 from database import SessionLocal
 from models import LibraryLocation, Hack
 from patch_readiness import _patch_identity
-from platform_paths import staging_dir
+from platform_paths import staging_dir, backups_dir
 
 
 STAGING_ROOT = staging_dir()
@@ -815,6 +815,34 @@ def install_staged(
                     transaction_id,
                 )
 
+        # Browser imports cannot independently verify the claimed hack version.
+        # Preserve the original library files outside staging before any replacement.
+        retained_backups = []
+        if manifest.get("source") == "browser_import":
+            backup_root = backups_dir() / "browser-import" / hack_slug / transaction_id
+            sources = []
+            if is_update:
+                sources.append((old_path, old_expected_sha256))
+            if destination_existed and (not is_update or not in_place_update):
+                sources.append((destination, _sha256_file(destination)))
+            if sources:
+                backup_root.mkdir(parents=True, exist_ok=True)
+            for original, expected in sources:
+                backup = backup_root / original.name
+                if not backup.exists():
+                    temporary = backup.with_name(backup.name + ".tmp")
+                    try:
+                        shutil.copy2(original, temporary)
+                        if _sha256_file(temporary) != expected:
+                            raise RuntimeError("Persistent backup hash mismatch. Installation cancelled.")
+                        temporary.replace(backup)
+                    finally:
+                        temporary.unlink(missing_ok=True)
+                if _sha256_file(backup) != expected:
+                    raise RuntimeError("Persistent backup already exists with a different hash. Installation cancelled.")
+                retained_backups.append(str(backup))
+            manifest["retained_backups"] = retained_backups
+
         temp_destination = (
             destination_root
             / (
@@ -1150,6 +1178,9 @@ def install_staged(
 
             "updated":
                 is_update,
+            "source": manifest.get("source", "direct_patch"),
+            "version_verified": manifest.get("source") != "browser_import",
+            "retained_backups": manifest.get("retained_backups", []),
             "previous_version":
                 previous_version,
             "target_version":

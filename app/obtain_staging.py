@@ -1597,6 +1597,9 @@ def stage_obtain(
                 "match verified inventory."
             )
 
+        if browser_rom is not None and base_hashes["sha256"].lower() != (base.sha256 or "").lower():
+            raise RuntimeError("Staged base SHA-256 does not match verified inventory.")
+
         patch_format = (
             hack.current_patch_format
             or ""

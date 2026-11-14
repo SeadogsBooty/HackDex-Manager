@@ -5,6 +5,7 @@
 - Track HackDex direct patch download permissions and keep restricted hacks visible in the catalog.
 - Handle unavailable and rate-limited downloads without an unhandled server error.
 - Offer a user-operated official browser patcher link and local raw ROM import, with explicit version confirmation, integrity checks, staging and the existing install workflow.
+- Browser-assisted replacements retain SHA-256-checked copies of original ROMs in the configured backup directory; save compatibility is not inferred.
 - No automated browser patch retrieval, credentials or restricted patch extraction is included.
 
 ## v1.1.3

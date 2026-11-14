@@ -4261,7 +4261,9 @@ function openDetails(
                         <p>Direct downloads: ${escapeHtml(item.patches_download_permission || "Unknown")}.
                            ${browserOnly ? "Use the official patcher for this hack." : "Optional fallback if a direct download is unavailable."}</p>
                         <p>Open HackDex, select the verified original base ROM and version ${escapeHtml(item.latest_version || "")},
-                           and save the finished raw ROM. Import it here; no library file is changed until you install.</p>
+                           and save the finished raw ROM. Import it here; no library file is changed until you install.
+                           Existing ROM files are backed up before a browser-assisted replacement. Back up your saves separately;
+                           versioned filenames may require moving or renaming a save in your emulator.</p>
                         <a href="https://www.hackdex.app/hack/${encodeURIComponent(item.slug)}" target="_blank" rel="noopener noreferrer">Open official HackDex patcher</a>
                         <label for="browser-rom">Finished ROM (.gb, .gbc, .gba, .nds)</label>
                         <input id="browser-rom" type="file" accept=".gb,.gbc,.gba,.nds">
@@ -4487,11 +4489,11 @@ async function stageObtain(slug, browserImport=false) {
     const button =
         document.getElementById(browserImport ? "browser-stage" : "direct-stage");
 
-    if (button) {
-        button.disabled = true;
-        button.textContent =
-            "Staging...";
-    }
+    const stageButtons = [document.getElementById("browser-stage"), document.getElementById("direct-stage")].filter(Boolean);
+    const priorDisabled = stageButtons.map(b => b.disabled);
+    if (stageButtons.some((b, i) => b.textContent === "Staging..." && priorDisabled[i])) return;
+    stageButtons.forEach(b => b.disabled = true);
+    if (button) button.textContent = "Staging...";
 
     if (resultBox) {
         resultBox.className =
@@ -4499,7 +4501,7 @@ async function stageObtain(slug, browserImport=false) {
         resultBox.style.display =
             "block";
         resultBox.textContent =
-            isUpdate
+            browserImport ? "Checking and packaging browser output..." : isUpdate
             ? (
                 "Building and verifying "
                 + "updated ROM..."
@@ -4660,11 +4662,8 @@ async function stageObtain(slug, browserImport=false) {
         }
 
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                browserImport ? "Stage browser import" : "Stage Download";
-        }
+        stageButtons.forEach((b, i) => b.disabled = priorDisabled[i]);
+        if (button) button.textContent = browserImport ? "Stage browser import" : "Stage Download";
     }
 }
 
@@ -5100,9 +5099,9 @@ async function installStaged(
             resultBox.innerHTML = `
                 <strong>
                     ${
-                        data.updated
-                        ? "Updated & verified"
-                        : "Installed & verified"
+                        data.source === "browser_import"
+                        ? (data.updated ? "Browser-import update installed" : "Browser import installed")
+                        : (data.updated ? "Updated & verified" : "Installed & verified")
                     }
                 </strong>
 
@@ -5134,6 +5133,7 @@ async function installStaged(
 
                 <br><br>
 
+                ${data.source === "browser_import" ? "Output integrity checked; version was user-confirmed.<br>" : ""}
                 Library scan and matching
                 completed successfully.
             `;

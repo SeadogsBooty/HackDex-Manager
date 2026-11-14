@@ -34,7 +34,11 @@ jobs:
 
       - name: Run regression test suite
         working-directory: app
+        env:
+          HACKDEX_INTERNAL_DATA_DIR: ${{ runner.temp }}/hackdex-test-data
+          HACKDEX_INTERNAL_STAGING_DIR: ${{ runner.temp }}/hackdex-test-staging
         run: |
+          mkdir -p "$HACKDEX_INTERNAL_DATA_DIR" "$HACKDEX_INTERNAL_STAGING_DIR"
           python -m unittest discover -v
 
       - name: Validate Docker Compose
