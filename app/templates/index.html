@@ -2753,12 +2753,7 @@ function render() {
             const browserOnly = ready.browser_import_enabled && !ready.obtain_enabled;
             const enabled = ready.obtain_enabled || browserOnly;
 
-            const primaryAction = browserOnly ? "Browser-assisted" :
-                item.library_status === "UPDATE_AVAILABLE"
-                    ? "Update"
-                    : item.library_status === "OWNED"
-                        ? "Reinstall"
-                        : "Download";
+            const primaryAction = obtainActionLabel(item.library_status, browserOnly);
 
             const unavailableAction =
                 item.library_status === "UPDATE_AVAILABLE"
@@ -2922,7 +2917,7 @@ function render() {
                                 "
                                 title="${
                                     enabled
-                                    ? (browserOnly ? "Use official HackDex patcher" : "Ready to stage")
+                                    ? (browserOnly ? "Open details to patch on the HackDex website" : "Ready to stage")
                                     : "Not currently ready"
                                 }"
                             >
@@ -4009,6 +4004,12 @@ function richCommunityMarkup(item) {
 
 
 
+function obtainActionLabel(status, viaHackDex) {
+    if (status === "UPDATE_AVAILABLE") return viaHackDex ? "Update via HackDex" : "Update";
+    if (status === "OWNED") return viaHackDex ? "Reinstall via HackDex" : "Reinstall";
+    return viaHackDex ? "Get ROM via HackDex" : "Download";
+}
+
 function browserWorkflowMarkup(item, ready, browserOnly) {
     const target = escapeHtml(item.latest_version || "Unknown");
     const isUpdate = item.library_status === "UPDATE_AVAILABLE";
@@ -4016,10 +4017,10 @@ function browserWorkflowMarkup(item, ready, browserOnly) {
     const platformExtensions = {GB: ".gb", GBC: ".gbc", GBA: ".gba", NDS: ".nds"};
     const extension = platformExtensions[String(item.platform || "").toUpperCase()] || ".gb,.gbc,.gba,.nds";
     return `
-        <section class="hd-rich-section hd-browser-card" aria-label="Browser-assisted patching">
+        <section class="hd-rich-section hd-browser-card" aria-label="Patch on HackDex">
             <div class="hd-rich-section-title">ROM installation</div>
             <h3>${heading}</h3>
-            <div class="hd-browser-method">${browserOnly ? "Browser-assisted update · Direct download unavailable" : "Browser-assisted alternative"}</div>
+            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : "Patch on HackDex · Direct download not available") : "Patch on HackDex · Alternative to automatic download"}</div>
             <div class="hd-browser-versions">
                 ${item.installed_version ? `<span>Installed <strong>${escapeHtml(item.installed_version)}</strong></span><span aria-hidden="true">→</span>` : ""}
                 <span>Version <strong class="hd-browser-version-target">${target}</strong></span>
@@ -4253,7 +4254,7 @@ function openDetails(
                         "
                     >
                         ${escapeHtml(
-                            browserOnly ? "Browser-assisted" : readinessLabel(ready.status)
+                            browserOnly ? "Patch on HackDex" : readinessLabel(ready.status)
                         )}
                     </span>
 
@@ -4592,7 +4593,7 @@ function openDetails(
 
                 ${browserEnabled ? `
                     <details class="hd-browser-fallback">
-                        <summary>Use the official browser patcher instead</summary>
+                        <summary>Patch on HackDex instead</summary>
                         ${browserWorkflowMarkup(item, ready, false)}
                     </details>` : ""}
 
