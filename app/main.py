@@ -7,6 +7,10 @@ from uuid import uuid4
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Request
+from starlette.concurrency import run_in_threadpool
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from platform_paths import staging_dir
 from fastapi.responses import (
     HTMLResponse,
     PlainTextResponse,
@@ -496,6 +500,14 @@ async def hackdex_request_logging(
 Base.metadata.create_all(
     bind=engine
 )
+
+# Existing SQLite installations need an additive migration; create_all does not alter tables.
+with engine.begin() as connection:
+    columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(hacks)")}
+    if "patches_download_permission" not in columns:
+        connection.exec_driver_sql(
+            "ALTER TABLE hacks ADD COLUMN patches_download_permission VARCHAR"
+        )
 
 ensure_default_locations()
 
@@ -1611,6 +1623,44 @@ def api_stage_obtain(
         hack_slug,
         output_format=output_format,
     )
+
+
+@app.post("/api/obtain/{hack_slug}/browser-import")
+async def api_browser_import(
+    request: Request,
+    hack_slug: str,
+    patch_identity: str,
+    confirmed: bool = False,
+    output_format: str | None = None,
+):
+    # Raw body avoids multipart dependency; bound disk usage and never trust a client path.
+    limit = 512 * 1024 * 1024
+    if not confirmed or len(patch_identity) != 64:
+        return {"success": False, "message": "Confirm the official browser output and target version."}
+    if request.headers.get("content-type", "").split(";")[0].lower() != "application/octet-stream":
+        return {"success": False, "message": "Upload a raw ROM file."}
+    try:
+        declared = request.headers.get("content-length")
+        if declared and int(declared) > limit:
+            return {"success": False, "message": "ROM exceeds the 512 MiB import limit."}
+        with TemporaryDirectory(prefix="browser-import-", dir=staging_dir()) as temp:
+            path = Path(temp) / "input.rom"
+            size = 0
+            with path.open("wb") as handle:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > limit:
+                        return {"success": False, "message": "ROM exceeds the 512 MiB import limit."}
+                    handle.write(chunk)
+            if not size:
+                return {"success": False, "message": "No ROM data was uploaded."}
+            return await run_in_threadpool(
+                stage_obtain, hack_slug, output_format,
+                browser_rom=path, expected_patch_identity=patch_identity,
+            )
+    except Exception:
+        request_logger.exception("Browser import failed")
+        return {"success": False, "message": "Could not import the ROM. Check staging storage and try again."}
 
 
 @app.get("/api/readiness/details")

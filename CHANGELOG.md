@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.4 (unreleased)
+
+- Track HackDex direct patch download permissions and keep restricted hacks visible in the catalog.
+- Handle unavailable and rate-limited downloads without an unhandled server error.
+- Offer a user-operated official browser patcher link and local raw ROM import, with explicit version confirmation, integrity checks, staging and the existing install workflow.
+- No automated browser patch retrieval, credentials or restricted patch extraction is included.
+
 ## v1.1.3
 
 ### Added

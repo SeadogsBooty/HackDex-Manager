@@ -149,7 +149,7 @@ class HackDexSupabaseProvider:
             "hacks",
             (
                 "slug,title,summary,description,"
-                "base_rom,box_art,current_patch,"
+                "base_rom,box_art,current_patch,patches_download_permission,"
                 "custom_version_name,completion_status,"
                 "original_author,approved,is_archive,"
                 "language,social_links,created_by,"
@@ -418,6 +418,7 @@ def build_catalog():
                 "cover_url": cover_url,
                 "approved": True,
                 "is_archive": False,
+                "patches_download_permission": hack.get("patches_download_permission"),
                 "current_patch": (
                     str(current_patch_id)
                     if current_patch_id is not None
@@ -529,6 +530,7 @@ DATABASE_CATALOG_FIELDS = (
     "latest_version",
     "completion_status",
     "cover_url",
+    "patches_download_permission",
     "current_patch",
     "current_patch_filename",
     "current_patch_bucket",
@@ -563,6 +565,7 @@ MATCHING_CATALOG_FIELDS = (
 READINESS_CATALOG_FIELDS = (
     "slug",
     "base_rom",
+    "patches_download_permission",
     "current_patch",
     "current_patch_filename",
     "current_patch_bucket",
@@ -908,6 +911,7 @@ def import_catalog(rows):
             hack.approved = True
             hack.is_archive = False
 
+            hack.patches_download_permission = item.get("patches_download_permission")
             hack.current_patch = (
                 item["current_patch"]
             )

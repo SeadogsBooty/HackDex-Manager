@@ -69,6 +69,7 @@ class Hack(Base):
     approved = Column(Boolean, default=True)
     is_archive = Column(Boolean, default=False)
 
+    patches_download_permission = Column(String, nullable=True)
     current_patch = Column(String, nullable=True)
 
     current_patch_filename = Column(String, nullable=True)

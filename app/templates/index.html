@@ -1530,13 +1530,12 @@ function coverMarkup(item) {
 
 
 function readinessFor(item) {
-    return (
-        readiness[item.slug]
-        || {
-            status: "NOT_CHECKED",
-            obtain_enabled: false,
-        }
-    );
+    const state = readiness[item.slug] || {status: "NOT_CHECKED", obtain_enabled: false};
+    return {
+        ...state,
+        obtain_enabled: state.obtain_enabled === true && item.direct_download_allowed === true,
+        browser_import_enabled: state.browser_import_enabled === true,
+    };
 }
 
 
@@ -1727,9 +1726,7 @@ async function checkReadinessOnDemand(
         else {
             readiness[slug] = {
                 ...directResult,
-                obtain_enabled:
-                    directResult.status
-                    === "READY",
+                obtain_enabled: directResult.status === "READY" && directResult.obtain_enabled !== false,
             };
         }
 
@@ -2545,11 +2542,10 @@ function render() {
             const ready =
                 readinessFor(item);
 
-            const enabled =
-                ready.obtain_enabled
-                === true;
+            const browserOnly = ready.browser_import_enabled && !ready.obtain_enabled;
+            const enabled = ready.obtain_enabled || browserOnly;
 
-            const primaryAction =
+            const primaryAction = browserOnly ? "Browser-assisted" :
                 item.library_status === "UPDATE_AVAILABLE"
                     ? "Update"
                     : item.library_status === "OWNED"
@@ -2718,7 +2714,7 @@ function render() {
                                 "
                                 title="${
                                     enabled
-                                    ? "Validated and ready"
+                                    ? (browserOnly ? "Use official HackDex patcher" : "Ready to stage")
                                     : "Not currently ready"
                                 }"
                             >
@@ -3842,9 +3838,9 @@ function openDetails(
         item.library_status
         === "UPDATE_AVAILABLE";
 
-const enabled =
-        ready.obtain_enabled
-        === true;
+    const browserEnabled = ready.browser_import_enabled === true;
+    const enabled = ready.obtain_enabled === true;
+    const browserOnly = browserEnabled && !enabled;
 
     const modal =
         document.getElementById(
@@ -4214,7 +4210,7 @@ const enabled =
 
 
                 ${
-                    enabled
+                    (enabled || browserEnabled)
                     ? `
                     <section class="obtain-options">
 
@@ -4244,8 +4240,8 @@ const enabled =
                         </select>
 
                         <div class="obtain-help">
-                            The raw patched ROM is
-                            verified before packaging.
+                            Automatic patches are verified before packaging.
+                            Browser imports receive structural and integrity checks, not independent patch/version verification.
                         </div>
 
                     </section>
@@ -4259,10 +4255,28 @@ const enabled =
                 }
 
 
+                ${browserEnabled ? `
+                    <section class="obtain-options">
+                        <div class="hd-detail-section-label">BROWSER-ASSISTED PATCHING</div>
+                        <p>Direct downloads: ${escapeHtml(item.patches_download_permission || "Unknown")}.
+                           ${browserOnly ? "Use the official patcher for this hack." : "Optional fallback if a direct download is unavailable."}</p>
+                        <p>Open HackDex, select the verified original base ROM and version ${escapeHtml(item.latest_version || "")},
+                           and save the finished raw ROM. Import it here; no library file is changed until you install.</p>
+                        <a href="https://www.hackdex.app/hack/${encodeURIComponent(item.slug)}" target="_blank" rel="noopener noreferrer">Open official HackDex patcher</a>
+                        <label for="browser-rom">Finished ROM (.gb, .gbc, .gba, .nds)</label>
+                        <input id="browser-rom" type="file" accept=".gb,.gbc,.gba,.nds">
+                        <label><input id="browser-confirm" type="checkbox">
+                            I confirm this is the official browser-patched ROM for the displayed version.</label>
+                        <button type="button" class="obtain-button" id="browser-stage"
+                            onclick="stageObtain('${escapeHtml(item.slug)}', true)">Stage browser import</button>
+                    </section>
+                ` : ""}
+
                 <div class="hd-detail-primary-action">
 
                     <button
                         type="button"
+                        id="direct-stage"
                         class="obtain-button"
                         ${enabled
                             ? ""
@@ -4287,7 +4301,7 @@ const enabled =
                                     : "Download"
                                 )
                             )
-                            : (
+                            : browserOnly ? "Direct download restricted" : (
                                 isUpdate
                                 ? "Update Unavailable"
                                 : (
@@ -4427,9 +4441,7 @@ function obtainHack(slug) {
 }
 
 
-async function stageObtain(slug) {
-    const ready =
-        readiness[slug];
+async function stageObtain(slug, browserImport=false) {
 
     const item =
         catalog.find(
@@ -4442,11 +4454,19 @@ async function stageObtain(slug) {
         && item.library_status
             === "UPDATE_AVAILABLE";
 
-    if (
-        !ready
-        || ready.status !== "READY"
-    ) {
-        return;
+    const ready = item && readinessFor(item);
+    if (!ready || (browserImport ? !ready.browser_import_enabled : !ready.obtain_enabled)) return;
+    let file = null;
+    if (browserImport) {
+        file = document.getElementById("browser-rom")?.files?.[0];
+        if (!file || !document.getElementById("browser-confirm")?.checked) {
+            alert("Choose the finished ROM and confirm the target version.");
+            return;
+        }
+        if (file.size > 512 * 1024 * 1024 || !/\.(gb|gbc|gba|nds)$/i.test(file.name)) {
+            alert("Choose a raw ROM file no larger than 512 MiB.");
+            return;
+        }
     }
 
     const selector =
@@ -4465,10 +4485,7 @@ async function stageObtain(slug) {
         : "";
 
     const button =
-        document.querySelector(
-            ".modal-content "
-            + ".obtain-button"
-        );
+        document.getElementById(browserImport ? "browser-stage" : "direct-stage");
 
     if (button) {
         button.disabled = true;
@@ -4497,23 +4514,21 @@ async function stageObtain(slug) {
         let url =
             "/api/obtain/"
             + encodeURIComponent(slug)
-            + "/stage";
+            + (browserImport ? "/browser-import" : "/stage");
 
-        if (format) {
-            url +=
-                "?output_format="
-                + encodeURIComponent(
-                    format
-                );
+        const query = new URLSearchParams();
+        if (format) query.set("output_format", format);
+        if (browserImport) {
+            query.set("patch_identity", item.patch_identity);
+            query.set("confirmed", "true");
         }
+        if (query.toString()) url += "?" + query.toString();
 
-        const response =
-            await fetch(
-                url,
-                {
-                    method: "POST",
-                }
-            );
+        const response = await fetch(url, browserImport ? {
+            method: "POST",
+            headers: {"Content-Type": "application/octet-stream"},
+            body: file,
+        } : {method: "POST"});
 
         const rawResponse =
             await response.text();
@@ -4556,7 +4571,7 @@ async function stageObtain(slug) {
 
             resultBox.innerHTML = `
                 <strong>
-                    Staged & verified
+                    ${browserImport ? "Browser import staged (version user-confirmed)" : "Staged & verified"}
                 </strong>
 
                 <br><br>
@@ -4648,7 +4663,7 @@ async function stageObtain(slug) {
         if (button) {
             button.disabled = false;
             button.textContent =
-                "Stage Download";
+                browserImport ? "Stage browser import" : "Stage Download";
         }
     }
 }

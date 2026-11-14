@@ -139,7 +139,24 @@ def _xdelta_checksum_status(path):
     )
 
 
+def direct_download_allowed(hack):
+    # "Current" can be further restricted by HackDex's custom patcher list.
+    # The upstream endpoint remains authoritative for that case.
+    return getattr(hack, "patches_download_permission", None) in {"All", "Current"}
+
+
+class PatchDownloadError(RuntimeError):
+    def __init__(self, status, message):
+        super().__init__(message)
+        self.status = status
+
+
 def _download_patch(hack):
+    if not direct_download_allowed(hack):
+        raise PatchDownloadError(
+            "BROWSER_REQUIRED",
+            "Direct patch downloads are not enabled. Use the official HackDex patcher and import the finished ROM.",
+        )
     ext = (
         hack.current_patch_format
         or "patch"
@@ -195,13 +212,26 @@ def _download_patch(hack):
             headers=headers,
         ) as response:
 
+            if response.status_code in {401, 403, 404}:
+                raise PatchDownloadError(
+                    "PATCH_DOWNLOAD_UNAVAILABLE",
+                    "HackDex did not allow this patch download (HTTP %s). "
+                    "Open the official patcher or refresh the catalog." % response.status_code,
+                )
+            if response.status_code == 429:
+                raise PatchDownloadError(
+                    "PATCH_DOWNLOAD_RATE_LIMITED",
+                    "HackDex is rate limiting downloads. Retry later; do not repeatedly retry.",
+                )
             response.raise_for_status()
 
-            with temporary.open("wb") as out:
-                for chunk in response.iter_bytes():
-                    out.write(chunk)
-
-    temporary.replace(cache)
+            try:
+                with temporary.open("wb") as out:
+                    for chunk in response.iter_bytes():
+                        out.write(chunk)
+                temporary.replace(cache)
+            finally:
+                temporary.unlink(missing_ok=True)
 
     return cache
 
@@ -1003,9 +1033,22 @@ def check_hack_readiness(
                         hack.base_rom,
                 }
 
-        patch = _download_patch(
-            hack
-        )
+        if not direct_download_allowed(hack):
+            # Metadata readiness must remain useful for browser-assisted imports.
+            db.close()
+            result = check_hack_catalog_readiness(hack_slug)
+            return {**result, "obtain_enabled": False}
+
+        try:
+            patch = _download_patch(hack)
+        except PatchDownloadError as exc:
+            return {"hack": hack.slug, "status": exc.status, "detail": str(exc)}
+        except httpx.HTTPError:
+            return {
+                "hack": hack.slug,
+                "status": "PATCH_DOWNLOAD_FAILED",
+                "detail": "HackDex could not be reached or returned a download error. Retry later.",
+            }
 
         patch_sha256 = (
             _sha256_file(patch)
@@ -1955,7 +1998,10 @@ def readiness_details():
                     status,
 
                 "obtain_enabled":
-                    status == "READY",
+                    status == "READY" and direct_download_allowed(hack),
+
+                "browser_import_enabled": status == "READY" and bool(readiness.base_rom_id),
+                "patches_download_permission": hack.patches_download_permission,
 
                 "patch_id":
                     readiness.patch_id,

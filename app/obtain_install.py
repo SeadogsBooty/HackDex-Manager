@@ -6,7 +6,8 @@ import shutil
 from pathlib import Path
 
 from database import SessionLocal
-from models import LibraryLocation
+from models import LibraryLocation, Hack
+from patch_readiness import _patch_identity
 from platform_paths import staging_dir
 
 
@@ -441,11 +442,10 @@ def install_staged(
 
         if (
             manifest.get("status")
-            != "STAGED_VERIFIED"
+            not in {"STAGED_VERIFIED", "STAGED_IMPORTED"}
         ):
             raise RuntimeError(
-                "Transaction is not "
-                "STAGED_VERIFIED."
+                "Transaction is not staged."
             )
 
         hack = (
@@ -460,6 +460,20 @@ def install_staged(
             raise RuntimeError(
                 "Manifest hack slug mismatch."
             )
+
+        if manifest.get("status") == "STAGED_IMPORTED":
+            if manifest.get("source") != "browser_import":
+                raise RuntimeError("Imported transaction source is invalid.")
+            with SessionLocal() as db:
+                current = db.query(Hack).filter(Hack.slug == hack_slug).first()
+                if (
+                    current is None or not current.approved or current.is_archive
+                    or current.current_patch_published is not True
+                    or current.current_patch_archived is True
+                    or _patch_identity(current) != (manifest.get("patch") or {}).get("identity")
+                    or current.latest_version != hack.get("version")
+                ):
+                    raise RuntimeError("Catalog changed since browser import. Restage the correct version.")
 
         platform = str(
             hack.get("platform")
