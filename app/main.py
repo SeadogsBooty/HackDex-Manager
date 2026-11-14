@@ -27,6 +27,7 @@ from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 from matcher import run_matching
 from obtain_staging import stage_obtain
 from obtain_install import install_staged
+from install_identity import bind_installed_rom
 from patch_readiness import (
     check_hack_readiness,
     readiness_details,
@@ -1521,95 +1522,20 @@ def api_install_obtain(
             + str(exc)
         )
 
-    #
-    # Explicitly bind the ROM we just created.
-    # HackDex Manager knows this identity exactly,
-    # so fuzzy matching should not be required.
-    #
+    # The installed identity is authoritative. Preserve it across future
+    # matching runs rather than immediately recalculating every library match.
     db = SessionLocal()
-
     try:
-        hack = (
-            db.query(Hack)
-            .filter(
-                Hack.slug == hack_slug
-            )
-            .first()
-        )
-
-        rom = (
-            db.query(Rom)
-            .filter(
-                Rom.filename
-                == result.get("filename")
-            )
-            .order_by(
-                Rom.id.desc()
-            )
-            .first()
-        )
-
-        if hack is None:
-            warnings.append(
-                "Installed hack could not "
-                "be found in catalog."
-            )
-
-        elif rom is None:
-            warnings.append(
-                "Installed ROM could not "
-                "be found after scan."
-            )
-
-        else:
-            rom.hackdex_slug = (
-                hack.slug
-            )
-
-            rom.latest_version = (
-                hack.latest_version
-            )
-
-            rom.installed_version = (
-                hack.latest_version
-            )
-
-            rom.status = "CURRENT"
-
-            db.commit()
-
-            result["rom_bound"] = True
-            result["rom_id"] = rom.id
-
+        result["rom_id"] = bind_installed_rom(db, hack_slug, result)
+        result["rom_bound"] = True
+        result["matching_complete"] = True
     except Exception as exc:
         db.rollback()
-
         result["rom_bound"] = False
-
-        warnings.append(
-            "Ownership binding failed: "
-            + str(exc)
-        )
-
+        result["matching_complete"] = False
+        warnings.append("Ownership binding failed: " + str(exc))
     finally:
         db.close()
-
-    #
-    # Run normal matching afterward for the
-    # rest of the library. Failure here also
-    # must not invalidate a successful install.
-    #
-    try:
-        run_matching()
-        result["matching_complete"] = True
-
-    except Exception as exc:
-        result["matching_complete"] = False
-
-        warnings.append(
-            "Library matching failed: "
-            + str(exc)
-        )
 
     result["warnings"] = warnings
 

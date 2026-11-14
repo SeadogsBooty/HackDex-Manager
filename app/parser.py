@@ -83,8 +83,8 @@ def parse_labeled_version(token):
     token = re.sub(r"\s+", " ", token.strip())
 
     patterns = [
-        # Beta 5.7
-        r"^(Beta)\s+([0-9]+(?:\.[0-9A-Za-z]+)*)$",
+        # Beta 5.7, Final 1.7
+        r"^(Beta|Final)\s+([0-9]+(?:\.[0-9A-Za-z]+)*)$",
 
         # Classic Hotfix 1.6
         r"^(Classic Hotfix)\s+([0-9]+(?:\.[0-9A-Za-z]+)*)$",

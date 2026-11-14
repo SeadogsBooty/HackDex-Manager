@@ -116,6 +116,11 @@ class BrowserImportTests(unittest.TestCase):
                 installed = install_staged("browser-test", staged["transaction_id"])
                 self.assertTrue(installed["success"], installed)
                 self.assertFalse(installed["version_verified"])
+                self.assertIsNone(installed["cleanup_warning"])
+                import json
+                manifest = json.loads(Path(staged["manifest"]).read_text())
+                self.assertEqual(manifest["cleanup"]["status"], "COMPLETE")
+                self.assertTrue(manifest["staging_cleanup"]["removed"])
                 self.assertEqual(Path(installed["destination"]).read_bytes(), new_path.read_bytes())
                 self.assertEqual(Path(installed["retained_backups"][0]).read_bytes(), original)
                 self.assertEqual(save.read_bytes(), b"existing save")

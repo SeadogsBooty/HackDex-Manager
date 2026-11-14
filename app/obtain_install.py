@@ -1090,69 +1090,18 @@ def install_staged(
         cleanup_warning = None
 
         if manifest_warning is None:
-
-            cleanup_errors = (
-                _cleanup_completed_transaction(
-                    transaction,
-                    manifest_path,
-                    manifest,
-                )
-            )
-
-            if cleanup_errors:
-                manifest[
-                    "cleanup"
-                ] = {
-                    "status":
-                        "WARNING",
-
-                    "kept":
-                        [
-                            "manifest.json"
-                        ],
-
-                    "errors":
-                        cleanup_errors,
-                }
-
-                cleanup_warning = (
-                    "Install succeeded, but some "
-                    "temporary staging files could "
-                    "not be removed."
-                )
-
-            else:
-                manifest[
-                    "cleanup"
-                ] = {
-                    "status":
-                        "COMPLETE",
-
-                    "kept":
-                        [
-                            "manifest.json"
-                        ],
-                }
-
+            # Cleanup already ran above. Its successful result is a dictionary,
+            # not an error list. Never run destructive cleanup a second time.
+            manifest["cleanup"] = {
+                "status": "COMPLETE",
+                "kept": ["manifest.json"],
+            }
             try:
-                _write_manifest(
-                    manifest_path,
-                    manifest,
-                )
-
+                _write_manifest(manifest_path, manifest)
             except Exception as exc:
                 cleanup_warning = (
-                    (
-                        cleanup_warning
-                        + " "
-                    )
-                    if cleanup_warning
-                    else ""
-                ) + (
-                    "Cleanup completed, but the "
-                    "cleanup state could not be "
-                    "written to the manifest: "
-                    + str(exc)
+                    "Cleanup completed, but the cleanup state could not be "
+                    "written to the manifest: " + str(exc)
                 )
 
         return {

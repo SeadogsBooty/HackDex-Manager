@@ -713,8 +713,7 @@ def get_resolved_review_items():
                 == HackMatch.hack_slug,
             )
             .filter(
-                HackMatch.match_method
-                == "manual",
+                HackMatch.match_method.in_(["manual", "installed"]),
                 HackMatch.confirmed.is_(True),
             )
             .all()
@@ -1379,8 +1378,7 @@ def ignore_rom(
             .filter(
                 HackMatch.rom_id
                 == rom.id,
-                HackMatch.match_method
-                == "manual",
+                HackMatch.match_method.in_(["manual", "installed"]),
                 HackMatch.confirmed.is_(True),
             )
             .first()
@@ -1440,8 +1438,7 @@ def ignore_rom(
             .filter(
                 HackMatch.rom_id
                 == rom.id,
-                HackMatch.match_method
-                != "manual",
+                ~HackMatch.match_method.in_(["manual", "installed"]),
             )
             .delete(
                 synchronize_session=False

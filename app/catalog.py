@@ -62,7 +62,8 @@ def get_catalog():
 
             if (
                 current is None
-                or match.match_score > current.match_score
+                or (bool(match.confirmed and match.match_method == "installed"), match.match_score)
+                > (bool(current.confirmed and current.match_method == "installed"), current.match_score)
             ):
                 matches_by_slug[match.hack_slug] = match
 
