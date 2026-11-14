@@ -2753,7 +2753,7 @@ function render() {
             const browserOnly = ready.browser_import_enabled && !ready.obtain_enabled;
             const enabled = ready.obtain_enabled || browserOnly;
 
-            const primaryAction = obtainActionLabel(item.library_status, browserOnly);
+            const primaryAction = obtainActionLabel(item.library_status, browserOnly, item.patches_download_permission);
 
             const unavailableAction =
                 item.library_status === "UPDATE_AVAILABLE"
@@ -4004,7 +4004,8 @@ function richCommunityMarkup(item) {
 
 
 
-function obtainActionLabel(status, viaHackDex) {
+function obtainActionLabel(status, viaHackDex, permission) {
+    if (viaHackDex && !["None", "All", "Current"].includes(permission)) return "Check availability";
     if (status === "UPDATE_AVAILABLE") return viaHackDex ? "Update via HackDex" : "Update";
     if (status === "OWNED") return viaHackDex ? "Reinstall via HackDex" : "Reinstall";
     return viaHackDex ? "Get ROM via HackDex" : "Download";
@@ -4020,7 +4021,8 @@ function browserWorkflowMarkup(item, ready, browserOnly) {
         <section class="hd-rich-section hd-browser-card" aria-label="Patch on HackDex">
             <div class="hd-rich-section-title">ROM installation</div>
             <h3>${heading}</h3>
-            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : "Patch on HackDex · Direct download not available") : "Patch on HackDex · Alternative to automatic download"}</div>
+            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : !["All", "Current"].includes(item.patches_download_permission) ? "Download permission not yet known" : "Patch on HackDex · Direct download not available") : "Patch on HackDex · Alternative to automatic download"}</div>
+            ${browserOnly && !["None", "All", "Current"].includes(item.patches_download_permission) ? '<p class="hd-browser-note">Refresh the catalog when connected to check automatic download availability. You can still use the official patcher below.</p>' : ""}
             <div class="hd-browser-versions">
                 ${item.installed_version ? `<span>Installed <strong>${escapeHtml(item.installed_version)}</strong></span><span aria-hidden="true">→</span>` : ""}
                 <span>Version <strong class="hd-browser-version-target">${target}</strong></span>
@@ -4254,7 +4256,7 @@ function openDetails(
                         "
                     >
                         ${escapeHtml(
-                            browserOnly ? "Patch on HackDex" : readinessLabel(ready.status)
+                            browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex" : !["All", "Current"].includes(item.patches_download_permission) ? "Permission unknown" : "Patch on HackDex") : readinessLabel(ready.status)
                         )}
                     </span>
 
@@ -4838,6 +4840,12 @@ async function stageObtain(slug, browserImport=false) {
         }
 
         if (!data.success) {
+            if (!browserImport && ["BROWSER_REQUIRED", "PATCH_DOWNLOAD_UNAVAILABLE"].includes(data.status)) {
+                // Upstream remains authoritative even when cached permissions allow downloads.
+                // Reveal the existing manual workflow; do not retry or open the site automatically.
+                const fallback = document.querySelector("#modal .hd-browser-fallback");
+                if (fallback) fallback.open = true;
+            }
             throw new Error(
                 data.message
                 || data.status
