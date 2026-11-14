@@ -782,6 +782,184 @@ input {
     font-weight: 800;
 }
 
+
+/* Browser-assisted obtain: a single, self-contained workflow. */
+.modal-content .hd-browser-card {
+    margin: 18px 0 0;
+    padding: 18px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: var(--hd-radius);
+    background: var(--hd-surface);
+    color: var(--hd-text);
+    min-width: 0;
+}
+.modal-content .hd-browser-card h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    line-height: 1.3;
+    color: var(--hd-text);
+}
+.modal-content .hd-browser-method {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--hd-text-soft);
+    margin: 0 0 14px;
+}
+.modal-content .hd-browser-versions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin: 0 0 14px;
+}
+.modal-content .hd-browser-versions strong {
+    color: var(--hd-text);
+    font-size: 15px;
+}
+.modal-content .hd-browser-version-target {
+    color: var(--hd-primary);
+    font-weight: 700;
+}
+.modal-content .hd-browser-steps {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 14px 0;
+    border-top: 1px solid var(--hd-border);
+    border-bottom: 1px solid var(--hd-border);
+}
+.modal-content .hd-browser-step {
+    display: grid;
+    grid-template-columns: 25px minmax(0,1fr);
+    align-items: start;
+    gap: 10px;
+}
+.modal-content .hd-browser-step-number {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--hd-primary-soft);
+    color: var(--hd-primary);
+    font-size: 12px;
+    font-weight: 700;
+}
+.modal-content .hd-browser-step strong,
+.modal-content .hd-browser-step-title {
+    display: block;
+    margin: 1px 0 4px;
+    color: var(--hd-text);
+    font-size: 13px;
+    font-weight: 700;
+}
+.modal-content .hd-browser-step p,
+.modal-content .hd-browser-note {
+    margin: 0;
+    color: var(--hd-text-soft);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.modal-content .hd-browser-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 9px;
+    padding: 8px 12px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 8px;
+    background: var(--hd-surface-2);
+    color: var(--hd-primary);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+}
+.modal-content .hd-browser-link:hover {
+    background: var(--hd-primary-soft);
+}
+.modal-content .hd-browser-file {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 8px 0 0;
+    padding: 8px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 8px;
+    background: var(--hd-surface-2);
+    color: var(--hd-text);
+    font-size: 12px;
+}
+.modal-content .hd-browser-confirm {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    color: var(--hd-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+}
+.modal-content .hd-browser-confirm input[type="checkbox"] {
+    appearance: auto !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    margin: 1px 0 0 !important;
+    padding: 0 !important;
+    accent-color: var(--hd-primary);
+}
+.modal-content .hd-browser-advanced {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--hd-text-soft);
+}
+.modal-content .hd-browser-advanced summary,
+.modal-content .hd-browser-fallback summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--hd-text-soft);
+}
+.modal-content .hd-browser-advanced select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 6px 0 10px;
+}
+.modal-content .hd-browser-advanced-content {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+    overflow-wrap: anywhere;
+}
+.modal-content .hd-browser-advanced-content p { margin: 0; }
+.modal-content .hd-browser-card .hd-browser-stage {
+    margin-top: 14px !important;
+    width: 100%;
+}
+.modal-content .hd-browser-card .hd-browser-stage:disabled {
+    opacity: .48 !important;
+    cursor: not-allowed !important;
+}
+.modal-content .hd-browser-note { margin-top: 8px; }
+.modal-content .hd-browser-fallback {
+    margin-top: 14px;
+    padding: 12px 0;
+}
+.modal-content .hd-browser-fallback .hd-browser-card { margin-top: 12px; }
+@media (max-width: 480px) {
+    .modal-content .hd-browser-card { padding: 14px; }
+}
+
 </style>
 
 <link
@@ -3800,6 +3978,89 @@ function richCommunityMarkup(item) {
 }
 
 
+
+function browserWorkflowMarkup(item, ready, browserOnly) {
+    const target = escapeHtml(item.latest_version || "Unknown");
+    const isUpdate = item.library_status === "UPDATE_AVAILABLE";
+    const heading = isUpdate ? "Update available" : item.library_status === "OWNED" ? "Reinstall ROM" : "Get this ROM";
+    const platformExtensions = {GB: ".gb", GBC: ".gbc", GBA: ".gba", NDS: ".nds"};
+    const extension = platformExtensions[String(item.platform || "").toUpperCase()] || ".gb,.gbc,.gba,.nds";
+    return `
+        <section class="hd-browser-card" aria-label="Browser-assisted patching">
+            <h3>${heading}</h3>
+            <div class="hd-browser-method">Browser-assisted · ${browserOnly ? "Direct download unavailable" : "Optional alternative"}</div>
+            <div class="hd-browser-versions">
+                ${item.installed_version ? `<span>Installed <strong>${escapeHtml(item.installed_version)}</strong></span><span aria-hidden="true">→</span>` : ""}
+                <span>Version <strong class="hd-browser-version-target">${target}</strong></span>
+            </div>
+            <div class="hd-browser-steps">
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">1</span>
+                    <div>
+                        <strong>Patch on HackDex</strong>
+                        <p>Use your verified original base ROM (${escapeHtml(ready.base_key || item.base_rom || "see patch details")}) and select version ${target}.</p>
+                        <a class="hd-browser-link" href="https://www.hackdex.app/hack/${encodeURIComponent(item.slug)}" target="_blank" rel="noopener noreferrer">Open official patcher <span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">2</span>
+                    <div>
+                        <label class="hd-browser-step-title" for="browser-rom">Choose the finished ROM</label>
+                        <p>Save the patched ROM from HackDex, then select it here.</p>
+                        <input class="hd-browser-file" id="browser-rom" type="file" accept="${extension}">
+                    </div>
+                </div>
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">3</span>
+                    <div>
+                        <strong>Confirm and stage</strong>
+                        <label class="hd-browser-confirm" for="browser-confirm">
+                            <input id="browser-confirm" type="checkbox">
+                            <span>I confirm this is the ROM generated by HackDex for version ${target}.</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="obtain-button hd-browser-stage" id="browser-stage" disabled
+                onclick="stageObtain('${escapeHtml(item.slug)}', true)">Stage ROM</button>
+            <p class="hd-browser-note">No library changes until you install. Replaced ROMs are backed up; back up saves separately.</p>
+            <details class="hd-browser-advanced">
+                <summary>Advanced options &amp; patch details</summary>
+                <div class="hd-browser-advanced-content">
+                    ${browserOnly ? `
+                    <label for="obtain-format">Output format</label>
+                    <select id="obtain-format">
+                        <option value="">Use Settings default</option>
+                        <option value="7z">7z Archive (.7z)</option>
+                        <option value="zip">ZIP Archive (.zip)</option>
+                        <option value="raw">Raw ROM</option>
+                    </select>` : "<p>Uses the output format selected above.</p>"}
+                    <p><strong>Base ROM:</strong> ${escapeHtml(ready.base_key || item.base_rom || "Unknown")}</p>
+                    <p><strong>Patch:</strong> ${escapeHtml(ready.patch_filename || "Unknown")}</p>
+                    <p><strong>Direct download permission:</strong> ${escapeHtml(item.patches_download_permission || "Unknown")}</p>
+                    ${item.local_filename ? `<p><strong>Current library file:</strong> ${escapeHtml(item.local_filename)}</p>` : ""}
+                    <p>Imported ROMs receive structural and SHA-256 integrity checks. The patch and version are not independently verified; your confirmation identifies the release. Versioned filenames may require renaming or moving emulator saves.</p>
+                </div>
+            </details>
+            ${browserOnly ? '<div id="obtain-result" class="obtain-result" role="status" aria-live="polite"></div>' : ""}
+        </section>
+    `;
+}
+
+function bindBrowserImportControls() {
+    const file = document.getElementById("browser-rom");
+    const confirmation = document.getElementById("browser-confirm");
+    const stage = document.getElementById("browser-stage");
+    if (!file || !confirmation || !stage) return;
+    const sync = () => {
+        stage.disabled = !file.files?.[0] || !confirmation.checked;
+    };
+    file.addEventListener("change", sync);
+    confirmation.addEventListener("change", sync);
+    sync();
+}
+
+
 function openDetails(
     slug,
     skipReadinessCheck = false,
@@ -4144,6 +4405,7 @@ function openDetails(
 
 
 
+                ${browserOnly ? browserWorkflowMarkup(item, ready, true) : `
                 ${updateMarkup(
                     item
                 )}
@@ -4210,7 +4472,7 @@ function openDetails(
 
 
                 ${
-                    (enabled || browserEnabled)
+                    enabled
                     ? `
                     <section class="obtain-options">
 
@@ -4240,8 +4502,7 @@ function openDetails(
                         </select>
 
                         <div class="obtain-help">
-                            Automatic patches are verified before packaging.
-                            Browser imports receive structural and integrity checks, not independent patch/version verification.
+                            The raw patched ROM is verified before packaging.
                         </div>
 
                     </section>
@@ -4254,25 +4515,6 @@ function openDetails(
                     : ""
                 }
 
-
-                ${browserEnabled ? `
-                    <section class="obtain-options">
-                        <div class="hd-detail-section-label">BROWSER-ASSISTED PATCHING</div>
-                        <p>Direct downloads: ${escapeHtml(item.patches_download_permission || "Unknown")}.
-                           ${browserOnly ? "Use the official patcher for this hack." : "Optional fallback if a direct download is unavailable."}</p>
-                        <p>Open HackDex, select the verified original base ROM and version ${escapeHtml(item.latest_version || "")},
-                           and save the finished raw ROM. Import it here; no library file is changed until you install.
-                           Existing ROM files are backed up before a browser-assisted replacement. Back up your saves separately;
-                           versioned filenames may require moving or renaming a save in your emulator.</p>
-                        <a href="https://www.hackdex.app/hack/${encodeURIComponent(item.slug)}" target="_blank" rel="noopener noreferrer">Open official HackDex patcher</a>
-                        <label for="browser-rom">Finished ROM (.gb, .gbc, .gba, .nds)</label>
-                        <input id="browser-rom" type="file" accept=".gb,.gbc,.gba,.nds">
-                        <label><input id="browser-confirm" type="checkbox">
-                            I confirm this is the official browser-patched ROM for the displayed version.</label>
-                        <button type="button" class="obtain-button" id="browser-stage"
-                            onclick="stageObtain('${escapeHtml(item.slug)}', true)">Stage browser import</button>
-                    </section>
-                ` : ""}
 
                 <div class="hd-detail-primary-action">
 
@@ -4303,7 +4545,7 @@ function openDetails(
                                     : "Download"
                                 )
                             )
-                            : browserOnly ? "Direct download restricted" : (
+                            : (
                                 isUpdate
                                 ? "Update Unavailable"
                                 : (
@@ -4317,6 +4559,14 @@ function openDetails(
 
                 </div>
 
+                ${browserEnabled ? `
+                    <details class="hd-browser-fallback">
+                        <summary>Use the official browser patcher instead</summary>
+                        ${browserWorkflowMarkup(item, ready, false)}
+                    </details>` : ""}
+
+                `}
+
             </section>
 
         </div>
@@ -4329,6 +4579,8 @@ function openDetails(
         )
         .style
         .display = "flex";
+
+    bindBrowserImportControls();
 
     /*
      * Decide whether the About text needs expansion only after
@@ -4663,7 +4915,7 @@ async function stageObtain(slug, browserImport=false) {
 
     } finally {
         stageButtons.forEach((b, i) => b.disabled = priorDisabled[i]);
-        if (button) button.textContent = browserImport ? "Stage browser import" : "Stage Download";
+        if (button) button.textContent = browserImport ? "Stage ROM" : "Stage Download";
     }
 }
 
