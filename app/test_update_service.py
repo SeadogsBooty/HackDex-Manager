@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import update_service
 
@@ -137,11 +138,10 @@ class UpdateServiceTests(unittest.TestCase):
 
                 update_service.clear_update_cache()
 
-                status = (
-                    update_service.get_update_status(
-                        force=True
-                    )
-                )
+                # Fix the installed version for this fixture so the test
+                # remains valid after future application version bumps.
+                with patch.object(update_service, "APP_VERSION", "1.1.3"):
+                    status = update_service.get_update_status(force=True)
 
                 self.assertTrue(
                     status["configured"]

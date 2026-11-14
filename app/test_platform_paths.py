@@ -99,6 +99,7 @@ class PlatformPathTests(
         env = {
             "HACKDEX_DESKTOP": "1",
             "HACKDEX_DATA_ROOT": root,
+            "HACKDEX_INTERNAL_DATA_DIR": "",
         }
 
         with patch.dict(
@@ -123,6 +124,7 @@ class PlatformPathTests(
             os.environ,
             {
                 "HACKDEX_DESKTOP": "0",
+                "HACKDEX_INTERNAL_DATA_DIR": "",
             },
             clear=False,
         ):
