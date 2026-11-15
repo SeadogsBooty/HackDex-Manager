@@ -1134,11 +1134,11 @@ def run_matching():
 
         roms = db.query(Rom).all()
 
-        # Preserve future manually approved mappings only.
+        # Preserve explicit user-approved and successfully installed mappings.
         manual_matches = (
             db.query(HackMatch)
             .filter(
-                HackMatch.match_method == "manual"
+                HackMatch.match_method.in_(["manual", "installed"])
             )
             .all()
         )
@@ -1150,7 +1150,7 @@ def run_matching():
 
         # Recalculate every automatic match each run.
         db.query(HackMatch).filter(
-            HackMatch.match_method != "manual"
+            ~HackMatch.match_method.in_(["manual", "installed"])
         ).delete(
             synchronize_session=False
         )

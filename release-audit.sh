@@ -302,15 +302,18 @@ manifest_version = str(
 ).strip()
 
 
-if not (
-    app_version
-    == installer_version
-    == manifest_version
-):
-    fail(
-        "application, installer, and manifest "
-        "versions do not match."
-    )
+if app_version != installer_version:
+    fail("application and installer versions do not match.")
+
+# The stable update feed must not advertise a build before its assets
+# are published. Source can therefore be ahead of the stable feed.
+def version_tuple(value):
+    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", value):
+        fail("expected a numeric stable release version.")
+    return tuple(int(part) for part in value.split("."))
+
+if version_tuple(manifest_version) > version_tuple(app_version):
+    fail("stable manifest is ahead of the application version.")
 
 
 docker_image = str(
@@ -323,13 +326,13 @@ docker_image = str(
 
 expected_image = (
     "ghcr.io/seadogsbooty/"
-    f"hackdex-manager:{app_version}"
+    f"hackdex-manager:{manifest_version}"
 )
 
 if docker_image != expected_image:
     fail(
         "manifest Docker image does not match "
-        "the application version."
+        "the stable manifest version."
     )
 
 
@@ -367,7 +370,7 @@ if (
 
 expected_windows_url = (
     "https://github.com/SeadogsBooty/HackDex-Manager/"
-    "releases/latest/download/HackDex.Manager.Setup.exe"
+    f"releases/download/v{manifest_version}/HackDex.Manager.Setup.exe"
 )
 
 if url != expected_windows_url:
@@ -380,8 +383,7 @@ sha256 = str(
 ).strip()
 
 if (
-    sha256
-    and not re.fullmatch(
+    not re.fullmatch(
         r"[0-9a-fA-F]{64}",
         sha256,
     )
@@ -396,11 +398,7 @@ print(
     f"(v{app_version})"
 )
 
-if not sha256:
-    print(
-        "VERSION AUDIT: Windows SHA-256 "
-        "pending final installer build."
-    )
+print(f"VERSION AUDIT: stable update feed v{manifest_version}")
 PYVERSION
 
 if [ "$?" -eq 0 ]; then

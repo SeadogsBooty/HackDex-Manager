@@ -333,3 +333,10 @@ HackDex Manager continues to support Docker deployment.
 The Docker edition uses the same core application UI, matching engine, readiness logic, patch workflow, and HackDex Manager branding as the Windows edition.
 
 Existing Docker users can continue using the published container image and their current persistent data volumes. The Windows desktop edition is an additional deployment option; it does not replace Docker support.
+
+
+### Local-only mode (v1.1.4)
+
+By default, automated HackDex catalog/registry requests and uncached patch downloads are disabled. Existing catalog and registry data remain available, permitted cached patches can still be applied, and completed ROMs from the official website can be imported. Direct-download permission is independent of authorization to automate access. Set `HACKDEX_UPSTREAM_ACCESS=authorized` only after obtaining the required permission. A fresh installation without catalog/registry data cannot complete full catalog setup in local-only mode; use an existing data directory when upgrading. Browser-rendered artwork and user-opened official website links may still access the web. This setting does not disable unrelated application update checks.
+
+Release-candidate tags (for example `v1.1.4-rc.1`) publish versioned container images without changing `latest`. Only stable version tags update `latest`. The stable update feed is promoted only after the versioned release assets are published and verified. Live automated upstream access remains disabled pending authorization.

@@ -3,6 +3,8 @@ from platform_paths import data_path
 
 from database import SessionLocal
 from models import Hack, HackMatch, Rom
+from patch_readiness import _patch_identity, direct_download_allowed
+from hackdex_access import upstream_enabled
 
 
 RICH_CACHE_PATH = data_path(
@@ -60,7 +62,8 @@ def get_catalog():
 
             if (
                 current is None
-                or match.match_score > current.match_score
+                or (bool(match.confirmed and match.match_method == "installed"), match.match_score)
+                > (bool(current.confirmed and current.match_method == "installed"), current.match_score)
             ):
                 matches_by_slug[match.hack_slug] = match
 
@@ -124,6 +127,11 @@ def get_catalog():
                     "base_rom": hack.base_rom,
                     "platform": hack.platform,
                     "latest_version": hack.latest_version,
+                    "current_patch": hack.current_patch,
+                    "patch_identity": _patch_identity(hack),
+                    "patches_download_permission": hack.patches_download_permission,
+                    "direct_download_allowed": direct_download_allowed(hack),
+                    "upstream_access_enabled": upstream_enabled(),
                     "completion_status": hack.completion_status,
                     "cover_url": hack.cover_url,
                     "approved": hack.approved,

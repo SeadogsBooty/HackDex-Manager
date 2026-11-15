@@ -35,6 +35,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine stable tag
+        id: channel
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "stable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Generate container metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -42,7 +52,8 @@ jobs:
           images: ${{ steps.image.outputs.name }}
           tags: |
             type=semver,pattern={{version}}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ steps.channel.outputs.stable }}
+            type=raw,value=preview,enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build and publish container
         uses: docker/build-push-action@v6

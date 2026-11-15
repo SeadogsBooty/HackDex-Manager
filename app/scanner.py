@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 from database import SessionLocal
-from models import Rom, LibraryLocation
+from models import Rom, LibraryLocation, HackMatch
 from parser import parse_filename
 from platform_paths import running_as_desktop
 from settings_store import get_settings
@@ -130,6 +130,13 @@ def scan_roms():
             for row in db.query(Rom).all()
         }
 
+        installed_ids = {
+            row.rom_id for row in db.query(HackMatch).filter(
+                HackMatch.match_method == "installed",
+                HackMatch.confirmed.is_(True),
+            ).all()
+        }
+
         for location in get_libraries(db):
             library_path = Path(
                 location.path
@@ -228,9 +235,25 @@ def scan_roms():
                             parsed["title"]
                         )
 
-                        rom.installed_version = (
-                            parsed["version"]
-                        )
+                        # A name-only install can have a known version even
+                        # when the filename contains no version. Retain that
+                        # version only if the recorded installed bytes still match.
+                        if (rom.id in installed_ids and not parsed["version"]
+                                and rom.installed_version and rom.sha256):
+                            _, actual_hash = calculate_hashes(path)
+                            if actual_hash != rom.sha256:
+                                db.query(HackMatch).filter(
+                                    HackMatch.rom_id == rom.id,
+                                    HackMatch.match_method == "installed",
+                                ).delete(synchronize_session=False)
+                                rom.installed_version = None
+                                rom.hackdex_slug = None
+                                rom.latest_version = None
+                                rom.status = "UNMATCHED"
+                                rom.sha1 = None
+                                rom.sha256 = None
+                        else:
+                            rom.installed_version = parsed["version"]
 
                         rom.variant = (
                             parsed["variant"]

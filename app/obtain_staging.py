@@ -25,6 +25,8 @@ from models import (
 from patch_readiness import (
     _download_patch,
     check_hack_readiness,
+    check_hack_catalog_readiness,
+    _patch_identity,
 )
 
 from platform_paths import (
@@ -1280,9 +1282,37 @@ def _prepare_transaction_dir(
     return transaction
 
 
+def _validate_browser_rom(path, platform, base_hashes):
+    """Sanity-check a locally patched ROM; this is not patch/version verification."""
+    size = path.stat().st_size
+    limits = {"GB": (0x150, 8 << 20), "GBC": (0x150, 8 << 20),
+              "GBA": (0xC0, 64 << 20), "NDS": (0x200, 512 << 20)}
+    minimum, maximum = limits[platform]
+    if not minimum <= size <= maximum:
+        raise ValueError("Imported ROM size is invalid for the selected platform.")
+    with path.open("rb") as handle:
+        header = handle.read(0x200)
+    if platform in {"GB", "GBC"}:
+        valid = header[0x104:0x108] == bytes.fromhex("CEED6666")
+    elif platform == "GBA":
+        valid = header[0xB2] == 0x96 and header[4:8] == bytes.fromhex("24FFAE51")
+    else:
+        # Validate ARM9/ARM7 ranges against the actual file, not a filename.
+        valid = header[0xC0:0xC4] == bytes.fromhex("24FFAE51")
+        for offset in (0x20, 0x30):
+            start, _, _, length = struct.unpack_from("<IIII", header, offset)
+            valid = valid and start >= 0x200 and length > 0 and start + length <= size
+    if not valid:
+        raise ValueError("Imported file does not have a plausible ROM header for this platform.")
+    if _hash_file(path)["sha256"].lower() == base_hashes["sha256"].lower():
+        raise ValueError("Imported ROM is the unmodified base ROM.")
+
+
 def stage_obtain(
     hack_slug,
     output_format=None,
+    browser_rom=None,
+    expected_patch_identity=None,
 ):
     try:
         selected_format = (
@@ -1308,11 +1338,21 @@ def stage_obtain(
     # Re-run the full readiness gate immediately
     # before building anything.
     #
-    readiness = (
-        check_hack_readiness(
-            hack_slug
+    try:
+        readiness = (
+            check_hack_catalog_readiness(hack_slug)
+            if browser_rom is not None
+            else check_hack_readiness(hack_slug)
         )
-    )
+    except Exception:
+        return {"success": False, "status": "READINESS_FAILED",
+                "message": "Could not check patch readiness. Refresh the catalog and try again.",
+                "library_write_performed": False}
+
+    if browser_rom is None and readiness.get("obtain_enabled") is False:
+        return {"success": False, "status": "BROWSER_REQUIRED",
+                "message": "Direct patch downloads are not enabled. Use the official HackDex patcher and import the finished ROM.",
+                "library_write_performed": False}
 
     if (
         readiness.get("status")
@@ -1325,9 +1365,8 @@ def stage_obtain(
                 readiness.get(
                     "status"
                 ),
-            "message":
-                "Hack is not READY and "
-                "cannot be staged.",
+            "message": readiness.get("detail") or "Hack is not READY and cannot be staged.",
+            "library_write_performed": False,
         }
 
     db = SessionLocal()
@@ -1420,11 +1459,11 @@ def stage_obtain(
                 "after readiness validation."
             )
 
-        patch_cache = (
-            _download_patch(
-                hack
-            )
-        )
+        if not hack.approved or hack.is_archive:
+            raise RuntimeError("Hack is no longer available in the public catalog.")
+        if browser_rom is not None and expected_patch_identity != _patch_identity(hack):
+            raise RuntimeError("Catalog patch changed. Refresh the hack and confirm the correct browser-patched version.")
+        patch_cache = _download_patch(hack) if browser_rom is None else None
 
         platform = (
             hack.platform
@@ -1466,6 +1505,13 @@ def stage_obtain(
             + "-"
             + uuid.uuid4().hex[:8]
         )
+
+        if browser_rom is not None:
+            _validate_browser_rom(Path(browser_rom), platform, {"sha256": base.sha256})
+            # Do not replace a different/ambiguous library match through a manual import.
+            matches = db.query(Rom).filter(Rom.hackdex_slug == hack.slug).all()
+            if len(matches) > 1 or (existing_rom and existing_rom.status in {"VERSION_REVIEW", "LOCAL_NEWER"}):
+                raise RuntimeError("Resolve the library version/match review before importing.")
 
         transaction = (
             _prepare_transaction_dir(
@@ -1516,10 +1562,8 @@ def stage_obtain(
             base_path,
         )
 
-        shutil.copy2(
-            patch_cache,
-            patch_path,
-        )
+        if patch_cache is not None:
+            shutil.copy2(patch_cache, patch_path)
 
         #
         # Ensure the materialized base is still
@@ -1553,6 +1597,9 @@ def stage_obtain(
                 "match verified inventory."
             )
 
+        if browser_rom is not None and base_hashes["sha256"].lower() != (base.sha256 or "").lower():
+            raise RuntimeError("Staged base SHA-256 does not match verified inventory.")
+
         patch_format = (
             hack.current_patch_format
             or ""
@@ -1560,7 +1607,16 @@ def stage_obtain(
 
         patch_result = {}
 
-        if patch_format == "bps":
+        if browser_rom is not None:
+            shutil.copyfile(browser_rom, output_path)
+            _validate_browser_rom(output_path, platform, base_hashes)
+            patch_result = {
+                "method": "browser_import",
+                "output_verified": False,
+                "detail": "User-confirmed browser output; patch/version not independently verified.",
+            }
+
+        elif patch_format == "bps":
             patch_result = (
                 _apply_bps(
                     base_path,
@@ -1633,11 +1689,8 @@ def stage_obtain(
                 "during filename generation."
             )
 
-        patch_hashes = (
-            _hash_file(
-                patch_path
-            )
-        )
+        patch_hashes = _hash_file(patch_path) if patch_cache is not None else {}
+        staged_status = "STAGED_IMPORTED" if browser_rom is not None else "STAGED_VERIFIED"
 
         manifest = {
             "transaction_id":
@@ -1651,8 +1704,7 @@ def stage_obtain(
                     str(transaction),
             },
 
-            "status":
-                "STAGED_VERIFIED",
+            "status": staged_status,
 
             "hack": {
                 "slug":
@@ -1678,6 +1730,7 @@ def stage_obtain(
                 "filename":
                     hack.current_patch_filename,
 
+                "identity": _patch_identity(hack),
                 **patch_hashes,
             },
 
@@ -1811,6 +1864,7 @@ def stage_obtain(
 
             "patch_verification":
                 patch_result,
+            "source": "browser_import" if browser_rom is not None else "direct_patch",
 
             "library_write_performed":
                 False,
@@ -1838,8 +1892,7 @@ def stage_obtain(
 
         return {
             "success": True,
-            "status":
-                "STAGED_VERIFIED",
+            "status": staged_status,
             "transaction_id":
                 transaction_id,
             "staging_directory":

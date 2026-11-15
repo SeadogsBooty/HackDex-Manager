@@ -6,8 +6,9 @@ import shutil
 from pathlib import Path
 
 from database import SessionLocal
-from models import LibraryLocation
-from platform_paths import staging_dir
+from models import LibraryLocation, Hack
+from patch_readiness import _patch_identity
+from platform_paths import staging_dir, backups_dir
 
 
 STAGING_ROOT = staging_dir()
@@ -441,11 +442,10 @@ def install_staged(
 
         if (
             manifest.get("status")
-            != "STAGED_VERIFIED"
+            not in {"STAGED_VERIFIED", "STAGED_IMPORTED"}
         ):
             raise RuntimeError(
-                "Transaction is not "
-                "STAGED_VERIFIED."
+                "Transaction is not staged."
             )
 
         hack = (
@@ -460,6 +460,20 @@ def install_staged(
             raise RuntimeError(
                 "Manifest hack slug mismatch."
             )
+
+        if manifest.get("status") == "STAGED_IMPORTED":
+            if manifest.get("source") != "browser_import":
+                raise RuntimeError("Imported transaction source is invalid.")
+            with SessionLocal() as db:
+                current = db.query(Hack).filter(Hack.slug == hack_slug).first()
+                if (
+                    current is None or not current.approved or current.is_archive
+                    or current.current_patch_published is not True
+                    or current.current_patch_archived is True
+                    or _patch_identity(current) != (manifest.get("patch") or {}).get("identity")
+                    or current.latest_version != hack.get("version")
+                ):
+                    raise RuntimeError("Catalog changed since browser import. Restage the correct version.")
 
         platform = str(
             hack.get("platform")
@@ -801,6 +815,34 @@ def install_staged(
                     transaction_id,
                 )
 
+        # Browser imports cannot independently verify the claimed hack version.
+        # Preserve the original library files outside staging before any replacement.
+        retained_backups = []
+        if manifest.get("source") == "browser_import":
+            backup_root = backups_dir() / "browser-import" / hack_slug / transaction_id
+            sources = []
+            if is_update:
+                sources.append((old_path, old_expected_sha256))
+            if destination_existed and (not is_update or not in_place_update):
+                sources.append((destination, _sha256_file(destination)))
+            if sources:
+                backup_root.mkdir(parents=True, exist_ok=True)
+            for original, expected in sources:
+                backup = backup_root / original.name
+                if not backup.exists():
+                    temporary = backup.with_name(backup.name + ".tmp")
+                    try:
+                        shutil.copy2(original, temporary)
+                        if _sha256_file(temporary) != expected:
+                            raise RuntimeError("Persistent backup hash mismatch. Installation cancelled.")
+                        temporary.replace(backup)
+                    finally:
+                        temporary.unlink(missing_ok=True)
+                if _sha256_file(backup) != expected:
+                    raise RuntimeError("Persistent backup already exists with a different hash. Installation cancelled.")
+                retained_backups.append(str(backup))
+            manifest["retained_backups"] = retained_backups
+
         temp_destination = (
             destination_root
             / (
@@ -1048,69 +1090,18 @@ def install_staged(
         cleanup_warning = None
 
         if manifest_warning is None:
-
-            cleanup_errors = (
-                _cleanup_completed_transaction(
-                    transaction,
-                    manifest_path,
-                    manifest,
-                )
-            )
-
-            if cleanup_errors:
-                manifest[
-                    "cleanup"
-                ] = {
-                    "status":
-                        "WARNING",
-
-                    "kept":
-                        [
-                            "manifest.json"
-                        ],
-
-                    "errors":
-                        cleanup_errors,
-                }
-
-                cleanup_warning = (
-                    "Install succeeded, but some "
-                    "temporary staging files could "
-                    "not be removed."
-                )
-
-            else:
-                manifest[
-                    "cleanup"
-                ] = {
-                    "status":
-                        "COMPLETE",
-
-                    "kept":
-                        [
-                            "manifest.json"
-                        ],
-                }
-
+            # Cleanup already ran above. Its successful result is a dictionary,
+            # not an error list. Never run destructive cleanup a second time.
+            manifest["cleanup"] = {
+                "status": "COMPLETE",
+                "kept": ["manifest.json"],
+            }
             try:
-                _write_manifest(
-                    manifest_path,
-                    manifest,
-                )
-
+                _write_manifest(manifest_path, manifest)
             except Exception as exc:
                 cleanup_warning = (
-                    (
-                        cleanup_warning
-                        + " "
-                    )
-                    if cleanup_warning
-                    else ""
-                ) + (
-                    "Cleanup completed, but the "
-                    "cleanup state could not be "
-                    "written to the manifest: "
-                    + str(exc)
+                    "Cleanup completed, but the cleanup state could not be "
+                    "written to the manifest: " + str(exc)
                 )
 
         return {
@@ -1136,6 +1127,9 @@ def install_staged(
 
             "updated":
                 is_update,
+            "source": manifest.get("source", "direct_patch"),
+            "version_verified": manifest.get("source") != "browser_import",
+            "retained_backups": manifest.get("retained_backups", []),
             "previous_version":
                 previous_version,
             "target_version":

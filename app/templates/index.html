@@ -782,6 +782,214 @@ input {
     font-weight: 800;
 }
 
+
+
+/* Browser-assisted obtain. The real modal root is #modal (class=modal). */
+#modal .hd-browser-card {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 13px;
+    background: var(--hd-surface);
+    box-shadow: var(--hd-shadow-soft);
+    color: var(--hd-text);
+    min-width: 0;
+}
+#modal .hd-browser-card .hd-rich-section-title {
+    margin-bottom: 10px;
+}
+#modal .hd-browser-card h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--hd-text);
+}
+#modal .hd-browser-method {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--hd-text-soft);
+    margin: 0 0 12px;
+}
+#modal .hd-browser-versions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin: 0 0 14px;
+    border: 1px solid var(--hd-border);
+    border-radius: 9px;
+    background: var(--hd-surface-2);
+    color: var(--hd-text-soft);
+    font-size: 12px;
+    line-height: 1.5;
+}
+#modal .hd-browser-versions strong {
+    color: var(--hd-text);
+    font-size: 14px;
+    font-weight: 800;
+}
+#modal .hd-browser-versions .hd-browser-version-target {
+    color: var(--hd-primary);
+}
+#modal .hd-browser-steps {
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+}
+#modal .hd-browser-step {
+    display: grid;
+    grid-template-columns: 24px minmax(0,1fr);
+    align-items: start;
+    gap: 10px;
+    min-width: 0;
+}
+#modal .hd-browser-step > div { min-width: 0; }
+#modal .hd-browser-step-number {
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--hd-primary-soft);
+    color: var(--hd-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+#modal .hd-browser-step strong,
+#modal .hd-browser-step-title {
+    display: block;
+    margin: 2px 0 4px;
+    color: var(--hd-text);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+#modal .hd-browser-step p,
+#modal .hd-browser-note {
+    margin: 0;
+    color: var(--hd-text-soft);
+    font-size: 12px;
+    line-height: 1.5;
+}
+#modal .hd-browser-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 8px;
+    background: var(--hd-surface-2);
+    color: var(--hd-primary);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+#modal .hd-browser-link:hover {
+    background: var(--hd-primary-soft);
+}
+#modal .hd-browser-file {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    margin: 8px 0 0;
+    padding: 7px !important;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 8px;
+    background: var(--hd-surface-2);
+    color: var(--hd-text);
+    font-size: 12px;
+}
+#modal .hd-browser-file::file-selector-button {
+    padding: 5px 8px;
+    margin-right: 8px;
+    border: 1px solid var(--hd-border-strong);
+    border-radius: 5px;
+    background: var(--hd-surface);
+    color: var(--hd-text);
+    font: inherit;
+    cursor: pointer;
+}
+#modal .hd-browser-confirm {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    color: var(--hd-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+    cursor: pointer;
+    min-width: 0;
+}
+#modal .hd-browser-confirm span { flex: 1; min-width: 0; }
+#modal .hd-browser-confirm input[type="checkbox"] {
+    appearance: auto !important;
+    flex: 0 0 16px !important;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    margin: 1px 0 0 !important;
+    padding: 0 !important;
+    accent-color: var(--hd-primary);
+}
+#modal .hd-browser-advanced {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hd-border);
+    font-size: 12px;
+    color: var(--hd-text-soft);
+}
+#modal .hd-browser-advanced summary,
+#modal .hd-browser-fallback summary {
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--hd-text-soft);
+}
+#modal .hd-browser-advanced select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 6px 0 10px;
+}
+#modal .hd-browser-advanced-content {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+    overflow-wrap: anywhere;
+}
+#modal .hd-browser-advanced-content p { margin: 0; }
+#modal .hd-browser-card .hd-browser-stage {
+    margin: 14px 0 0 !important;
+    width: 100%;
+}
+#modal .hd-browser-card .hd-browser-stage:disabled {
+    background: var(--hd-surface-3) !important;
+    border-color: var(--hd-border) !important;
+    color: var(--hd-text-muted) !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}
+#modal .hd-browser-note { margin-top: 8px; }
+#modal .hd-browser-fallback {
+    margin-top: 14px;
+    padding: 12px 0;
+}
+#modal .hd-browser-fallback .hd-browser-card { margin-top: 12px; }
+@media (max-width: 480px) {
+    #modal .hd-browser-card { padding: 14px; }
+}
+
 </style>
 
 <link
@@ -825,6 +1033,11 @@ input {
 </header>
 
 <main>
+{% if local_only %}
+<div class="hd-rich-section" role="status" style="margin:0 0 12px;padding:10px 14px;color:var(--hd-text-soft);font-size:13px">
+    <strong>Local-only mode</strong> · Automated HackDex requests are disabled. Existing catalog data, permitted cached patches and official website imports remain available.
+</div>
+{% endif %}
 
 <section class="hd-dashboard-hero">
     <div class="hd-dashboard-hero-copy">
@@ -1530,13 +1743,12 @@ function coverMarkup(item) {
 
 
 function readinessFor(item) {
-    return (
-        readiness[item.slug]
-        || {
-            status: "NOT_CHECKED",
-            obtain_enabled: false,
-        }
-    );
+    const state = readiness[item.slug] || {status: "NOT_CHECKED", obtain_enabled: false};
+    return {
+        ...state,
+        obtain_enabled: state.obtain_enabled === true && item.direct_download_allowed === true,
+        browser_import_enabled: state.browser_import_enabled === true,
+    };
 }
 
 
@@ -1727,9 +1939,7 @@ async function checkReadinessOnDemand(
         else {
             readiness[slug] = {
                 ...directResult,
-                obtain_enabled:
-                    directResult.status
-                    === "READY",
+                obtain_enabled: directResult.status === "READY" && directResult.obtain_enabled !== false,
             };
         }
 
@@ -2545,16 +2755,10 @@ function render() {
             const ready =
                 readinessFor(item);
 
-            const enabled =
-                ready.obtain_enabled
-                === true;
+            const browserOnly = ready.browser_import_enabled && !ready.obtain_enabled;
+            const enabled = ready.obtain_enabled || browserOnly;
 
-            const primaryAction =
-                item.library_status === "UPDATE_AVAILABLE"
-                    ? "Update"
-                    : item.library_status === "OWNED"
-                        ? "Reinstall"
-                        : "Download";
+            const primaryAction = obtainActionLabel(item.library_status, browserOnly, item.patches_download_permission, item.upstream_access_enabled);
 
             const unavailableAction =
                 item.library_status === "UPDATE_AVAILABLE"
@@ -2718,7 +2922,7 @@ function render() {
                                 "
                                 title="${
                                     enabled
-                                    ? "Validated and ready"
+                                    ? (browserOnly ? "Open details to patch on the HackDex website" : "Ready to stage")
                                     : "Not currently ready"
                                 }"
                             >
@@ -3804,6 +4008,101 @@ function richCommunityMarkup(item) {
 }
 
 
+
+function obtainActionLabel(status, viaHackDex, permission, upstreamAccess) {
+    if (viaHackDex && upstreamAccess === false && ["All", "Current"].includes(permission)) {
+        return status === "UPDATE_AVAILABLE" ? "Update via HackDex" : status === "OWNED" ? "Reinstall via HackDex" : "Get ROM via HackDex";
+    }
+    if (viaHackDex && !["None", "All", "Current"].includes(permission)) return "Check availability";
+    if (status === "UPDATE_AVAILABLE") return viaHackDex ? "Update via HackDex" : "Update";
+    if (status === "OWNED") return viaHackDex ? "Reinstall via HackDex" : "Reinstall";
+    return viaHackDex ? "Get ROM via HackDex" : "Download";
+}
+
+function browserWorkflowMarkup(item, ready, browserOnly) {
+    const target = escapeHtml(item.latest_version || "Unknown");
+    const isUpdate = item.library_status === "UPDATE_AVAILABLE";
+    const heading = isUpdate ? "Update available" : item.library_status === "OWNED" ? "Reinstall ROM" : "Get this ROM";
+    const platformExtensions = {GB: ".gb", GBC: ".gbc", GBA: ".gba", NDS: ".nds"};
+    const extension = platformExtensions[String(item.platform || "").toUpperCase()] || ".gb,.gbc,.gba,.nds";
+    return `
+        <section class="hd-rich-section hd-browser-card" aria-label="Patch on HackDex">
+            <div class="hd-rich-section-title">ROM installation</div>
+            <h3>${heading}</h3>
+            <div class="hd-browser-method">${browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex · Direct downloads disabled" : !["All", "Current"].includes(item.patches_download_permission) ? "Download permission not yet known" : (item.upstream_access_enabled === false ? "Local-only mode · No permitted cached patch" : "Patch on HackDex · Direct download not available")) : "Patch on HackDex · Alternative to automatic download"}</div>
+            ${browserOnly && !["None", "All", "Current"].includes(item.patches_download_permission) ? '<p class="hd-browser-note">Permission metadata is not available. A catalog refresh requires authorized upstream access. You can still use the official patcher below.</p>' : ""}
+            <div class="hd-browser-versions">
+                ${item.installed_version ? `<span>Installed <strong>${escapeHtml(item.installed_version)}</strong></span><span aria-hidden="true">→</span>` : ""}
+                <span>Version <strong class="hd-browser-version-target">${target}</strong></span>
+            </div>
+            <div class="hd-browser-steps">
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">1</span>
+                    <div>
+                        <strong>Patch on HackDex</strong>
+                        <p>Select version ${target} using your verified ${escapeHtml(formatBaseRomName(ready.base_key || item.base_rom) || "original")} base ROM.</p>
+                        <a class="hd-browser-link" href="https://www.hackdex.app/hack/${encodeURIComponent(item.slug)}" target="_blank" rel="noopener noreferrer">Open official patcher <span aria-hidden="true">↗</span></a>
+                    </div>
+                </div>
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">2</span>
+                    <div>
+                        <label class="hd-browser-step-title" for="browser-rom">Choose the finished ROM</label>
+                        <p>Select the ${escapeHtml(extension.includes(",") ? "raw ROM" : extension + " file")} saved by the official patcher.</p>
+                        <input class="hd-browser-file" id="browser-rom" type="file" accept="${extension}">
+                    </div>
+                </div>
+                <div class="hd-browser-step">
+                    <span class="hd-browser-step-number" aria-hidden="true">3</span>
+                    <div>
+                        <strong>Confirm and stage</strong>
+                        <label class="hd-browser-confirm" for="browser-confirm">
+                            <input id="browser-confirm" type="checkbox">
+                            <span>I confirm this is the ROM generated by HackDex for version ${target}.</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="obtain-button hd-browser-stage" id="browser-stage" disabled
+                onclick="stageObtain('${escapeHtml(item.slug)}', true)">Stage ROM</button>
+            <p class="hd-browser-note">No library changes until installation. Original ROMs are backed up; back up saves separately.</p>
+            <details class="hd-browser-advanced">
+                <summary>Advanced options &amp; patch details</summary>
+                <div class="hd-browser-advanced-content">
+                    ${browserOnly ? `
+                    <label for="obtain-format">Output format</label>
+                    <select id="obtain-format">
+                        <option value="">Use Settings default</option>
+                        <option value="7z">7z Archive (.7z)</option>
+                        <option value="zip">ZIP Archive (.zip)</option>
+                        <option value="raw">Raw ROM</option>
+                    </select>` : "<p>Uses the output format selected above.</p>"}
+                    <p><strong>Base ROM:</strong> ${escapeHtml(ready.base_key || item.base_rom || "Unknown")}</p>
+                    <p><strong>Patch:</strong> ${escapeHtml(ready.patch_filename || "Unknown")}</p>
+                    <p><strong>Direct download permission:</strong> ${escapeHtml(item.patches_download_permission || "Unknown")}</p>
+                    ${item.local_filename ? `<p><strong>Current library file:</strong> ${escapeHtml(item.local_filename)}</p>` : ""}
+                    <p>Imported ROMs receive structural and SHA-256 integrity checks. The patch and version are not independently verified; your confirmation identifies the release. Versioned filenames may require renaming or moving emulator saves.</p>
+                </div>
+            </details>
+            ${browserOnly ? '<div id="obtain-result" class="obtain-result" role="status" aria-live="polite"></div>' : ""}
+        </section>
+    `;
+}
+
+function bindBrowserImportControls() {
+    const file = document.getElementById("browser-rom");
+    const confirmation = document.getElementById("browser-confirm");
+    const stage = document.getElementById("browser-stage");
+    if (!file || !confirmation || !stage) return;
+    const sync = () => {
+        stage.disabled = !file.files?.[0] || !confirmation.checked;
+    };
+    file.addEventListener("change", sync);
+    confirmation.addEventListener("change", sync);
+    sync();
+}
+
+
 function openDetails(
     slug,
     skipReadinessCheck = false,
@@ -3842,9 +4141,9 @@ function openDetails(
         item.library_status
         === "UPDATE_AVAILABLE";
 
-const enabled =
-        ready.obtain_enabled
-        === true;
+    const browserEnabled = ready.browser_import_enabled === true;
+    const enabled = ready.obtain_enabled === true;
+    const browserOnly = browserEnabled && !enabled;
 
     const modal =
         document.getElementById(
@@ -3965,9 +4264,7 @@ const enabled =
                         "
                     >
                         ${escapeHtml(
-                            readinessLabel(
-                                ready.status
-                            )
+                            browserOnly ? (item.patches_download_permission === "None" ? "Patch on HackDex" : !["All", "Current"].includes(item.patches_download_permission) ? "Permission unknown" : item.upstream_access_enabled === false ? "Local-only mode" : "Patch on HackDex") : readinessLabel(ready.status)
                         )}
                     </span>
 
@@ -3977,6 +4274,8 @@ const enabled =
                 <div class="hd-rich-source">
                     Metadata from HackDex
                 </div>
+
+                ${browserOnly ? browserWorkflowMarkup(item, ready, true) : ""}
 
                 ${richFactsMarkup(item)}
 
@@ -4148,6 +4447,7 @@ const enabled =
 
 
 
+                ${!browserOnly ? `
                 ${updateMarkup(
                     item
                 )}
@@ -4244,8 +4544,7 @@ const enabled =
                         </select>
 
                         <div class="obtain-help">
-                            The raw patched ROM is
-                            verified before packaging.
+                            The raw patched ROM is verified before packaging.
                         </div>
 
                     </section>
@@ -4263,6 +4562,7 @@ const enabled =
 
                     <button
                         type="button"
+                        id="direct-stage"
                         class="obtain-button"
                         ${enabled
                             ? ""
@@ -4301,6 +4601,14 @@ const enabled =
 
                 </div>
 
+                ${browserEnabled ? `
+                    <details class="hd-browser-fallback">
+                        <summary>Patch on HackDex instead</summary>
+                        ${browserWorkflowMarkup(item, ready, false)}
+                    </details>` : ""}
+
+                ` : ""}
+
             </section>
 
         </div>
@@ -4313,6 +4621,8 @@ const enabled =
         )
         .style
         .display = "flex";
+
+    bindBrowserImportControls();
 
     /*
      * Decide whether the About text needs expansion only after
@@ -4427,9 +4737,7 @@ function obtainHack(slug) {
 }
 
 
-async function stageObtain(slug) {
-    const ready =
-        readiness[slug];
+async function stageObtain(slug, browserImport=false) {
 
     const item =
         catalog.find(
@@ -4442,11 +4750,19 @@ async function stageObtain(slug) {
         && item.library_status
             === "UPDATE_AVAILABLE";
 
-    if (
-        !ready
-        || ready.status !== "READY"
-    ) {
-        return;
+    const ready = item && readinessFor(item);
+    if (!ready || (browserImport ? !ready.browser_import_enabled : !ready.obtain_enabled)) return;
+    let file = null;
+    if (browserImport) {
+        file = document.getElementById("browser-rom")?.files?.[0];
+        if (!file || !document.getElementById("browser-confirm")?.checked) {
+            alert("Choose the finished ROM and confirm the target version.");
+            return;
+        }
+        if (file.size > 512 * 1024 * 1024 || !/\.(gb|gbc|gba|nds)$/i.test(file.name)) {
+            alert("Choose a raw ROM file no larger than 512 MiB.");
+            return;
+        }
     }
 
     const selector =
@@ -4465,16 +4781,13 @@ async function stageObtain(slug) {
         : "";
 
     const button =
-        document.querySelector(
-            ".modal-content "
-            + ".obtain-button"
-        );
+        document.getElementById(browserImport ? "browser-stage" : "direct-stage");
 
-    if (button) {
-        button.disabled = true;
-        button.textContent =
-            "Staging...";
-    }
+    const stageButtons = [document.getElementById("browser-stage"), document.getElementById("direct-stage")].filter(Boolean);
+    const priorDisabled = stageButtons.map(b => b.disabled);
+    if (stageButtons.some((b, i) => b.textContent === "Staging..." && priorDisabled[i])) return;
+    stageButtons.forEach(b => b.disabled = true);
+    if (button) button.textContent = "Staging...";
 
     if (resultBox) {
         resultBox.className =
@@ -4482,7 +4795,7 @@ async function stageObtain(slug) {
         resultBox.style.display =
             "block";
         resultBox.textContent =
-            isUpdate
+            browserImport ? "Checking and packaging browser output..." : isUpdate
             ? (
                 "Building and verifying "
                 + "updated ROM..."
@@ -4497,23 +4810,21 @@ async function stageObtain(slug) {
         let url =
             "/api/obtain/"
             + encodeURIComponent(slug)
-            + "/stage";
+            + (browserImport ? "/browser-import" : "/stage");
 
-        if (format) {
-            url +=
-                "?output_format="
-                + encodeURIComponent(
-                    format
-                );
+        const query = new URLSearchParams();
+        if (format) query.set("output_format", format);
+        if (browserImport) {
+            query.set("patch_identity", item.patch_identity);
+            query.set("confirmed", "true");
         }
+        if (query.toString()) url += "?" + query.toString();
 
-        const response =
-            await fetch(
-                url,
-                {
-                    method: "POST",
-                }
-            );
+        const response = await fetch(url, browserImport ? {
+            method: "POST",
+            headers: {"Content-Type": "application/octet-stream"},
+            body: file,
+        } : {method: "POST"});
 
         const rawResponse =
             await response.text();
@@ -4537,6 +4848,12 @@ async function stageObtain(slug) {
         }
 
         if (!data.success) {
+            if (!browserImport && ["BROWSER_REQUIRED", "PATCH_DOWNLOAD_UNAVAILABLE"].includes(data.status)) {
+                // Upstream remains authoritative even when cached permissions allow downloads.
+                // Reveal the existing manual workflow; do not retry or open the site automatically.
+                const fallback = document.querySelector("#modal .hd-browser-fallback");
+                if (fallback) fallback.open = true;
+            }
             throw new Error(
                 data.message
                 || data.status
@@ -4556,7 +4873,7 @@ async function stageObtain(slug) {
 
             resultBox.innerHTML = `
                 <strong>
-                    Staged & verified
+                    ${browserImport ? "Browser import staged (version user-confirmed)" : "Staged & verified"}
                 </strong>
 
                 <br><br>
@@ -4645,11 +4962,8 @@ async function stageObtain(slug) {
         }
 
     } finally {
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                "Stage Download";
-        }
+        stageButtons.forEach((b, i) => b.disabled = priorDisabled[i]);
+        if (button) button.textContent = browserImport ? "Stage ROM" : "Stage Download";
     }
 }
 
@@ -5085,9 +5399,9 @@ async function installStaged(
             resultBox.innerHTML = `
                 <strong>
                     ${
-                        data.updated
-                        ? "Updated & verified"
-                        : "Installed & verified"
+                        data.source === "browser_import"
+                        ? (data.updated ? "Browser-import update installed" : "Browser import installed")
+                        : (data.updated ? "Updated & verified" : "Installed & verified")
                     }
                 </strong>
 
@@ -5119,6 +5433,7 @@ async function installStaged(
 
                 <br><br>
 
+                ${data.source === "browser_import" ? "Output integrity checked; version was user-confirmed.<br>" : ""}
                 Library scan and matching
                 completed successfully.
             `;

@@ -7,6 +7,10 @@ from uuid import uuid4
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Request
+from starlette.concurrency import run_in_threadpool
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from platform_paths import staging_dir
 from fastapi.responses import (
     HTMLResponse,
     PlainTextResponse,
@@ -19,9 +23,11 @@ from desktop_api import router as desktop_router
 from catalog import get_catalog, get_catalog_stats
 from update_service import get_update_status
 from hackdex_provider import sync_catalog
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 from matcher import run_matching
 from obtain_staging import stage_obtain
 from obtain_install import install_staged
+from install_identity import bind_installed_rom
 from patch_readiness import (
     check_hack_readiness,
     readiness_details,
@@ -496,6 +502,14 @@ async def hackdex_request_logging(
 Base.metadata.create_all(
     bind=engine
 )
+
+# Existing SQLite installations need an additive migration; create_all does not alter tables.
+with engine.begin() as connection:
+    columns = {row[1] for row in connection.exec_driver_sql("PRAGMA table_info(hacks)")}
+    if "patches_download_permission" not in columns:
+        connection.exec_driver_sql(
+            "ALTER TABLE hacks ADD COLUMN patches_download_permission VARCHAR"
+        )
 
 ensure_default_locations()
 
@@ -1147,7 +1161,10 @@ def startup():
         "configured for 6 hours."
     )
 
-    start_background_catalog_bootstrap()
+    if upstream_enabled():
+        start_background_catalog_bootstrap()
+    else:
+        logger.info(LOCAL_ONLY_MESSAGE)
     start_background_scan()
     start_background_base_rom_bootstrap()
 
@@ -1505,95 +1522,20 @@ def api_install_obtain(
             + str(exc)
         )
 
-    #
-    # Explicitly bind the ROM we just created.
-    # HackDex Manager knows this identity exactly,
-    # so fuzzy matching should not be required.
-    #
+    # The installed identity is authoritative. Preserve it across future
+    # matching runs rather than immediately recalculating every library match.
     db = SessionLocal()
-
     try:
-        hack = (
-            db.query(Hack)
-            .filter(
-                Hack.slug == hack_slug
-            )
-            .first()
-        )
-
-        rom = (
-            db.query(Rom)
-            .filter(
-                Rom.filename
-                == result.get("filename")
-            )
-            .order_by(
-                Rom.id.desc()
-            )
-            .first()
-        )
-
-        if hack is None:
-            warnings.append(
-                "Installed hack could not "
-                "be found in catalog."
-            )
-
-        elif rom is None:
-            warnings.append(
-                "Installed ROM could not "
-                "be found after scan."
-            )
-
-        else:
-            rom.hackdex_slug = (
-                hack.slug
-            )
-
-            rom.latest_version = (
-                hack.latest_version
-            )
-
-            rom.installed_version = (
-                hack.latest_version
-            )
-
-            rom.status = "CURRENT"
-
-            db.commit()
-
-            result["rom_bound"] = True
-            result["rom_id"] = rom.id
-
+        result["rom_id"] = bind_installed_rom(db, hack_slug, result)
+        result["rom_bound"] = True
+        result["matching_complete"] = True
     except Exception as exc:
         db.rollback()
-
         result["rom_bound"] = False
-
-        warnings.append(
-            "Ownership binding failed: "
-            + str(exc)
-        )
-
+        result["matching_complete"] = False
+        warnings.append("Ownership binding failed: " + str(exc))
     finally:
         db.close()
-
-    #
-    # Run normal matching afterward for the
-    # rest of the library. Failure here also
-    # must not invalidate a successful install.
-    #
-    try:
-        run_matching()
-        result["matching_complete"] = True
-
-    except Exception as exc:
-        result["matching_complete"] = False
-
-        warnings.append(
-            "Library matching failed: "
-            + str(exc)
-        )
 
     result["warnings"] = warnings
 
@@ -1611,6 +1553,44 @@ def api_stage_obtain(
         hack_slug,
         output_format=output_format,
     )
+
+
+@app.post("/api/obtain/{hack_slug}/browser-import")
+async def api_browser_import(
+    request: Request,
+    hack_slug: str,
+    patch_identity: str,
+    confirmed: bool = False,
+    output_format: str | None = None,
+):
+    # Raw body avoids multipart dependency; bound disk usage and never trust a client path.
+    limit = 512 * 1024 * 1024
+    if not confirmed or len(patch_identity) != 64:
+        return {"success": False, "message": "Confirm the official browser output and target version."}
+    if request.headers.get("content-type", "").split(";")[0].lower() != "application/octet-stream":
+        return {"success": False, "message": "Upload a raw ROM file."}
+    try:
+        declared = request.headers.get("content-length")
+        if declared and int(declared) > limit:
+            return {"success": False, "message": "ROM exceeds the 512 MiB import limit."}
+        with TemporaryDirectory(prefix="browser-import-", dir=staging_dir()) as temp:
+            path = Path(temp) / "input.rom"
+            size = 0
+            with path.open("wb") as handle:
+                async for chunk in request.stream():
+                    size += len(chunk)
+                    if size > limit:
+                        return {"success": False, "message": "ROM exceeds the 512 MiB import limit."}
+                    handle.write(chunk)
+            if not size:
+                return {"success": False, "message": "No ROM data was uploaded."}
+            return await run_in_threadpool(
+                stage_obtain, hack_slug, output_format,
+                browser_rom=path, expected_patch_identity=patch_identity,
+            )
+    except Exception:
+        request_logger.exception("Browser import failed")
+        return {"success": False, "message": "Could not import the ROM. Check staging storage and try again."}
 
 
 @app.get("/api/readiness/details")
@@ -2512,20 +2492,12 @@ def api_setup_initialize():
             update_setup_progress(
                 running=False,
                 phase="FAILED",
-                message=(
-                    "HackDex catalog synchronization "
-                    "did not complete."
-                ),
+                message=catalog_result.get("message") or "Catalog synchronization failed.",
                 percent=14,
-                error=(
-                    "Catalog synchronization failed."
-                ),
+                error=catalog_result.get("message") or "Catalog synchronization failed.",
             )
 
-            result["message"] = (
-                "HackDex catalog synchronization "
-                "did not complete."
-            )
+            result["message"] = catalog_result.get("message") or "Catalog synchronization failed."
 
             return result
 
@@ -2664,7 +2636,7 @@ def dashboard(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={},
+        context={"local_only": not upstream_enabled()},
     )
 
 

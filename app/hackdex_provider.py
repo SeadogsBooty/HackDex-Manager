@@ -1,4 +1,5 @@
 from version import APP_USER_AGENT
+from hackdex_access import upstream_enabled, LOCAL_ONLY_MESSAGE
 import json
 import os
 from datetime import datetime
@@ -78,6 +79,8 @@ def parse_datetime(value):
 
 class HackDexSupabaseProvider:
     def __init__(self):
+        if not upstream_enabled():
+            raise RuntimeError(LOCAL_ONLY_MESSAGE)
         self.url = (
             os.environ.get(
                 "HACKDEX_SUPABASE_URL"
@@ -149,7 +152,7 @@ class HackDexSupabaseProvider:
             "hacks",
             (
                 "slug,title,summary,description,"
-                "base_rom,box_art,current_patch,"
+                "base_rom,box_art,current_patch,patches_download_permission,"
                 "custom_version_name,completion_status,"
                 "original_author,approved,is_archive,"
                 "language,social_links,created_by,"
@@ -418,6 +421,7 @@ def build_catalog():
                 "cover_url": cover_url,
                 "approved": True,
                 "is_archive": False,
+                "patches_download_permission": hack.get("patches_download_permission"),
                 "current_patch": (
                     str(current_patch_id)
                     if current_patch_id is not None
@@ -529,6 +533,7 @@ DATABASE_CATALOG_FIELDS = (
     "latest_version",
     "completion_status",
     "cover_url",
+    "patches_download_permission",
     "current_patch",
     "current_patch_filename",
     "current_patch_bucket",
@@ -563,6 +568,7 @@ MATCHING_CATALOG_FIELDS = (
 READINESS_CATALOG_FIELDS = (
     "slug",
     "base_rom",
+    "patches_download_permission",
     "current_patch",
     "current_patch_filename",
     "current_patch_bucket",
@@ -908,6 +914,7 @@ def import_catalog(rows):
             hack.approved = True
             hack.is_archive = False
 
+            hack.patches_download_permission = item.get("patches_download_permission")
             hack.current_patch = (
                 item["current_patch"]
             )
@@ -970,6 +977,21 @@ def import_catalog(rows):
 
 
 def sync_catalog():
+    if not upstream_enabled():
+        # Preserve the existing database; a missing network response must never
+        # deactivate local catalog rows or advance the last-sync timestamp.
+        db = SessionLocal()
+        try:
+            count = db.query(Hack).filter(Hack.approved.is_(True), Hack.is_archive.is_(False)).count()
+        finally:
+            db.close()
+        return {
+            "success": count > 0, "source": "local-only", "imported": count,
+            "changed": False, "cache_changed": False, "database_changed": False,
+            "matching_changed": False, "readiness_changed": False,
+            "message": LOCAL_ONLY_MESSAGE if count else
+                LOCAL_ONLY_MESSAGE + " No existing catalog is available; initial catalog setup requires authorized access.",
+        }
     try:
         rows = build_catalog()
 
