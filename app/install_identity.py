@@ -32,9 +32,9 @@ def bind_installed_rom(db, hack_slug, result):
     rom.size = destination.stat().st_size
     rom.sha256 = result.get("sha256")
     rom.sha1 = None
-    db.query(HackMatch).filter(HackMatch.rom_id == rom.id).delete(synchronize_session=False)
-    db.query(ReviewDecision).filter(ReviewDecision.rom_id == rom.id).delete(synchronize_session=False)
-    db.query(VersionDecision).filter(VersionDecision.rom_id == rom.id).delete(synchronize_session=False)
+    db.query(HackMatch).filter(HackMatch.rom_id == rom.id).delete(synchronize_session="fetch")
+    db.query(ReviewDecision).filter(ReviewDecision.rom_id == rom.id).delete(synchronize_session="fetch")
+    db.query(VersionDecision).filter(VersionDecision.rom_id == rom.id).delete(synchronize_session="fetch")
     db.add(HackMatch(hack_slug=hack.slug, rom_id=rom.id, match_score=100.0,
                      match_method="installed", confirmed=True))
     db.commit()

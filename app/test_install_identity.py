@@ -1,5 +1,7 @@
 import tempfile
 import unittest
+import warnings
+from sqlalchemy.exc import SAWarning
 from pathlib import Path
 from unittest.mock import patch
 from sqlalchemy import create_engine
@@ -40,7 +42,16 @@ class InstallIdentityTests(unittest.TestCase):
                                  match_method="auto:identity-v2.1", confirmed=True))
                 db.commit()
                 new_id = new.id
-                with patch("install_identity.configured_rom_root", return_value=root):
+                # Reconciliation can already have loaded the old suggestion.
+                # SQLite may reuse its primary key after the delete.
+                suggestion = HackMatch(hack_slug="grape", rom_id=new_id,
+                                       match_score=90.0, match_method="auto:identity-v2.1",
+                                       confirmed=False)
+                db.add(suggestion)
+                db.commit()
+                loaded = db.query(HackMatch).filter(HackMatch.rom_id == new_id).one()
+                with patch("install_identity.configured_rom_root", return_value=root), warnings.catch_warnings():
+                    warnings.simplefilter("error", SAWarning)
                     self.assertEqual(bind_installed_rom(db, "grape", {
                         "destination": str(destination), "platform": "GB", "target_version": "Final 1.7",
                         "sha256": "test-hash"}), new_id)
